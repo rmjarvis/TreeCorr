@@ -39,7 +39,12 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.napoleon',
+    'sphinx.ext.intersphinx',
 ]
+
+intersphinx_mapping = {
+    'coord': ('https://lsstdesc.org/Coord/_build/html/', None),
+}
 
 # cf. http://stackoverflow.com/questions/2701998/sphinx-autodoc-is-not-automatic-enough
 #autosummay_generate = True

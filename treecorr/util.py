@@ -400,11 +400,12 @@ def parse_xyzsep(args, kwargs, _coords):
         :param dec:     The declination of the location for which to count nearby points.
         :param sep:     The separation distance as an angle
 
-    For all angle parameters (ra, dec, sep), this quantity may be a coord.Angle instance, or
+    For all angle parameters (ra, dec, sep), this quantity may be a
+    :class:`coord.Angle` instance, or
     units maybe be provided as ra_units, dec_units or sep_units respectively.
 
-    Finally, in cases where ra, dec are allowed, a coord.CelestialCoord instance may be
-    provided as the first argument.
+    Finally, in cases where ra, dec are allowed, a :class:`coord.CelestialCoord` instance
+    may be provided as the first argument.
 
     :returns: The effective (x, y, z, sep) as a tuple.
     """

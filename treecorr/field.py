@@ -146,10 +146,14 @@ class Field(object):
         3. For spherical coordinates:
 
         Parameters:
-            ra (float or Angle):    The right ascension of the target location
-            dec (float or Angle):   The declination of the target location
-            c (CelestialCoord):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
-            sep (float or Angle):   The separation distance
+            ra (float or :class:`coord.Angle`):
+                                    The right ascension of the target location
+            dec (float or :class:`coord.Angle`):
+                                    The declination of the target location
+            c (:class:`coord.CelestialCoord`):
+                                    A ``CelestialCoord`` object in lieu of (ra, dec)
+            sep (float or :class:`coord.Angle`):
+                                    The separation distance
             ra_units (str):         The units of ra if given as a float
             dec_units (str):        The units of dec if given as a float
             sep_units (str):        The units of sep if given as a float
@@ -157,9 +161,12 @@ class Field(object):
         4. For spherical coordinates with distances:
 
         Parameters:
-            ra (float or Angle):    The right ascension of the target location
-            dec (float or Angle):   The declination of the target location
-            c (CelestialCoord):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
+            ra (float or :class:`coord.Angle`):
+                                    The right ascension of the target location
+            dec (float or :class:`coord.Angle`):
+                                    The declination of the target location
+            c (:class:`coord.CelestialCoord`):
+                                    A ``CelestialCoord`` object in lieu of (ra, dec)
             r (float):              The distance to the target location
             sep (float):            The separation distance
             ra_units (str):         The units of ra if given as a float
@@ -170,7 +177,7 @@ class Field(object):
         or sep_units respectively to specify which angular units are providing.
 
         Finally, in cases where ra, dec are allowed, you may instead provide a
-        ``coord.CelestialCoord`` instance as the first argument to specify both RA and Dec.
+        :class:`coord.CelestialCoord` instance as the first argument to specify both RA and Dec.
         """
         if self.min_size == 0:
             # If min_size = 0, then regular method is already exact.
@@ -214,10 +221,14 @@ class Field(object):
         3. For spherical coordinates:
 
         Parameters:
-            ra (float or Angle):    The right ascension of the target location
-            dec (float or Angle):   The declination of the target location
-            c (CelestialCoord):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
-            sep (float or Angle):   The separation distance
+            ra (float or :class:`coord.Angle`):
+                                    The right ascension of the target location
+            dec (float or :class:`coord.Angle`):
+                                    The declination of the target location
+            c (:class:`coord.CelestialCoord`):
+                                    A ``CelestialCoord`` object in lieu of (ra, dec)
+            sep (float or :class:`coord.Angle`):
+                                    The separation distance
             ra_units (str):         The units of ra if given as a float
             dec_units (str):        The units of dec if given as a float
             sep_units (str):        The units of sep if given as a float
@@ -225,9 +236,12 @@ class Field(object):
         4. For spherical coordinates with distances:
 
         Parameters:
-            ra (float or Angle):    The right ascension of the target location
-            dec (float or Angle):   The declination of the target location
-            c (CelestialCoord):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
+            ra (float or :class:`coord.Angle`):
+                                    The right ascension of the target location
+            dec (float or :class:`coord.Angle`):
+                                    The declination of the target location
+            c (:class:`coord.CelestialCoord`):
+                                    A ``CelestialCoord`` object in lieu of (ra, dec)
             r (float):              The distance to the target location
             sep (float):            The separation distance
             ra_units (str):         The units of ra if given as a float
@@ -238,7 +252,7 @@ class Field(object):
         or sep_units respectively to specify which angular units are providing.
 
         Finally, in cases where ra, dec are allowed, you may instead provide a
-        ``coord.CelestialCoord`` instance as the first argument to specify both RA and Dec.
+        :class:`coord.CelestialCoord` instance as the first argument to specify both RA and Dec.
         """
         x,y,z,sep = parse_xyzsep(args, kwargs, self._coords)
         if self.min_size == 0:

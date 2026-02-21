@@ -2153,7 +2153,8 @@ class Corr3(object):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
-            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
+            comm (:class:`mpi4py.MPI.Comm`):
+                                If running MPI, a ``Comm`` object to communicate between
                                 processes.  If used, the rank=0 process will have the final
                                 computation. This only works if using patches. (default: None)
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
@@ -2764,7 +2765,8 @@ class Corr3(object):
             func (function):    A unary function that acts on the current correlation object and
                                 returns the desired data vector. (default: None, which is
                                 equivalent to ``lambda corr: corr.getStat()``)
-            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+            comm (:class:`mpi4py.MPI.Comm`):
+                                If using MPI, a ``Comm`` object to communicate between
                                 processes.  (default: None)
             num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                                 'marked_bootstrap' var_methods.  (default: 500; this value
@@ -2819,7 +2821,8 @@ class Corr3(object):
             func (function):    A unary function that acts on the current correlation object and
                                 returns the desired data vector. (default: None, which is
                                 equivalent to ``lambda corr: corr.getStat()``)
-            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+            comm (:class:`mpi4py.MPI.Comm`):
+                                If using MPI, a ``Comm`` object to communicate between
                                 processes.  (default: None)
             num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                                 'marked_bootstrap' var_methods.  (default: 500; this value

@@ -39,7 +39,15 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.napoleon',
+    'sphinx.ext.intersphinx',
 ]
+
+intersphinx_mapping = {
+    'coord': ('https://lsstdesc.org/Coord/_build/html/', None),
+    'numpy': ('https://numpy.org/doc/stable/', None),
+    'python': ('https://docs.python.org/3', None),
+    'mpi4py': ('https://mpi4py.readthedocs.io/en/stable/', None),
+}
 
 # cf. http://stackoverflow.com/questions/2701998/sphinx-autodoc-is-not-automatic-enough
 #autosummay_generate = True
@@ -130,7 +138,7 @@ def parse_class_attributes_section(self, section):
     return self._format_fields('Class Attributes', self._consume_fields())
 GoogleDocstring._parse_class_attributes_section = parse_class_attributes_section
 
-# we now patch the parse method to guarantee that the the above methods are
+# we now patch the parse method to guarantee that the above methods are
 # assigned to the _section dict
 def patched_parse(self):
     self._sections['keys'] = self._parse_keys_section
@@ -321,7 +329,7 @@ epub_copyright = u'2019, Mike Jarvis'
 # The scheme of the identifier. Typical schemes are ISBN or URL.
 #epub_scheme = ''
 
-# The unique identifier of the text. This can be a ISBN number
+# The unique identifier of the text. This can be an ISBN number
 # or the project homepage.
 #epub_identifier = ''
 
@@ -338,7 +346,7 @@ epub_copyright = u'2019, Mike Jarvis'
 # The format is a list of tuples containing the path and title.
 #epub_pre_files = []
 
-# HTML files shat should be inserted after the pages created by sphinx.
+# HTML files that should be inserted after the pages created by sphinx.
 # The format is a list of tuples containing the path and title.
 #epub_post_files = []
 

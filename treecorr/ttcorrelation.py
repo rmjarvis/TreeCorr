@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: ggcorrelation
+.. module:: ttcorrelation
 """
 
 import numpy as np
@@ -26,7 +26,7 @@ class TTCorrelation(BaseZZCorrelation):
     r"""This class handles the calculation and storage of a 2-point trefoil-trefoil correlation
     function, where a trefoil is any field with spin-3 rotational properties.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class
@@ -54,16 +54,19 @@ class TTCorrelation(BaseZZCorrelation):
     The typical usage pattern is as follows:
 
         >>> tt = treecorr.TTCorrelation(config)
-        >>> tt.process(cat)         # For auto-correlation.
-        >>> tt.process(cat1,cat2)   # For cross-correlation.
-        >>> tt.write(file_name)     # Write out to a file.
-        >>> xip = tt.xip            # Or access the correlation function directly.
+        >>> tt.process(cat)                # Compute the auto-correlation.
+        >>> # tt.process(cat1, cat2)       # ... or the cross-correlation.
+        >>> tt.write(file_name)            # Write out to a file.
+        >>> xip, xim = tt.xip, tt.xim      # Or access the correlation functions directly.
+
+    See also: `NTCorrelation`, `KTCorrelation`, `GGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr2`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:

@@ -28,10 +28,10 @@ class NGCorrelation(BaseNZCorrelation):
     function.  This is the tangential shear profile around lenses, commonly referred to as
     galaxy-galaxy lensing.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
-    In addition to the attributes common to all `Corr3` subclasses, objects of this class
+    In addition to the attributes common to all `Corr2` subclasses, objects of this class
     hold the following attributes:
 
     In addition, the following attributes are numpy arrays of length (nbins):
@@ -47,7 +47,7 @@ class NGCorrelation(BaseNZCorrelation):
 
     .. note::
 
-        The default method for estimating the variance and covariance attributes (``varxi``,
+        The default method for estimating the variance and covariance attributes (``varxi``
         and ``cov``) is 'shot', which only includes the shape noise propagated into
         the final correlation.  This does not include sample variance, so it is always an
         underestimate of the actual variance.  To get better estimates, you need to set
@@ -57,15 +57,18 @@ class NGCorrelation(BaseNZCorrelation):
     The typical usage pattern is as follows:
 
         >>> ng = treecorr.NGCorrelation(config)
-        >>> ng.process(cat1,cat2)   # Compute the cross-correlation.
-        >>> ng.write(file_name)     # Write out to a file.
-        >>> xi = ng.xi              # Or access the correlation function directly.
+        >>> ng.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> ng.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = ng.xi, ng.xi_im    # Or access the correlation function directly.
+
+    See also: `NKCorrelation`, `GGCorrelation`, `NGGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr2`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging.  (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -106,7 +109,14 @@ class NGCorrelation(BaseNZCorrelation):
 
         After calling this function, the attributes ``xi``, ``xi_im``, ``varxi``, and ``cov`` will
         correspond to the compensated values (if rg is provided).  The raw, uncompensated values
-        are available as ``rawxi``, ``raw_xi_im``, and ``raw_varxi``.
+        are available as ``raw_xi``, ``raw_xi_im``, and ``raw_varxi``.
+
+        .. note::
+
+            The returned variance estimate (``varxi``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr2.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rg (NGCorrelation): The cross-correlation using random locations as the lenses
@@ -142,9 +152,9 @@ class NGCorrelation(BaseNZCorrelation):
                         fell into each bin
         gamT            The real part of the mean tangential shear,
                         :math:`\langle \gamma_T \rangle(r)`
-        gamX            The imag part of the mean tangential shear,
+        gamX            The imaginary part of the mean tangential shear,
                         :math:`\langle \gamma_\times \rangle(r)`
-        sigma           The sqrt of the variance estimate of either of these
+        sigma           The sqrt of the variance estimate of each of these
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
         ==========      =============================================================
@@ -159,7 +169,7 @@ class NGCorrelation(BaseNZCorrelation):
                                 (RG), if desired.  (default: None)
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
                                         (default: False)
@@ -203,8 +213,9 @@ class NGCorrelation(BaseNZCorrelation):
         to the derivations of :math:`T_+` and :math:`T_-` in Schneider et al. (2002).
 
         Parameters:
-            R (array):          The R values at which to calculate the aperture mass statistics.
-                                (default: None, which means use self.rnom)
+            R (:class:`numpy.ndarray`):
+                                The R values at which to calculate the aperture mass statistics.
+                                (default: None, which means to use self.rnom)
             rg (NGCorrelation): The cross-correlation using random locations as the lenses
                                 (RG), if desired.  (default: None)
             m2_uform (str):     Which form to use for the aperture mass, as described above.
@@ -257,7 +268,7 @@ class NGCorrelation(BaseNZCorrelation):
 
     def writeNMap(self, file_name, *, R=None, rg=None, m2_uform=None, file_type=None,
                   precision=None):
-        r"""Write the cross correlation of the foreground galaxy counts with the aperture mass
+        r"""Write the cross-correlation of the foreground galaxy counts with the aperture mass
         based on the correlation function to the file, file_name.
 
         If rg is provided, the compensated calculation will be used for :math:`\xi`.
@@ -272,21 +283,22 @@ class NGCorrelation(BaseNZCorrelation):
         R               The radius of the aperture.
         NMap            An estimate of :math:`\langle N_{ap} M_{ap} \rangle(R)`
         NMx             An estimate of :math:`\langle N_{ap} M_\times \rangle(R)`
-        sig_nmap        The sqrt of the variance estimate of either of these
+        sig_nmap        The sqrt of the variance estimate of each of these
         ==========      =========================================================
 
 
         Parameters:
             file_name (str):    The name of the file to write to.
-            R (array):          The R values at which to calculate the aperture mass statistics.
-                                (default: None, which means use self.rnom)
+            R (:class:`numpy.ndarray`):
+                                The R values at which to calculate the aperture mass statistics.
+                                (default: None, which means to use self.rnom)
             rg (NGCorrelation): The cross-correlation using random locations as the lenses
                                 (RG), if desired.  (default: None)
             m2_uform (str):     Which form to use for the aperture mass.  (default: 'Crittenden';
                                 this value can also be given in the constructor in the config dict.)
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing NMap from NG correlations to %s',file_name)
@@ -314,9 +326,9 @@ class NGCorrelation(BaseNZCorrelation):
 
         This function computes these combinations and outputs them to a file.
 
-        - if rg is provided, the compensated calculation will be used for
+        - If rg is provided, the compensated calculation will be used for
           :math:`\langle N_{ap} M_{ap} \rangle`.
-        - if dr is provided, the compensated calculation will be used for
+        - If dr is provided, the compensated calculation will be used for
           :math:`\langle N_{ap}^2 \rangle`.
 
         See `calculateNMap` for an explanation of the ``m2_uform`` parameter.
@@ -329,7 +341,7 @@ class NGCorrelation(BaseNZCorrelation):
         R               The radius of the aperture
         NMap            An estimate of :math:`\langle N_{ap} M_{ap} \rangle(R)`
         NMx             An estimate of :math:`\langle N_{ap} M_\times \rangle(R)`
-        sig_nmap        The sqrt of the variance estimate of either of these
+        sig_nmap        The sqrt of the variance estimate of each of these
         Napsq           An estimate of :math:`\langle N_{ap}^2 \rangle(R)`
         sig_napsq       The sqrt of the variance estimate of :math:`\langle N_{ap}^2 \rangle`
         Mapsq           An estimate of :math:`\langle M_{ap}^2 \rangle(R)`
@@ -346,20 +358,21 @@ class NGCorrelation(BaseNZCorrelation):
             gg (GGCorrelation): The auto-correlation of the shear field
             dd (NNCorrelation): The auto-correlation of the lens counts (DD)
             rr (NNCorrelation): The auto-correlation of the random field (RR)
-            R (array):          The R values at which to calculate the aperture mass statistics.
-                                (default: None, which means use self.rnom)
+            R (:class:`numpy.ndarray`):
+                                The R values at which to calculate the aperture mass statistics.
+                                (default: None, which means to use self.rnom)
             dr (NNCorrelation): The cross-correlation of the data with randoms (DR), if
                                 desired, in which case the Landy-Szalay estimator will be
                                 calculated.  (default: None)
             rd (NNCorrelation): The cross-correlation of the randoms with data (RD), if
-                                desired. (default: None, which means use rd=dr)
+                                desired. (default: None, which means to use rd=dr)
             rg (NGCorrelation): The cross-correlation using random locations as the lenses
                                 (RG), if desired.  (default: None)
             m2_uform (str):     Which form to use for the aperture mass.  (default: 'Crittenden';
                                 this value can also be given in the constructor in the config dict.)
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing Norm from NG correlations to %s',file_name)

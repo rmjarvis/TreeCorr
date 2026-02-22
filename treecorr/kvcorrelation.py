@@ -26,10 +26,10 @@ class KVCorrelation(BaseKZCorrelation):
     r"""This class handles the calculation and storage of a 2-point scalar-vector correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
-    In addition to the attributes common to all `Corr3` subclasses, objects of this class
+    In addition to the attributes common to all `Corr2` subclasses, objects of this class
     hold the following attributes:
 
     Attributes:
@@ -50,15 +50,18 @@ class KVCorrelation(BaseKZCorrelation):
     The typical usage pattern is as follows:
 
         >>> kv = treecorr.KVCorrelation(config)
-        >>> kv.process(cat1,cat2)   # Calculate the cross-correlation
-        >>> kv.write(file_name)     # Write out to a file.
-        >>> xi = kv.xi              # Or access the correlation function directly.
+        >>> kv.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> kv.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = kv.xi, kv.xi_im    # Or access the correlation function directly.
+
+    See also: `NVCorrelation`, `VVCorrelation`, `KZCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr2`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -118,7 +121,7 @@ class KVCorrelation(BaseKZCorrelation):
             file_name (str):    The name of the file to write to.
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
                                         (default: False)

@@ -34,10 +34,10 @@ class NKCorrelation(Corr2):
         correlations of non-shear quantities, e.g. the sizes or concentrations of galaxies, around
         a set of lenses, where "kappa" would be the measurements of these quantities.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
-    In addition to the attributes common to all `Corr3` subclasses, objects of this class
+    In addition to the attributes common to all `Corr2` subclasses, objects of this class
     hold the following attributes:
 
     Attributes:
@@ -59,15 +59,18 @@ class NKCorrelation(Corr2):
     The typical usage pattern is as follows:
 
         >>> nk = treecorr.NKCorrelation(config)
-        >>> nk.process(cat1,cat2)   # Compute the cross-correlation function.
-        >>> nk.write(file_name)     # Write out to a file.
-        >>> xi = nk.xi              # Or access the correlation function directly.
+        >>> nk.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> nk.write(file_name)            # Write out to a file.
+        >>> xi = nk.xi                     # Or access the correlation function directly.
+
+    See also: `NGCorrelation`, `KKCorrelation`, `NKKCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr2`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -159,7 +162,14 @@ class NKCorrelation(Corr2):
 
         After calling this function, the attributes ``xi``, ``varxi`` and ``cov`` will correspond
         to the compensated values (if rk is provided).  The raw, uncompensated values are
-        available as ``rawxi`` and ``raw_varxi``.
+        available as ``raw_xi`` and ``raw_varxi``.
+
+        .. note::
+
+            The returned variance estimate (``varxi``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr2.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rk (NKCorrelation): The cross-correlation using random locations as the lenses (RK),
@@ -235,7 +245,7 @@ class NKCorrelation(Corr2):
                         that fell into each bin
         kappa           The mean value :math:`\langle \kappa\rangle(r)`
         sigma           The sqrt of the variance estimate of
-                        :math:`\langle \kappa\rangle`
+                        :math:`\langle \kappa\rangle(r)`
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
         ==========      =========================================================
@@ -250,7 +260,7 @@ class NKCorrelation(Corr2):
                                 if desired.  (default: None)
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
                                         (default: False)

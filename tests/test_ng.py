@@ -620,7 +620,8 @@ def test_ng():
     print('Time for ng process = ',t1-t0)
 
     # Using nbins=None rather than omitting nbins is equivalent.
-    ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
+    ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None,
+                                 sep_units='arcmin')
     ng2.process(lens_cat, source_cat, num_threads=1)
     assert ng2 == ng
 
@@ -863,7 +864,7 @@ def test_nmap():
     np.testing.assert_allclose(corr2_output['NMap_norm'], nmap_norm, rtol=1.e-3)
     np.testing.assert_allclose(corr2_output['Nsq_Mapsq'], napsq_mapsq, rtol=1.e-3)
 
-    # Also check writing to fits file.
+    # Also check writing to a FITS file.
     # For grins, also check the explicit file_type option (which is rarely necessary)
     try:
         import fitsio
@@ -1393,7 +1394,8 @@ def test_double():
 
     lens_cat1 = treecorr.Catalog(ra=xl1, dec=yl1, ra_units='arcmin', dec_units='arcmin')
     lens_cat2 = treecorr.Catalog(ra=xl2, dec=yl2, ra_units='arcmin', dec_units='arcmin')
-    source_cat = treecorr.Catalog(ra=xs, dec=ys, g1=g1, g2=g2, ra_units='arcmin', dec_units='arcmin')
+    source_cat = treecorr.Catalog(ra=xs, dec=ys, g1=g1, g2=g2,
+                                  ra_units='arcmin', dec_units='arcmin')
     ng1 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',
                                  verbose=1)
     ng2 = treecorr.NGCorrelation(bin_size=0.1, min_sep=1., max_sep=20., sep_units='arcmin',

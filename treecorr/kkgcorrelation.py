@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: nnncorrelation
+.. module:: kkgcorrelation
 """
 
 import numpy as np
@@ -26,14 +26,14 @@ class KKGCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point scalar-scalar-shear correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles
+    See the docstring of `Corr3` for a description of how the triangles
     are binned.
 
     With this class, point 3 of the triangle (i.e. the vertex opposite d3) is the one with the
     shear value.  Use `KGKCorrelation` and `GKKCorrelation` for classes with the shear in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -41,24 +41,28 @@ class KKGCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance estimate, only including the shot noise propagated into the
-                    final correlation.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows::
 
         >>> kkg = treecorr.KKGCorrelation(config)
-        >>> kkg.process(cat1, cat2)       # Compute cross-correlation of two fields.
-        >>> kkg.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> kkg.write(file_name)          # Write out to a file.
-        >>> zeta = kkg.zeta               # Access correlation function.
-        >>> zetar = kkg.zetar             # Or access real and imag parts separately.
+        >>> kkg.process(cat1, cat2)         # Compute the cross-correlation of two fields.
+        >>> # kkg.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> kkg.write(file_name)            # Write out to a file.
+        >>> zeta = kkg.zeta                 # Access the correlation function.
+        >>> zetar = kkg.zetar               # Or access real and imaginary parts separately.
         >>> zetai = kkg.zetai
+
+    See also: `KGKCorrelation`, `GKKCorrelation`, `KGGCorrelation`, `KKKCorrelation`,
+    `KGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -124,7 +128,7 @@ class KKGCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zetar           The real part of the estimator of :math:`\zeta`
-        zetai           The imag part of the estimator of :math:`\zeta`
+        zetai           The imaginary part of the estimator of :math:`\zeta`
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
         """)
 
@@ -147,14 +151,14 @@ class KGKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point scalar-shear-scalar correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles
+    See the docstring of `Corr3` for a description of how the triangles
     are binned.
 
     With this class, point 2 of the triangle (i.e. the vertex opposite d2) is the one with the
     shear value.  Use `KKGCorrelation` and `GKKCorrelation` for classes with the shear in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -162,24 +166,28 @@ class KGKCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance estimate, only including the shot noise propagated into the
-                    final correlation.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows::
 
         >>> kgk = treecorr.KGKCorrelation(config)
-        >>> kgk.process(cat1, cat2, cat1) # Compute cross-correlation of two fields.
-        >>> kgk.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> kgk.write(file_name)          # Write out to a file.
-        >>> zeta = kgk.zeta               # Access correlation function.
-        >>> zetar = kgk.zetar             # Or access real and imag parts separately.
+        >>> kgk.process(cat1, cat2, cat1)   # Compute the cross-correlation of two fields.
+        >>> # kgk.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> kgk.write(file_name)            # Write out to a file.
+        >>> zeta = kgk.zeta                 # Access the correlation function.
+        >>> zetar = kgk.zetar               # Or access real and imaginary parts separately.
         >>> zetai = kgk.zetai
+
+    See also: `KKGCorrelation`, `GKKCorrelation`, `KGGCorrelation`, `KKKCorrelation`,
+    `KGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -245,7 +253,7 @@ class KGKCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zetar           The real part of the estimator of :math:`\zeta`
-        zetai           The imag part of the estimator of :math:`\zeta`
+        zetai           The imaginary part of the estimator of :math:`\zeta`
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
         """)
 
@@ -268,14 +276,14 @@ class GKKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-scalar-scalar correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles
+    See the docstring of `Corr3` for a description of how the triangles
     are binned.
 
     With this class, point 1 of the triangle (i.e. the vertex opposite d1) is the one with the
     shear value.  Use `KGKCorrelation` and `KKGCorrelation` for classes with the shear in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -283,24 +291,28 @@ class GKKCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance estimate, only including the shot noise propagated into the
-                    final correlation.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows::
 
         >>> gkk = treecorr.GKKCorrelation(config)
-        >>> gkk.process(cat1, cat2)       # Compute cross-correlation of two fields.
-        >>> gkk.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> gkk.write(file_name)          # Write out to a file.
-        >>> zeta = gkk.zeta               # Access correlation function.
-        >>> zetar = gkk.zetar             # Or access real and imag parts separately.
+        >>> gkk.process(cat1, cat2)         # Compute the cross-correlation of two fields.
+        >>> # gkk.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> gkk.write(file_name)            # Write out to a file.
+        >>> zeta = gkk.zeta                 # Access the correlation function.
+        >>> zetar = gkk.zetar               # Or access real and imaginary parts separately.
         >>> zetai = gkk.zetai
+
+    See also: `KKGCorrelation`, `KGKCorrelation`, `KGGCorrelation`, `KKKCorrelation`,
+    `KGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -366,7 +378,7 @@ class GKKCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zetar           The real part of the estimator of :math:`\zeta`
-        zetai           The imag part of the estimator of :math:`\zeta`
+        zetai           The imaginary part of the estimator of :math:`\zeta`
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`
         """)
 

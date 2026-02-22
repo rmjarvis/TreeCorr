@@ -30,7 +30,7 @@ class GNNCorrelation(Corr3):
     shear value.  Use `NGNCorrelation` and `NNGCorrelation` for classes with the shear in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -38,27 +38,31 @@ class GNNCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance estimate, only including the shot noise propagated into the
-                    final correlation.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows:
 
         >>> gnn = treecorr.GNNCorrelation(config)
-        >>> gnn.process(cat1, cat2)        # Compute cross-correlation of two fields.
-        >>> gnn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> grr.process(cat1, rand)        # Compute cross-correlation with randoms.
-        >>> gdr.process(cat1, cat2, rand)  # Compute cross-correlation with randoms and data
-        >>> gnn.write(file_name)           # Write out to a file.
-        >>> gnn.calculateZeta(grr=grr, gdr=gdr) # Calculate zeta using randoms
-        >>> zeta = gnn.zeta                # Access correlation function
-        >>> zetar = gnn.zetar              # Or access real and imaginary parts separately
+        >>> gnn.process(cat1, cat2)          # Compute the cross-correlation of two fields.
+        >>> # gnn.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> grr.process(cat1, rand)          # Compute the random cross-correlation.
+        >>> gdr.process(cat1, cat2, rand)    # Optionally compute data-random cross-correlation.
+        >>> gnn.write(file_name)             # Write out to a file.
+        >>> gnn.calculateZeta(grr=grr, gdr=gdr)  # Calculate zeta using randoms.
+        >>> zeta = gnn.zeta                  # Access the correlation function.
+        >>> zetar = gnn.zetar                # Or access real and imaginary parts separately.
         >>> zetai = gnn.zetai
+
+    See also: `NGNCorrelation`, `NNGCorrelation`, `NGGCorrelation`, `NNNCorrelation`,
+    `NGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -160,22 +164,29 @@ class GNNCorrelation(Corr3):
 
     def calculateZeta(self, *, grr=None, gdr=None, grd=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The grr value is the `GNNCorrelation` function for random points with the shear field.
-        One can also provide a cross correlation of the count data with randoms and the shear.
+        One can also provide a cross-correlation of the count data with randoms and the shear.
 
         - If grr is None, the simple correlation function (self.zeta) is returned.
         - If only grr is given the compensated value :math:`\zeta = GDD - GRR` is returned.
-        - if gdr is given and grd is None (or vice versa), then :math:`\zeta = GDD - 2GDR + GRR`
+        - If gdr is given and grd is None (or vice versa), then :math:`\zeta = GDD - 2GDR + GRR`
           is returned.
         - If gdr and grd are both given, then :math:`\zeta = GDD - GDR - GRD + GRR` is returned.
 
-        where GDD is the data GNN correlation function, which is the current object.
+        Here GDD is the data GNN correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr2.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
-        varzeta returned from this function will be available as attributes.
+        After calling this method, you can use this correlation object in the
+        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this
+        function will be available as attributes.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             grr (GNNCorrelation):   The correlation of the random points with the shear field
@@ -299,7 +310,7 @@ class GNNCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zetar           The real part of the estimator of :math:`\zeta`
-        zetai           The imag part of the estimator of :math:`\zeta`
+        zetai           The imaginary part of the estimator of :math:`\zeta`
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`.
         """)
 
@@ -327,7 +338,7 @@ class NGNCorrelation(Corr3):
     shear value.  Use `GNNCorrelation` and `NNGCorrelation` for classes with the shear in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -335,27 +346,31 @@ class NGNCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance estimate, only including the shot noise propagated into the
-                    final correlation.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows:
 
-        >>> ngn = treecorr.GNNCorrelation(config)
-        >>> ngn.process(cat1, cat2, cat1)  # Compute cross-correlation of two fields.
-        >>> ngn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> rgr.process(rand, cat2, rand)  # Compute cross-correlation with randoms.
-        >>> dgr.process(cat1, cat2, rand)  # Compute cross-correlation with randoms and data
-        >>> ngn.write(file_name)           # Write out to a file.
-        >>> ngn.calculateZeta(rgr=rgr, dgr=dgr) # Calculate zeta using randoms
-        >>> zeta = ngn.zeta                # Access correlation function
-        >>> zetar = ngn.zetar              # Or access real and imaginary parts separately
+        >>> ngn = treecorr.NGNCorrelation(config)
+        >>> ngn.process(cat1, cat2, cat1)    # Compute the cross-correlation of two fields.
+        >>> # ngn.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> rgr.process(rand, cat2, rand)    # Compute the random cross-correlation.
+        >>> dgr.process(cat1, cat2, rand)    # Optionally compute data-random cross-correlation.
+        >>> ngn.write(file_name)             # Write out to a file.
+        >>> ngn.calculateZeta(rgr=rgr, dgr=dgr)  # Calculate zeta using randoms.
+        >>> zeta = ngn.zeta                  # Access the correlation function.
+        >>> zetar = ngn.zetar                # Or access real and imaginary parts separately.
         >>> zetai = ngn.zetai
+
+    See also: `GNNCorrelation`, `NNGCorrelation`, `NGGCorrelation`, `NNNCorrelation`,
+    `NGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -458,22 +473,29 @@ class NGNCorrelation(Corr3):
 
     def calculateZeta(self, *, rgr=None, dgr=None, rgd=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The rgr value is the `NGNCorrelation` function for random points with the shear field.
-        One can also provide a cross correlation of the count data with randoms and the shear.
+        One can also provide a cross-correlation of the count data with randoms and the shear.
 
         - If rgr is None, the simple correlation function (self.zeta) is returned.
         - If only rgr is given the compensated value :math:`\zeta = DGD - RGR` is returned.
-        - if dgr is given and rgd is None (or vice versa), then :math:`\zeta = DGD - 2DGR + RGR`
+        - If dgr is given and rgd is None (or vice versa), then :math:`\zeta = DGD - 2DGR + RGR`
           is returned.
         - If dgr and rgd are both given, then :math:`\zeta = DGD - DGR - RGD + RGR` is returned.
 
-        where DGD is the data NGN correlation function, which is the current object.
+        Here DGD is the data NGN correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr2.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
-        varzeta returned from this function will be available as attributes.
+        After calling this method, you can use this correlation object in the
+        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this
+        function will be available as attributes.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rgr (NGNCorrelation):   The correlation of the random points with the shear field
@@ -597,7 +619,7 @@ class NGNCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zetar           The real part of the estimator of :math:`\zeta`
-        zetai           The imag part of the estimator of :math:`\zeta`
+        zetai           The imaginary part of the estimator of :math:`\zeta`
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`.
         """)
 
@@ -625,7 +647,7 @@ class NNGCorrelation(Corr3):
     shear value.  Use `GNNCorrelation` and `NGNCorrelation` for classes with the shear in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -633,27 +655,31 @@ class NNGCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance estimate, only including the shot noise propagated into the
-                    final correlation.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows:
 
         >>> nng = treecorr.NNGCorrelation(config)
-        >>> nng.process(cat1, cat2)        # Compute cross-correlation of two fields.
-        >>> nng.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> rrg.process(rand, cat2)        # Compute cross-correlation with randoms.
-        >>> drg.process(cat1, rand, cat2)  # Compute cross-correlation with randoms and data
-        >>> nng.write(file_name)           # Write out to a file.
-        >>> nng.calculateZeta(rrg=rrg, drg=drg) # Calculate zeta using randoms
-        >>> zeta = nng.zeta                # Access correlation function
-        >>> zetar = nng.zetar              # Or access real and imaginary parts separately
+        >>> nng.process(cat1, cat2)          # Compute the cross-correlation of two fields.
+        >>> # nng.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> rrg.process(rand, cat2)          # Compute the random cross-correlation.
+        >>> drg.process(cat1, rand, cat2)    # Optionally compute data-random cross-correlation.
+        >>> nng.write(file_name)             # Write out to a file.
+        >>> nng.calculateZeta(rrg=rrg, drg=drg)  # Calculate zeta using randoms.
+        >>> zeta = nng.zeta                  # Access the correlation function.
+        >>> zetar = nng.zetar                # Or access real and imaginary parts separately.
         >>> zetai = nng.zetai
+
+    See also: `GNNCorrelation`, `NGNCorrelation`, `NGGCorrelation`, `NNNCorrelation`,
+    `NGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -756,22 +782,29 @@ class NNGCorrelation(Corr3):
 
     def calculateZeta(self, *, rrg=None, drg=None, rdg=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The rrg value is the `NNGCorrelation` function for random points with the shear field.
-        One can also provide a cross correlation of the count data with randoms and the shear.
+        One can also provide a cross-correlation of the count data with randoms and the shear.
 
         - If rrg is None, the simple correlation function (self.zeta) is returned.
         - If only rrg is given the compensated value :math:`\zeta = DDG - RRG` is returned.
-        - if drg is given and rdg is None (or vice versa), then :math:`\zeta = DDG - 2DRG + RRG`
+        - If drg is given and rdg is None (or vice versa), then :math:`\zeta = DDG - 2DRG + RRG`
           is returned.
         - If drg and rdg are both given, then :math:`\zeta = DDG - DRG - RDG + RRG` is returned.
 
-        where DDG is the data NNG correlation function, which is the current object.
+        Here DDG is the data NNG correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr2.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
-        varzeta returned from this function will be available as attributes.
+        After calling this method, you can use this correlation object in the
+        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this
+        function will be available as attributes.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rrg (NNGCorrelation):   The correlation of the random points with the shear field
@@ -895,7 +928,7 @@ class NNGCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         zetar           The real part of the estimator of :math:`\zeta`
-        zetai           The imag part of the estimator of :math:`\zeta`
+        zetai           The imaginary part of the estimator of :math:`\zeta`
         sigma_zeta      The sqrt of the variance estimate of :math:`\zeta`.
         """)
 

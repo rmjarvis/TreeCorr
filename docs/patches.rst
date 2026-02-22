@@ -26,13 +26,14 @@ correlation function:
 4. To run k-means on some data set for non-correlation reasons.
    TreeCorr happens to have an extremely efficient implementation of the
    k-means algorithm.  So if you want to perform k-means clustering on
-   some data that can be represnted in a TreeCorr `Catalog` (i.e.
+   some data that can be represented in a TreeCorr `Catalog` (i.e.
    only 2 or 3 spatial dimensions), then using TreeCorr may be a
    particularly efficient way to do the clustering.
    See `Running K-Means` below.
 
 Below we describe how to split up an input `Catalog` into patches and
 a few things you can do with it once you have done so.
+
 
 Defining Patches on Input
 -------------------------
@@ -43,8 +44,8 @@ is to just tell TreeCorr the patch number for each object explicitly.
 If passing in numpy arrays for everything, then just pass in a ``patch``
 parameter with integer values indicating the patch number.
 
-If reading in data from a file, then set a ``patch_col`` to use which
-should have these values.
+If reading data from a file, set ``patch_col`` to the column that contains
+these values.
 
 The next simplest way to define the patches is to tell TreeCorr how many
 patches you want using ``npatch``.
@@ -57,12 +58,22 @@ where patches are on the sky, you would probably want to have a single
 set of patch centers and have all of your catalogs use that via
 the ``patch_centers`` option.  See `Using Patch Centers` below for details.
 
+.. warning::
+
+    If you are using patches for cross-correlations of multiple catalogs,
+    make sure you only use ``npatch`` on (at most) one of them.
+    If you use ``npatch`` on two catalogs being cross-correlated, then the patch
+    definitions will be different between the two catalogs and the resulting
+    covariance estimates will be wrong.  Rather you should use ``npatch`` on one
+    of the catalogs and copy those definitions to the other catalogs using
+    ``patch_centers``.
+
 
 Running K-Means
 ---------------
 
-One standard way to split up a set of objects into roughly equal area
-patches is an algorithm called
+One standard way to split up a set of objects into roughly equal-area
+patches is to use an algorithm called
 `k-means clustering <https://en.wikipedia.org/wiki/K-means_clustering>`_.
 
 The basic idea of the algorithm is to divide the points :math:`\vec x_j` into
@@ -89,7 +100,7 @@ sky that has objects, so this algorithm is a good choice for dividing up a
 catalog of astronomical objects into fairly uniform patches.
 
 To use the TreeCorr implementation of k-means, simply
-set the ``npatch`` parameter in the `Catalog` constructor to specifiy
+set the ``npatch`` parameter in the `Catalog` constructor to specify
 how many patches you want TreeCorr to split the data into.
 
 .. note::
@@ -100,7 +111,7 @@ how many patches you want TreeCorr to split the data into.
     astronomical survey area.  If you really want to make patches according
     to 3-D clustering of points, then you should input x,y,z values instead.
 
-There are also two additional options which can affect how the k-means
+There are also two additional options that can affect how the k-means
 algorithm runs:
 
 * ``kmeans_init`` specifies what procedure to use for the initialization
@@ -124,13 +135,13 @@ algorithm runs:
   of the inertia rather than the mean inertia, so it tends to lead to patches that
   have a smaller final size variation than the regular k-means algorithm.
 
-  This is not the default algorithm because it is not provably (at least by
-  me) stable.  It is possible that the iteration can get into a failure mode
+  This is not the default algorithm because it is not provably stable
+  (at least as far as I know).  It is possible that the iteration can get into a failure mode
   where one patch will end up with zero objects.  The regular k-means
   provably cannot fail in this way.
 
   So if you care especially about having very uniform patch sizes, you might
-  want to try this option, but be careful about inspecting the results that
+  want to try this option, but be careful when inspecting the results so that
   they don't look crazy.
 
 See also `Field.run_kmeans`, which has more information about these options,
@@ -142,12 +153,17 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
     Before implementing k-means in TreeCorr, I investigated what other options
     there were in the Python landscape.  I found the following implementations:
 
-    * `scipy.cluster.vq.kmeans <https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.kmeans.html>`_
-    * `scipy.cluster.vq.kmeans2 <https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.kmeans2.html#scipy.cluster.vq.kmeans2>`_
+    * `scipy.cluster.vq.kmeans
+      <https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.kmeans.html>`_
+    * `scipy.cluster.vq.kmeans2
+      <https://docs.scipy.org/doc/scipy/reference/generated/scipy.cluster.vq.kmeans2.html>`_
     * `kmeans_radec <https://github.com/esheldon/kmeans_radec>`_
-    * `pyclustering.cluster.kmeans <https://pyclustering.github.io/docs/0.8.2/html/da/d97/namespacepyclustering_1_1cluster_1_1kmeans.html>`_
-    * `sklearn.cluster.KMeans <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html#sklearn.cluster.KMeans>`_
-    * `sklearn.cluster.MiniBatchKMeans <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.MiniBatchKMeans.html#sklearn.cluster.MiniBatchKMeans>`_
+    * `pyclustering.cluster.kmeans
+      <https://pyclustering.github.io/>`_
+    * `sklearn.cluster.KMeans
+      <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.KMeans.html>`_
+    * `sklearn.cluster.MiniBatchKMeans
+      <https://scikit-learn.org/stable/modules/generated/sklearn.cluster.MiniBatchKMeans.html>`_
 
     I made a `notebook <https://github.com/rmjarvis/TreeCorr/blob/main/devel/kmeans.ipynb>`_
     comparing the different algorithms using a random million galaxies from the DES SV
@@ -161,7 +177,7 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
 
     However, we don't really care about the total inertia being minimized.  For most purposes
     here, we really want the patches to be all close to the *same* size.  So rather than
-    the total inertia, my metric for quality was the rms variation of the intertia
+    the total inertia, my metric for quality was the rms variation of the inertia
     (aka the standard deviation).
 
     Fortunately, the process of minimizing the total inertia does tend to select patches with
@@ -173,9 +189,9 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
     Comparing the results of the various k-means implementations, I found that they all tend
     to be either fairly slow, taking a minute or more for just 1 million objects, or they have
     very high rms variation in the inertia.
-    I reran each code multiple times using a different random million objects selected from the original
-    catalog (of around 16 million objects). Here is a scatter plot of the time vs rms variation
-    in the inertia for the various codes.
+    I reran each code multiple times using a different random million objects selected from the
+    original catalog (of around 16 million objects). Here is a scatter plot of the time vs rms
+    variation in the inertia for the various codes.
 
     .. image:: https://user-images.githubusercontent.com/623887/57647337-ac6bd800-7590-11e9-80bc-900bda3bf66b.png
 
@@ -198,7 +214,7 @@ where these parameters are called simply ``init`` and ``alt`` respectively.
     implementation according to any of these metrics.
 
     In addition, you can see some slightly smaller orange dots, which have even lower rms
-    variation but take very slightly longer to run. These are the alternate algorithm I mentioned
+    variation but take very slightly longer to run. These are the alternate algorithms I mentioned
     above.  This alternate algorithm is similar to k-means, but it penalizes patches with a
     larger-than-average inertia, so they give up some of their outer points to patches with
     smaller inertia. In other words, it explicitly targets making the rms variation as small as
@@ -265,12 +281,12 @@ The overall procedure for doing this is as follows:
    galaxies or clusters or even stars).  Or it could be the large catalog
    you want to use, but sampled using the ``every_nth`` option to read
    in only a fraction of the rows.  Run k-means on the smaller catalog
-   and write the patch_centers to a file, as describe `above <Using Patch Centers>`.
+   and write the patch_centers to a file, as described `above <Using Patch Centers>`.
 2. Set up a directory somewhere that TreeCorr can use as temporary
    space for writing the individual patch files.
-3. Define the full `Catalog`, specifying to use the above centers file for the
+3. Define the full `Catalog`, specifying the above centers file as
    ``patch_centers`` and the temp directory as ``save_patch_dir``.
-4. Make sure not to do anything that requires the catalog be loaded from disk.
+4. Make sure not to do anything that requires the catalog to be loaded from disk.
    TreeCorr will delay doing the actual load until it needs to do so.
    Here, we want to make sure it never loads the full data.
 5. Run the `process <Corr2.process>` function (for whichever correlation
@@ -300,7 +316,7 @@ be a problem, but the source catalog is too large to hold in memory::
 In both cases, the result should be equivalent to what you would get if you could
 hold the catalogs fully in memory, but the peak memory will be much lower.
 The downside is that this usage will generally take somewhat longer --
-probably something like a factor of 2 for typical scenarios, but this of course
+probably something like a factor of 2 for typical scenarios, but this
 depends heavily on the nature of your calculation, how fast your disk I/O is
 compared to your CPUs, and how many cores you are using.
 
@@ -339,7 +355,7 @@ over multiple machines with MPI using `mpi4py <https://mpi4py.readthedocs.io/en/
 For this usage, the `process <Corr2.process>` functions take an optional ``comm``
 parameter.  When running in an MPI job, you can pass in ``comm=MPI.COMM_WORLD``,
 and TreeCorr will divide up the work among however many nodes you are using.
-The results will be sent back the the rank 0 node and combined to produce the
+The results will be sent back to the rank 0 node and combined to produce the
 complete answer:
 
 .. code-block:: python

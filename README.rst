@@ -1,5 +1,5 @@
-.. image:: https://travis-ci.org/rmjarvis/TreeCorr.svg?branch=main
-        :target: https://travis-ci.org/rmjarvis/TreeCorr
+.. image:: https://github.com/rmjarvis/TreeCorr/actions/workflows/ci.yml/badge.svg
+        :target: https://github.com/rmjarvis/TreeCorr/actions/workflows/ci.yml
 .. image:: https://codecov.io/gh/rmjarvis/TreeCorr/branch/main/graph/badge.svg
         :target: https://codecov.io/gh/rmjarvis/TreeCorr
 
@@ -8,13 +8,17 @@ functions.
 
 - The code is hosted at https://github.com/rmjarvis/TreeCorr
 - It can compute correlations of regular number counts, weak lensing shears, or
-  scalar quantities such as convergence or CMB temperature fluctutations.
+  scalar quantities such as convergence or CMB temperature fluctuations.
 - 2-point correlations may be auto-correlations or cross-correlations.  This
-  includes shear-shear, count-shear, count-count, kappa-kappa, etc.  (Any
-  combination of shear, kappa, and counts.)
-- 3-point correlations currently can only be auto-correlations.  This includes
-  shear-shear-shear, count-count-count, and kappa-kappa-kappa.  The cross
-  varieties are planned to be added in the near future.
+  includes shear-shear (aka GG), count-shear (NG), count-count (NN), kappa-kappa (KK), etc.
+  (Any combination of shear, kappa, and counts.)
+- 3-point correlations include both auto-correlations (e.g. NNN, KKK, GGG)
+  and mixed cross-correlations (e.g. NNG, NKK, KGG and permutations).
+- Additional field types with non-zero spin are supported in two-point
+  correlations, including vectors (spin-1, V), shear (spin-2, G), trefoil
+  (spin-3, T), and quatrefoil (spin-4, Q).
+  Three-point correlations currently support N, K, and G fields (including mixed
+  combinations such as NNG, NKK, KGG and permutations).
 - Both 2- and 3-point functions can be done with the correct curved-sky
   calculation using RA, Dec coordinates, on a Euclidean tangent plane, or in
   3D using either (RA,Dec,r) or (x,y,z) positions.
@@ -28,7 +32,7 @@ functions.
   for a bin size b=0.1 in log(r).  It scales as b^(-2).  This is the slowest
   of the various kinds of 2-point correlations, so others will be a bit faster,
   but with the same scaling with N and b.
-- The running time for 3-point functions are highly variable depending on the
+- The running time for 3-point functions is highly variable depending on the
   range of triangle geometries you are calculating.  They are significantly
   slower than the 2-point functions, but many orders of magnitude faster than
   brute force algorithms.
@@ -38,8 +42,8 @@ functions.
   I've made since then, but this will suffice as a reference for now.)
 - If you use the three-point multipole functionality of TreeCorr, please also
   reference **Porth et al, 2023, arXiv:2309.08601**
-- Record on the Astrophyics Source Code Library: http://ascl.net/1508.007
-- Developed by Mike Jarvis.  Fee free to contact me with questions or comments
+- Record on the Astrophysics Source Code Library: https://ascl.net/1508.007
+- Developed by Mike Jarvis.  Feel free to contact me with questions or comments
   at mikejarvis17 at gmail.  Or post an issue (see below) if you have any
   problems with the code.
 
@@ -68,7 +72,7 @@ or::
 
     conda update -c conda-forge treecorr
 
-Depending on the write permissions of the python distribution for your specific
+Depending on the write permissions of the Python distribution for your specific
 system, you might need to use one of the following variants for pip installation::
 
     sudo pip install treecorr
@@ -131,7 +135,7 @@ that is also relatively straightforward:
         potentially useful.
 
         - fitsio is required for reading FITS catalogs or writing to FITS output files.
-        - pandas will signficantly speed up reading from ASCII catalogs.
+        - pandas will significantly speed up reading from ASCII catalogs.
         - pandas and pyarrow are required for reading Parquet files.
         - h5py is required for reading HDF5 catalogs.
         - mpi4py is required for running TreeCorr across multiple machines using MPI.
@@ -154,12 +158,11 @@ that is also relatively straightforward:
 3. Install
 ^^^^^^^^^^
 
-   You can then install TreeCorr from the local distribution.  Typically this would be the
-   command::
+   You can then install TreeCorr from the local distribution.  Typically this would be::
 
         pip install .
 
-   If you don't have write permission in your python distribution, you might need
+   If you don't have write permission in your Python distribution, you might need
    to use::
 
         pip install . --user
@@ -171,7 +174,7 @@ that is also relatively straightforward:
         Installing corr2 script to /anaconda3/bin
 
    or similar in the output to see where the scripts are installed.  If the
-   directory is not in your path, you will also get a warning message at the
+   directory is not in your PATH, you will also get a warning message at the
    end letting you know which directory you should add to your path if you want
    to run these scripts.
 
@@ -189,7 +192,7 @@ that is also relatively straightforward:
 Two-point Correlations
 ----------------------
 
-This software is able to compute a variety of two-point correlations:
+TreeCorr can compute a variety of two-point correlations:
 
 :NN:  The normal two-point correlation function of number counts (typically
       galaxy counts).
@@ -207,7 +210,7 @@ This software is able to compute a variety of two-point correlations:
       quantity.
 
 :KG:  Cross-correlation of convergence with shear.  Like the NG calculation, but
-      weighting the pairs by the kappa values the foreground points.
+      weighting the pairs by the kappa values of the foreground points.
 
 There are also additional combinations involving complex fields with different spin
 than 2 (shear is a spin-2 field).  See `Two-point Correlation Functions
@@ -216,13 +219,13 @@ than 2 (shear is a spin-2 field).  See `Two-point Correlation Functions
 Three-point Correlations
 ------------------------
 
-Three point correlation functions are significantly more complicated, being functions
+Three-point correlation functions are significantly more complicated, being functions
 of three parameters defining the triangle size and shape, rather than just a single
 separation.  For cross-correlations, there are also issues related to whether one wants
-to allow the different catalogs to take all possible vertices in the triangles are be
+to allow the different catalogs to take all possible vertices in the triangles or be
 fixed to a particular vertex.
 
-This software is able to compute the following three-point auto-correlations:
+TreeCorr can compute the following three-point auto-correlations:
 
 :NNN: Three-point correlation function of number counts.
 
@@ -233,11 +236,11 @@ This software is able to compute the following three-point auto-correlations:
 :KKK: Three-point kappa correlation function.  Again, "kappa" here can be any
       scalar quantity.
 
-It is also possible to compute cross correlations combining two of these types, such
-as NNG, NKK, KGK, etc..  The ordering of the letters indicates which type is placed
-at which numbered vertex in the triangles where the first vertex is opposite d1, the
-second opposite d2, and the third opposite d3.  The meaning of the three side lengths
-is particular to the choice of binning.
+It is also possible to compute cross-correlations combining two of these types, such
+as NNG, NKK, KGK, etc.  The ordering of the letters indicates which type is placed
+at each numbered vertex in the triangle: the first vertex is opposite d1, the
+second is opposite d2, and the third is opposite d3.  The meaning of the three
+side lengths is particular to the choice of binning.
 
 See `Three-point Correlation Functions
 <https://rmjarvis.github.io/TreeCorr/_build/html/correlation3.html>`_ for more details.
@@ -251,18 +254,18 @@ which is the name of a configuration file::
     corr2 config_file
     corr3 config_file
 
-A sample configuration file for corr2 is provided, called sample.params.
+A sample configuration file for corr2 is provided, called sample_config.yaml.
 See `Configuration Parameters <https://rmjarvis.github.io/TreeCorr/_build/html/params.html>`_
 for the complete documentation about the allowed parameters.
 
 You can also specify parameters on the command line after the name of
-the configuration file. e.g.::
+the configuration file. For example::
 
     corr2 config_file file_name=file1.dat gg_file_name=file1.out
     corr2 config_file file_name=file2.dat gg_file_name=file2.out
     ...
 
-This can be useful when running the program from a script for lots of input
+This can be useful when running the program from a script for many input
 files.
 
 See `Using configuration files <https://rmjarvis.github.io/TreeCorr/_build/html/scripts.html>`_
@@ -271,15 +274,15 @@ for more details.
 Using the Python module
 -----------------------
 
-The typical usage in python is in three stages:
+The typical usage in Python has three stages:
 
 1. Define one or more Catalogs with the input data to be correlated.
 2. Define the correlation function that you want to perform on those data.
 3. Run the correlation by calling ``process``.
 4. Maybe write the results to a file or use them in some way.
 
-For instance, computing a shear-shear correlation from an input file stored
-in a fits file would look something like the following::
+For instance, computing a shear-shear correlation from an input catalog stored
+in a FITS file would look something like the following::
 
     >>> import treecorr
     >>> cat = treecorr.Catalog('cat.fits', ra_col='RA', dec_col='DEC',
@@ -299,7 +302,7 @@ Or for a more involved worked example, see our `Jupyter notebook tutorial
 <https://github.com/rmjarvis/TreeCorr/blob/main/tests/Tutorial.ipynb>`_.
 
 And for the complete details about all aspects of the code, see the `Sphinx-generated
-documentation <http://rmjarvis.github.io/TreeCorr>`_.
+documentation <https://rmjarvis.github.io/TreeCorr>`_.
 
 
 Reporting bugs
@@ -321,3 +324,22 @@ issue and fill in the details of the feature you would like added to TreeCorr.
 Or if there is already an issue for your desired feature, please add to the
 discussion, describing your use case.  The more people who say they want a
 feature, the more likely I am to get around to it sooner than later.
+
+
+Since Jarvis, Bernstein, and Jain (2004)
+----------------------------------------
+
+The 2004 paper remains the foundational reference for TreeCorr's tree-based
+correlation algorithms. Current TreeCorr includes additional capabilities that
+were introduced later, including:
+
+* mixed-type three-point cross-correlations
+* patch-based covariance estimates and cross-patch weighting options
+* multipole three-point algorithm support (``bin_type='LogMultipole'`` and
+  fast ``'multipole'`` algorithm for ``'LogSAS'`` binning)
+* expanded field support in two-point calculations (``Z``, ``V``, ``T``, ``Q``)
+
+References:
+
+* `Jarvis, Bernstein, and Jain (2004) <https://arxiv.org/abs/astro-ph/0307393>`_
+* `Porth et al. (2023) <https://arxiv.org/abs/2309.08601>`_

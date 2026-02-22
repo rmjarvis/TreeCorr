@@ -47,7 +47,7 @@ class Corr3(object):
     Three-point correlations are a bit more complicated than two-point, since the data need
     to be binned in triangles, not just the separation between two points.
 
-    There are currenlty three different ways to quantify the triangle shapes.
+    There are currently three different ways to quantify the triangle shapes.
 
     1. The triangle can be defined by its three side lengths (i.e. SSS congruence).
        In this case, we characterize the triangles according to the following three parameters
@@ -141,7 +141,7 @@ class Corr3(object):
 
     See `Metrics` for more information about these various metric options.
 
-    There are three allowed value for the ``bin_type`` for three-point correlations.
+    There are three allowed values for the ``bin_type`` for three-point correlations.
 
         - 'LogRUV' uses the SSS description given above converted to r,u,v. The bin steps will be
           uniform in log(r) from log(min_sep) .. log(max_sep).  The u and v values are binned
@@ -250,15 +250,16 @@ class Corr3(object):
     .. note::
 
         If you separate out the steps of the `process` command and use `process_auto`
-        and/or `process_cross`, then the units will not be applied to ``meanr`` or
-        ``meanlogr`` until the ``finalize`` function is called.
+        and/or `process_cross`, then the units will not be applied to the ``meand*`` and
+        ``meanlogd*`` attributes until the ``finalize`` function is called.
 
     Parameters:
         config (dict):      A configuration dict that can be used to pass in the below kwargs if
-                            desired.  This dict is allowed to have addition entries in addition
-                            to those listed below, which are ignored here. (default: None)
-        logger:             If desired, a logger object for logging. (default: None, in which case
-                            one will be built according to the config dict's verbose level.)
+                            desired.  This dict is allowed to have additional entries beyond
+                            those listed below, which are ignored here. (default: None)
+        logger (:class:`logging.Logger`):
+                            If desired, a ``Logger`` object for logging. (default: None, in which
+                            case one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
 
@@ -286,10 +287,10 @@ class Corr3(object):
                             3-d or flat 2-d positions, the default will just match the units of
                             x,y[,z] coordinates)
         bin_slop (float):   How much slop to allow in the placement of triangles in the bins.
-                            If bin_slop = 1, then the bin into which a particular pair is placed
+                            If bin_slop = 1, then the bin into which a particular triangle is placed
                             may be incorrect by at most 1.0 bin widths.  (default: None, which
                             means to use a bin_slop that gives a maximum error of 10% on any bin,
-                            which has been found to yield good results for most application.)
+                            which has been found to yield good results for most applications.)
         angle_slop (float): How much slop to allow in the angular direction. This works very
                             similarly to bin_slop, but applies to the projection angle of a pair
                             of cells. The projection angle for any two objects in a pair of cells
@@ -309,8 +310,8 @@ class Corr3(object):
 
         nphi_bins (int):    Analogous to nbins for the phi values when bin_type=LogSAS.  (The
                             default is to calculate from phi_bin_size = bin_size, min_phi = 0,
-                            max_u = np.pi, but this can be overridden by specifying up to 3 of
-                            these four parametes.)
+                            max_phi = np.pi, but this can be overridden by specifying up to 3 of
+                            these four parameters.)
         phi_bin_size (float): Analogous to bin_size for the phi values. (default: bin_size)
         min_phi (float):    Analogous to min_sep for the phi values. (default: 0)
         max_phi (float):    Analogous to max_sep for the phi values. (default: np.pi)
@@ -324,15 +325,15 @@ class Corr3(object):
 
         nubins (int):       Analogous to nbins for the u values when bin_type=LogRUV.  (The default
                             is to calculate from ubin_size = bin_size, min_u = 0, max_u = 1, but
-                            this can be overridden by specifying up to 3 of these four parametes.)
+                            this can be overridden by specifying up to 3 of these four parameters.)
         ubin_size (float):  Analogous to bin_size for the u values. (default: bin_size)
         min_u (float):      Analogous to min_sep for the u values. (default: 0)
         max_u (float):      Analogous to max_sep for the u values. (default: 1)
 
-        nvbins (int):       Analogous to nbins for the positive v values when bin__type=LogRUV.
+        nvbins (int):       Analogous to nbins for the positive v values when bin_type=LogRUV.
                             (The default is to calculate from vbin_size = bin_size, min_v = 0,
                             max_v = 1, but this can be overridden by specifying up to 3 of these
-                            four parametes.)
+                            four parameters.)
         vbin_size (float):  Analogous to bin_size for the v values. (default: bin_size)
         min_v (float):      Analogous to min_sep for the positive v values. (default: 0)
         max_v (float):      Analogous to max_sep for the positive v values. (default: 1)
@@ -347,7 +348,7 @@ class Corr3(object):
 
         log_file (str):     If no logger is provided, this will specify a file to write the logging
                             output.  (default: None; i.e. output to standard output)
-        output_dots (bool): Whether to output progress dots during the calcualtion of the
+        output_dots (bool): Whether to output progress dots during the calculation of the
                             correlation function. (default: False unless verbose is given and >= 2,
                             in which case True)
 
@@ -393,11 +394,12 @@ class Corr3(object):
                             (default: 'shot')
         num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                             'marked_bootstrap' var_methods.  (default: 500)
-        cross_patch_weight (str): How to weight pairs that cross between two patches when one patch
-                            is deselected (e.g. in a jackknife sense) and the other is selected.
-                            (default None)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
-                            random number generation. (default: None)
+        cross_patch_weight (str): How to weight triangles that cross between two patches when
+                            one patch is deselected (e.g. in a jackknife sense) and the other
+                            is selected. (default None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            bootstrap random number generation. (default: None)
 
         num_threads (int):  How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores; this value can also be given in
@@ -504,7 +506,7 @@ class Corr3(object):
                 'How many bootstrap samples to use for the var_method=bootstrap and '
                 'marked_bootstrap'),
         'cross_patch_weight': (str, False, None, ['simple', 'mean', 'match', 'geom'],
-                'How to weight pairs that cross between a selected and unselected patch'),
+                'How to weight triangles that cross between selected and unselected patches'),
         'num_threads' : (int, False, None, None,
                 'How many threads should be used. num_threads <= 0 means auto based on num cores.'),
     }
@@ -719,7 +721,8 @@ class Corr3(object):
                 self._ro.bin_slop = 1.0
                 self._ro.b = self.bin_size
             else:
-                self._ro.bin_slop = 0.1/self.bin_size  # The stored bin_slop corresponds to lnr bins.
+                # The stored bin_slop corresponds to lnr bins.
+                self._ro.bin_slop = 0.1/self.bin_size
                 self._ro.b = 0.1
             if self.bin_type == 'LogRUV':
                 if self.ubin_size <= 0.1:
@@ -1359,7 +1362,7 @@ class Corr3(object):
 
             # Now the tricky part.  If using MPI, we need to divide up the jobs smartly.
             # The first point is to divvy up the auto jobs evenly.  This is where most of the
-            # work is done, so we want those to be spreads as evenly as possibly across procs.
+            # work is done, so we want those to be spread as evenly as possible across procs.
             # Therefore, if all indices are mine, then do the job.
             # This reduces the number of catalogs this machine needs to load up.
             n1 = np.sum([i in my_indices, j in my_indices, k in my_indices])
@@ -1553,7 +1556,8 @@ class Corr3(object):
                                 and self._letter1 == self._letter2):
                             c1e = self._make_expanded_patch(c2, cat1, metric, low_mem)
                             c2e = self._make_expanded_patch(c2, cat2, metric, low_mem)
-                            self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
+                            self.logger.info(
+                                'Process patch %d from cat2 with surrounding local patches', i)
                             self._single_process123(c2, c1e, c2e, (i,i,i), metric, 1,
                                                     num_threads, corr_only, temp, True)
                             if low_mem:
@@ -1790,7 +1794,8 @@ class Corr3(object):
                                 and self._letter1 == self._letter2):
                             c1e = self._make_expanded_patch(c2, cat1, metric, low_mem)
                             c3e = self._make_expanded_patch(c2, cat3, metric, low_mem)
-                            self.logger.info('Process patch %d from cat2 with surrounding local patches',i)
+                            self.logger.info(
+                                'Process patch %d from cat2 with surrounding local patches', i)
                             self._single_process123(c2, c1e, c3e, (i,i,i), metric,
                                                     1 if ordered == 0 else 4,
                                                     num_threads, corr_only, temp, True)
@@ -1803,7 +1808,8 @@ class Corr3(object):
                                 and self._letter1 == self._letter3):
                             c1e = self._make_expanded_patch(c3, cat1, metric, low_mem)
                             c2e = self._make_expanded_patch(c3, cat2, metric, low_mem)
-                            self.logger.info('Process patch %d from cat3 with surrounding local patches',i)
+                            self.logger.info(
+                                'Process patch %d from cat3 with surrounding local patches', i)
                             self._single_process123(c3, c2e, c1e, (i,i,i), metric,
                                                     1 if ordered == 0 else 4,
                                                     num_threads, corr_only, temp, True)
@@ -1911,7 +1917,7 @@ class Corr3(object):
 
         This accumulates the cross-correlation for the given catalogs as part of a larger
         auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
-        patches, this is appropriate to use for the cross correlation between different patches
+        patches, this is appropriate to use for the cross-correlation between different patches
         as part of the complete auto-correlation of the full catalog.
 
         This method is only valid for classes that have the same type of value in vertices
@@ -1970,7 +1976,7 @@ class Corr3(object):
 
         This accumulates the cross-correlation for the given catalogs as part of a larger
         auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
-        patches, this is appropriate to use for the cross correlation between different patches
+        patches, this is appropriate to use for the cross-correlation between different patches
         as part of the complete auto-correlation of the full catalog.
 
         This method is only valid for classes that have the same type of value in vertices
@@ -2028,7 +2034,7 @@ class Corr3(object):
 
         This accumulates the cross-correlation for the given catalogs as part of a larger
         auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
-        patches, this is appropriate to use for the cross correlation between different patches
+        patches, this is appropriate to use for the cross-correlation between different patches
         as part of the complete auto-correlation of the full catalog.
 
         Parameters:
@@ -2093,7 +2099,7 @@ class Corr3(object):
 
         .. note::
 
-            For cross correlations where the third field type is different from the other two
+            For cross-correlations where the third field type is different from the other two
             (e.g. KKG, NNG, etc.) then the 2 argument version will use the first catalog
             for first two vertices and the second for the third vertex, since that's the
             only valid combination for those correlation types.
@@ -2102,10 +2108,10 @@ class Corr3(object):
             except it will be slightly more efficient, since it knows the first two vertices
             are from a single field.
 
-        For cross correlations, the default behavior is to use cat1 for the first vertex (P1),
+        For cross-correlations, the default behavior is to use cat1 for the first vertex (P1),
         cat2 for the second vertex (P2), and cat3 for the third vertex (P3).  If only two
         catalogs are given, vertices P2 and P3 both come from cat2.  The sides d1, d2, d3,
-        used to define the binning, are taken to be opposte P1, P2, P3 respectively.
+        used to define the binning, are taken to be opposite P1, P2, P3 respectively.
 
         However, if you want to accumulate triangles where objects from each catalog can take
         any position in the triangles, you can set ``ordered=False``.  In this case, triangles
@@ -2147,7 +2153,8 @@ class Corr3(object):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
-            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
+            comm (:class:`mpi4py.MPI.Comm`):
+                                If running MPI, a ``Comm`` object to communicate between
                                 processes.  If used, the rank=0 process will have the final
                                 computation. This only works if using patches. (default: None)
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
@@ -2161,7 +2168,7 @@ class Corr3(object):
             algo (str):         Which accumulation algorithm to use. (options are 'triangle' or
                                 'multipole'; default is 'multipole' unless bin_type is 'LogRUV',
                                 which can only use 'triangle')  cf. `Three-point Algorithm`.
-            max_n (int):        If using the multpole algorithm, and this is not directly using
+            max_n (int):        If using the multipole algorithm, and this is not directly using
                                 bin_type='LogMultipole', then this is the value of max_n to use
                                 for the multipole part of the calculation. (default is to use
                                 2pi/phi_bin_size; this value can also be given in the constructor
@@ -2222,7 +2229,8 @@ class Corr3(object):
 
         if cat2 is None:
             if not self._letter1 == self._letter2 == self._letter3:
-                raise ValueError("{} cannot use one catalog version of process".format(self._letters))
+                raise ValueError(
+                    "{} cannot use one catalog version of process".format(self._letters))
             if cat3 is not None:
                 raise ValueError("For two catalog case, use cat1,cat2, not cat1,cat3")
             if not (ordered is True or ordered is False):
@@ -2238,7 +2246,8 @@ class Corr3(object):
                 self._process_all_cross21(cat1, cat2, metric, ordered, num_threads, corr_only,
                                           comm, low_mem, local)
             else:
-                raise ValueError("{} cannot use two catalog version of process".format(self._letters))
+                raise ValueError(
+                    "{} cannot use two catalog version of process".format(self._letters))
         else:
             self._process_all_cross(cat1, cat2, cat3, metric, ordered, num_threads, corr_only,
                                     comm, low_mem, local)
@@ -2549,7 +2558,7 @@ class Corr3(object):
         Keyword Arguments:
             target:     A target Correlation object with LogSAS binning to write to.
                         If this is not given, a new object will be created based on the
-                        configuration paramters of the current object. (default: None)
+                        configuration parameters of the current object. (default: None)
             **kwargs:   Any kwargs that you want to use to configure the returned object.
                         Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
                         The default phi binning is [0,pi] with nphi_bins = self.max_n.
@@ -2558,7 +2567,7 @@ class Corr3(object):
             An object with bin_type=LogSAS containing the same information as this object,
             but with the SAS binning.
         """
-        # Each class will add a bit to this.  The implemenation here is the common code
+        # Each class will add a bit to this.  The implementation here is the common code
         # that applies to all the different classes.
 
         if self.bin_type != 'LogMultipole':
@@ -2699,8 +2708,8 @@ class Corr3(object):
         triangles that cross between two or three patches are weighted when some, but not all
         of the patches are selected.  See Mohammad and Percival (2021)
         (https://arxiv.org/abs/2109.07071) for an in-depth discussion of these options for
-        two-point statistics.  We use a similar definitions for three-point statistics.
-        Briefly the options are: (TODO!  This is aspirational so far.)
+        two-point statistics. We use a similar set of definitions for three-point statistics.
+        Briefly the options are:
 
             - 'simple' = Don't use any triangles where any object is in a deselected patch.
               This is currently the default for all methods.
@@ -2756,15 +2765,15 @@ class Corr3(object):
             func (function):    A unary function that acts on the current correlation object and
                                 returns the desired data vector. (default: None, which is
                                 equivalent to ``lambda corr: corr.getStat()``)
-            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+            comm (:class:`mpi4py.MPI.Comm`):
+                                If using MPI, a ``Comm`` object to communicate between
                                 processes.  (default: None)
             num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                                 'marked_bootstrap' var_methods.  (default: 500; this value
                                 can also be given in the constructor.)
-            cross_patch_weight (str): How to weight pairs that cross between two patches when one
-                                patch is deselected (e.g. in a jackknife sense) and the other is
-                                selected.  (default 'simple'; this value can also be given in
-                                the constructor.)
+            cross_patch_weight (str): How to weight triangles that span selected and
+                                deselected patches.  (default 'simple'; this value can also be
+                                given in the constructor.)
 
         Returns:
             A numpy array with the estimated covariance matrix.
@@ -2788,7 +2797,7 @@ class Corr3(object):
         corresponds to a different estimate of the data vector, :math:`\zeta_i` (or
         :math:`f(\zeta_i)` if using the optional ``func`` parameter).
 
-        The different of rows in the matrix for each valid ``method`` are:
+        The different rows in the matrix for each valid ``method`` are:
 
             - 'shot': This method is not valid here.
             - 'jackknife': The data vector when excluding a single patch.
@@ -2809,18 +2818,18 @@ class Corr3(object):
 
         Parameters:
             method (str):       Which method to use to estimate the covariance matrix.
-            func (function):    A unary function that takes the list ``corrs`` and returns the
-                                desired full data vector. (default: None, which is equivalent to
-                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
-            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+            func (function):    A unary function that acts on the current correlation object and
+                                returns the desired data vector. (default: None, which is
+                                equivalent to ``lambda corr: corr.getStat()``)
+            comm (:class:`mpi4py.MPI.Comm`):
+                                If using MPI, a ``Comm`` object to communicate between
                                 processes.  (default: None)
             num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                                 'marked_bootstrap' var_methods.  (default: 500; this value
                                 can also be given in the constructor.)
-            cross_patch_weight (str): How to weight pairs that cross between two patches when one
-                                patch is deselected (e.g. in a jackknife sense) and the other is
-                                selected.  (default 'simple'; this value can also be given in the
-                                constructor.)
+            cross_patch_weight (str): How to weight triangles that span selected and
+                                deselected patches.  (default 'simple'; this value can also be
+                                given in the constructor.)
 
         Returns:
             A, w: numpy arrays with the design matrix and weights respectively.
@@ -3509,7 +3518,7 @@ class Corr3(object):
             file_name (str):    The name of the file to write to.
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
                                         (default: False)
@@ -3534,7 +3543,8 @@ class Corr3(object):
         # Version 5.0 used weight_re, weight_im.  These are now weightr, weighti.
         # Fix in place to keep backwards compatibility.
         if 'weight_re' in data.dtype.names:
-            dt = np.dtype([(n.replace('_re','r').replace('_im','i'),t) for (n,t) in data.dtype.descr])
+            dt = np.dtype([(n.replace('_re','r').replace('_im','i'), t)
+                           for (n, t) in data.dtype.descr])
             data = data.astype(dt)
 
         # This helper function defines how to set the attributes for each class
@@ -3629,9 +3639,11 @@ class Corr3(object):
             file_name (str):    The name of the file to read in.
             file_type (str):    The type of file ('ASCII', 'FITS', or 'HDF').  (default: determine
                                 the type automatically from the extension of file_name.)
-            logger (Logger):    If desired, a logger object to use for logging. (default: None)
-            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
-                                random number generation. (default: None)
+            logger (:class:`logging.Logger`):
+                                If desired, a ``Logger`` object to use for logging. (default: None)
+            rng (:class:`numpy.random.Generator`):
+                                If desired, a ``Generator`` instance to use for
+                                bootstrap random number generation. (default: None)
 
         Returns:
             A Correlation object, constructed from the information in the file.

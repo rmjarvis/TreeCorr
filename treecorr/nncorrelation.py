@@ -25,9 +25,9 @@ from .config import make_minimal_config
 
 class NNCorrelation(Corr2):
     r"""This class handles the calculation and storage of a 2-point count-count correlation
-    function.  i.e. the regular density correlation function.
+    function, i.e. the regular density correlation function.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class
@@ -47,19 +47,22 @@ class NNCorrelation(Corr2):
     The typical usage pattern is as follows:
 
         >>> nn = treecorr.NNCorrelation(config)
-        >>> nn.process(cat)         # For auto-correlation.
-        >>> nn.process(cat1,cat2)   # For cross-correlation.
-        >>> rr.process...           # Likewise for random-random correlations
-        >>> dr.process...           # If desired, also do data-random correlations
-        >>> rd.process...           # For cross-correlations, also do the reverse.
-        >>> nn.write(file_name,rr=rr,dr=dr,rd=rd)         # Write out to a file.
-        >>> xi,varxi = nn.calculateXi(rr=rr,dr=dr,rd=rd)  # Or get correlation function directly.
+        >>> nn.process(cat)                  # Compute the auto-correlation.
+        >>> # nn.process(cat1, cat2)         # ... or the cross-correlation.
+        >>> rr.process(...)                  # Likewise for random-random correlations.
+        >>> dr.process(...)                  # If desired, also do data-random correlations.
+        >>> rd.process(...)                  # For cross-correlations, also do the reverse.
+        >>> xi, varxi = nn.calculateXi(rr=rr, dr=dr, rd=rd)  # Calculate the correlation function.
+        >>> nn.write(file_name, rr=rr, dr=dr, rd=rd)         # Write out to a file.
+
+    See also: `NGCorrelation`, `NKCorrelation`, `NNNCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr2`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -146,7 +149,7 @@ class NNCorrelation(Corr2):
 
         The `Corr2.process_auto` and `Corr2.process_cross` commands accumulate values in each bin,
         so they can be called multiple times if appropriate.  Afterwards, this command
-        finishes the calculation of meanr, meanlogr by dividing by the total weight.
+        finishes the calculation of ``meanr`` and ``meanlogr`` by dividing by the total weight.
         """
         self._finalize()
 
@@ -217,7 +220,7 @@ class NNCorrelation(Corr2):
         """The weight array for the current correlation object as a 1-d array.
 
         This is the weight array corresponding to `getStat`.  In this case, it is the denominator
-        RR from the calculation done by calculateXi().
+        RR from the calculation done by `calculateXi`.
         """
         if self._rr_weight is not None:
             return self._rr_weight.ravel()
@@ -226,20 +229,20 @@ class NNCorrelation(Corr2):
 
     def calculateXi(self, *, rr, dr=None, rd=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The rr value is the `NNCorrelation` function for random points.
-        For a signal that involves a cross correlations, there should be two random
+        For a signal that involves a cross-correlation, there should be two random
         cross-correlations: data-random and random-data, given as dr and rd.
 
         - If dr is None, the simple correlation function :math:`\xi = (DD/RR - 1)` is used.
-        - if dr is given and rd is None, then the Landy-Szalay estimate
+        - If dr is given and rd is None, then the Landy-Szalay estimate
           :math:`\xi = (DD - 2DR + RR)/RR` is used.
         - If dr and rd are both given, then :math:`\xi = (DD - DR - RD + RR)/RR` is used.
-          This is the correlate of the Landy-Szalay statistic for cross-correlations, where
+          This is the analog of the Landy-Szalay statistic for cross-correlations, where
           the first and second catalogs do not represent the same underlying field.
 
-        where DD is the data NN correlation function, which is the current object.
+        Here DD is the data NN correlation function, which is the current object.
 
         .. note::
 
@@ -249,9 +252,16 @@ class NNCorrelation(Corr2):
             estimates, you need to set ``var_method`` to something else and use patches in the
             input catalog(s).  cf. `Covariance Estimates`.
 
-        After calling this method, you can use the `Corr2.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.  Also, the calculated xi and
-        varxi returned from this function will be available as attributes.
+        After calling this method, you can use this correlation object in the
+        `estimate_multi_cov` function.  Also, the calculated xi and varxi returned from this
+        function will be available as attributes.
+
+        .. note::
+
+            The returned variance estimate (``varxi``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr2.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rr (NNCorrelation):     The auto-correlation of the random field (RR)
@@ -259,7 +269,7 @@ class NNCorrelation(Corr2):
                                     desired, in which case the Landy-Szalay estimator will be
                                     calculated.  (default: None)
             rd (NNCorrelation):     The cross-correlation of the randoms with data (RD), if
-                                    desired. (default: None, which means use rd=dr)
+                                    desired. (default: None, which means to use rd=dr)
 
         Returns:
             Tuple containing:
@@ -486,11 +496,11 @@ class NNCorrelation(Corr2):
             dr (NNCorrelation):     The cross-correlation of the data with randoms (DR), if
                                     desired. (default: None)
             rd (NNCorrelation):     The cross-correlation of the randoms with data (RD), if
-                                    desired. (default: None, which means use rd=dr)
+                                    desired. (default: None, which means to use rd=dr)
             file_type (str):        The type of file to write ('ASCII' or 'FITS').
                                     (default: determine the type automatically from the extension
                                     of file_name.)
-            precision (int):        For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):        For ASCII output files, the desired precision. (default: 4;
                                     this value can also be given in the constructor in the config
                                     dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
@@ -588,9 +598,11 @@ class NNCorrelation(Corr2):
             file_name (str):    The name of the file to read in.
             file_type (str):    The type of file ('ASCII', 'FITS', or 'HDF').  (default: determine
                                 the type automatically from the extension of file_name.)
-            logger (Logger):    If desired, a logger object to use for logging. (default: None)
-            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
-                                random number generation. (default: None)
+            logger (:class:`logging.Logger`):
+                                If desired, a ``Logger`` object to use for logging. (default: None)
+            rng (:class:`numpy.random.Generator`):
+                                If desired, a ``Generator`` instance to use for
+                                bootstrap random number generation. (default: None)
 
         Returns:
             An NNCorrelation object, constructed from the information in the file.
@@ -698,12 +710,13 @@ class NNCorrelation(Corr2):
 
         Parameters:
             rr (NNCorrelation): The auto-correlation of the random field (RR)
-            R (array):          The R values at which to calculate the aperture mass statistics.
-                                (default: None, which means use self.rnom)
+            R (:class:`numpy.ndarray`):
+                                The R values at which to calculate the aperture mass statistics.
+                                (default: None, which means to use self.rnom)
             dr (NNCorrelation): The cross-correlation of the data with randoms (DR), if
                                 desired. (default: None)
             rd (NNCorrelation): The cross-correlation of the randoms with data (RD), if
-                                desired. (default: None, which means use rd=dr)
+                                desired. (default: None, which means to use rd=dr)
             m2_uform (str):     Which form to use for the aperture mass.  (default: 'Crittenden';
                                 this value can also be given in the constructor in the config dict.)
 

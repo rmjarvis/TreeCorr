@@ -27,10 +27,10 @@ class GGCorrelation(BaseZZCorrelation):
     r"""This class handles the calculation and storage of a 2-point shear-shear correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
-    In addition to the attributes common to all `Corr3` subclasses, objects of this class
+    In addition to the attributes common to all `Corr2` subclasses, objects of this class
     hold the following attributes:
 
     Attributes:
@@ -56,16 +56,19 @@ class GGCorrelation(BaseZZCorrelation):
     The typical usage pattern is as follows:
 
         >>> gg = treecorr.GGCorrelation(config)
-        >>> gg.process(cat)         # For auto-correlation.
-        >>> gg.process(cat1,cat2)   # For cross-correlation.
-        >>> gg.write(file_name)     # Write out to a file.
-        >>> xip = gg.xip            # Or access the correlation function directly.
+        >>> gg.process(cat)                # Compute the auto-correlation.
+        >>> # gg.process(cat1, cat2)       # ... or the cross-correlation.
+        >>> gg.write(file_name)            # Write out to a file.
+        >>> xip, xim = gg.xip, gg.xim      # Or access the correlation functions directly.
+
+    See also: `NGCorrelation`, `NNCorrelation`, `GGGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr2`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -139,8 +142,9 @@ class GGCorrelation(BaseZZCorrelation):
 
 
         Parameters:
-            R (array):      The R values at which to calculate the aperture mass statistics.
-                            (default: None, which means use self.rnom)
+            R (:class:`numpy.ndarray`):
+                            The R values at which to calculate the aperture mass statistics.
+                            (default: None, which means to use self.rnom)
             m2_uform (str): Which form to use for the aperture mass, as described above.
                             (default: 'Crittenden'; this value can also be given in the
                             constructor in the config dict.)
@@ -232,8 +236,9 @@ class GGCorrelation(BaseZZCorrelation):
 
 
         Parameters:
-            R (array):  The R values at which to calculate the shear variance.
-                        (default: None, which means use self.rnom)
+            R (:class:`numpy.ndarray`):
+                        The R values at which to calculate the shear variance.
+                        (default: None, which means to use self.rnom)
             eb (bool):  Whether to include the E/B decomposition as well as the total
                         :math:`\langle \gamma^2\rangle`.  (default: False)
 
@@ -297,9 +302,9 @@ class GGCorrelation(BaseZZCorrelation):
         Mapsq           The real part of :math:`\langle M_{ap}^2\rangle`
                          (cf. `calculateMapSq`)
         Mxsq            The real part of :math:`\langle M_\times^2\rangle`
-        MMxa            The imag part of :math:`\langle M_{ap}^2\rangle`:
+        MMxa            The imaginary part of :math:`\langle M_{ap}^2\rangle`:
                          an estimator of :math:`\langle M_{ap} M_\times\rangle`
-        MMxa            The imag part of :math:`\langle M_\times^2\rangle`:
+        MMxb            The imaginary part of :math:`\langle M_\times^2\rangle`:
                          an estimator of :math:`\langle M_{ap} M_\times\rangle`
         sig_map         The sqrt of the variance estimate of
                          :math:`\langle M_{ap}^2\rangle`
@@ -311,13 +316,14 @@ class GGCorrelation(BaseZZCorrelation):
 
         Parameters:
             file_name (str):    The name of the file to write to.
-            R (array):          The R values at which to calculate the statistics.
-                                (default: None, which means use self.rnom)
+            R (:class:`numpy.ndarray`):
+                                The R values at which to calculate the statistics.
+                                (default: None, which means to use self.rnom)
             m2_uform (str):     Which form to use for the aperture mass.  (default: 'Crittenden';
                                 this value can also be given in the constructor in the config dict.)
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing Map^2 from GG correlations to %s',file_name)

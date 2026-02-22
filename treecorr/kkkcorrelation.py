@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: nnncorrelation
+.. module:: kkkcorrelation
 """
 
 import numpy as np
@@ -33,7 +33,7 @@ class KKKCorrelation(Corr3):
         correlations of the CMB temperature fluctuations, where "kappa" would really be
         :math:`\Delta T`.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -41,23 +41,25 @@ class KKKCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance of :math:`\zeta`, only including the shot noise propagated into
-                    the final correlation.  This does not include sample variance, so it is always
-                    an underestimate of the actual variance.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows:
 
         >>> kkk = treecorr.KKKCorrelation(config)
-        >>> kkk.process(cat)              # Compute auto-correlation.
-        >>> kkk.process(cat1, cat2, cat3) # Compute cross-correlation.
-        >>> kkk.write(file_name)          # Write out to a file.
-        >>> zeta = kkk.zeta               # Access zeta directly.
+        >>> kkk.process(cat)                # Compute the auto-correlation.
+        >>> # kkk.process(cat1, cat2, cat3) # ... or the cross-correlation.
+        >>> kkk.write(file_name)            # Write out to a file.
+        >>> zeta = kkk.zeta                 # Access zeta directly.
+
+    See also: `KKGCorrelation`, `NKKCorrelation`, `KKCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:

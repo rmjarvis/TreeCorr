@@ -616,7 +616,8 @@ def test_nv():
     print('Time for nv process = ',t1-t0)
 
     # Using nbins=None rather than omitting nbins is equivalent.
-    nv2 = treecorr.NVCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
+    nv2 = treecorr.NVCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None,
+                                 sep_units='arcmin')
     nv2.process(lens_cat, source_cat, num_threads=1)
     assert nv2 == nv
 
@@ -1136,7 +1137,7 @@ def test_jk():
         patch_dir = 'output'
         low_mem = True
     except ImportError:
-        # If we cannot write to a fits file, skip the save_patch_dir tests.
+        # If we cannot write to a FITS file, skip the save_patch_dir tests.
         patch_dir = None
         low_mem = False
     cat2p = treecorr.Catalog(x=x2, y=y2, v1=v1, v2=v2, npatch=npatch, save_patch_dir=patch_dir)

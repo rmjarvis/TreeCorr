@@ -30,7 +30,7 @@ class KNNCorrelation(Corr3):
     scalar value.  Use `NKNCorrelation` and `NNKCorrelation` for classes with the scalar in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -38,27 +38,31 @@ class KNNCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance estimate, only including the shot noise propagated into the
-                    final correlation.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows:
 
         >>> knn = treecorr.KNNCorrelation(config)
-        >>> knn.process(cat1, cat2)        # Compute cross-correlation of two fields.
-        >>> knn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> krr.process(cat1, rand)        # Compute cross-correlation with randoms.
-        >>> kdr.process(cat1, cat2, rand)  # Compute cross-correlation with randoms and data
-        >>> knn.write(file_name)           # Write out to a file.
-        >>> knn.calculateZeta(krr=krr, kdr=kdr) # Calculate zeta using randoms
-        >>> zeta = knn.zeta                # Access correlation function
-        >>> zetar = knn.zetar              # Or access real and imaginary parts separately
+        >>> knn.process(cat1, cat2)          # Compute the cross-correlation of two fields.
+        >>> # knn.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> krr.process(cat1, rand)          # Compute the random cross-correlation.
+        >>> kdr.process(cat1, cat2, rand)    # Optionally compute data-random cross-correlation.
+        >>> knn.write(file_name)             # Write out to a file.
+        >>> knn.calculateZeta(krr=krr, kdr=kdr)  # Calculate zeta using randoms.
+        >>> zeta = knn.zeta                  # Access the correlation function.
+        >>> zetar = knn.zetar                # Or access real and imaginary parts separately.
         >>> zetai = knn.zetai
+
+    See also: `NKNCorrelation`, `NNKCorrelation`, `NKKCorrelation`, `NNNCorrelation`,
+    `NKCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -152,22 +156,29 @@ class KNNCorrelation(Corr3):
 
     def calculateZeta(self, *, krr=None, kdr=None, krd=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The krr value is the `KNNCorrelation` function for random points with the scalar field.
-        One can also provide a cross correlation of the count data with randoms and the scalar.
+        One can also provide a cross-correlation of the count data with randoms and the scalar.
 
         - If krr is None, the simple correlation function (self.zeta) is returned.
         - If only krr is given the compensated value :math:`\zeta = KDD - KRR` is returned.
-        - if kdr is given and krd is None (or vice versa), then :math:`\zeta = KDD - 2KDR + KRR`
+        - If kdr is given and krd is None (or vice versa), then :math:`\zeta = KDD - 2KDR + KRR`
           is returned.
         - If kdr and krd are both given, then :math:`\zeta = KDD - KDR - KRD + KRR` is returned.
 
-        where KDD is the data KNN correlation function, which is the current object.
+        Here KDD is the data KNN correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr2.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
-        varzeta returned from this function will be available as attributes.
+        After calling this method, you can use this correlation object in the
+        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this
+        function will be available as attributes.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             krr (KNNCorrelation):   The correlation of the random points with the scalar field
@@ -328,7 +339,7 @@ class NKNCorrelation(Corr3):
     scalar value.  Use `KNNCorrelation` and `NNKCorrelation` for classes with the scalar in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -336,27 +347,31 @@ class NKNCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance estimate, only including the shot noise propagated into the
-                    final correlation.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows:
 
         >>> nkn = treecorr.NKNCorrelation(config)
-        >>> nkn.process(cat1, cat2, cat1)  # Compute cross-correlation of two fields.
-        >>> nkn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> rkr.process(rand, cat2, rand)  # Compute cross-correlation with randoms.
-        >>> dkr.process(cat1, cat2, rand)  # Compute cross-correlation with randoms and data
-        >>> nkn.write(file_name)           # Write out to a file.
-        >>> nkn.calculateZeta(rkr=rkr, dkr=dkr) # Calculate zeta using randoms
-        >>> zeta = nkn.zeta                # Access correlation function
-        >>> zetar = nkn.zetar              # Or access real and imaginary parts separately
+        >>> nkn.process(cat1, cat2, cat1)    # Compute the cross-correlation of two fields.
+        >>> # nkn.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> rkr.process(rand, cat2, rand)    # Compute the random cross-correlation.
+        >>> dkr.process(cat1, cat2, rand)    # Optionally compute data-random cross-correlation.
+        >>> nkn.write(file_name)             # Write out to a file.
+        >>> nkn.calculateZeta(rkr=rkr, dkr=dkr)  # Calculate zeta using randoms.
+        >>> zeta = nkn.zeta                  # Access the correlation function.
+        >>> zetar = nkn.zetar                # Or access real and imaginary parts separately.
         >>> zetai = nkn.zetai
+
+    See also: `KNNCorrelation`, `NNKCorrelation`, `NKKCorrelation`, `NNNCorrelation`,
+    `NKCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -450,22 +465,29 @@ class NKNCorrelation(Corr3):
 
     def calculateZeta(self, *, rkr=None, dkr=None, rkd=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The rkr value is the `NKNCorrelation` function for random points with the scalar field.
-        One can also provide a cross correlation of the count data with randoms and the scalar.
+        One can also provide a cross-correlation of the count data with randoms and the scalar.
 
         - If rkr is None, the simple correlation function (self.zeta) is returned.
         - If only rkr is given the compensated value :math:`\zeta = DKD - RKR` is returned.
-        - if dkr is given and rkd is None (or vice versa), then :math:`\zeta = DKD - 2DKR + RKR`
+        - If dkr is given and rkd is None (or vice versa), then :math:`\zeta = DKD - 2DKR + RKR`
           is returned.
         - If dkr and rkd are both given, then :math:`\zeta = DKD - DKR - RKD + RKR` is returned.
 
-        where DKD is the data NKN correlation function, which is the current object.
+        Here DKD is the data NKN correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr2.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
-        varzeta returned from this function will be available as attributes.
+        After calling this method, you can use this correlation object in the
+        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this
+        function will be available as attributes.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rkr (NKNCorrelation):   The correlation of the random points with the scalar field
@@ -626,7 +648,7 @@ class NNKCorrelation(Corr3):
     scalar value.  Use `KNNCorrelation` and `NKNCorrelation` for classes with the scalar in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -634,27 +656,31 @@ class NNKCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance estimate, only including the shot noise propagated into the
-                    final correlation.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows:
 
         >>> nnk = treecorr.NNKCorrelation(config)
-        >>> nnk.process(cat1, cat2)        # Compute cross-correlation of two fields.
-        >>> nnk.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> rrk.process(rand, cat2)        # Compute cross-correlation with randoms.
-        >>> drk.process(cat1, rand, cat2)  # Compute cross-correlation with randoms and data
-        >>> nnk.write(file_name)           # Write out to a file.
-        >>> nnk.calculateZeta(rrk=rrk, drk=drk) # Calculate zeta using randoms
-        >>> zeta = nnk.zeta                # Access correlation function
-        >>> zetar = nnk.zetar              # Or access real and imaginary parts separately
+        >>> nnk.process(cat1, cat2)          # Compute the cross-correlation of two fields.
+        >>> # nnk.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> rrk.process(rand, cat2)          # Compute the random cross-correlation.
+        >>> drk.process(cat1, rand, cat2)    # Optionally compute data-random cross-correlation.
+        >>> nnk.write(file_name)             # Write out to a file.
+        >>> nnk.calculateZeta(rrk=rrk, drk=drk)  # Calculate zeta using randoms.
+        >>> zeta = nnk.zeta                  # Access the correlation function.
+        >>> zetar = nnk.zetar                # Or access real and imaginary parts separately.
         >>> zetai = nnk.zetai
+
+    See also: `KNNCorrelation`, `NKNCorrelation`, `NKKCorrelation`, `NNNCorrelation`,
+    `NKCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -748,22 +774,29 @@ class NNKCorrelation(Corr3):
 
     def calculateZeta(self, *, rrk=None, drk=None, rdk=None):
         r"""Calculate the correlation function given another correlation function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         The rrk value is the `NNKCorrelation` function for random points with the scalar field.
-        One can also provide a cross correlation of the count data with randoms and the scalar.
+        One can also provide a cross-correlation of the count data with randoms and the scalar.
 
         - If rrk is None, the simple correlation function (self.zeta) is returned.
         - If only rrk is given the compensated value :math:`\zeta = DDK - RRK` is returned.
-        - if drk is given and rdk is None (or vice versa), then :math:`\zeta = DDK - 2DRK + RRK`
+        - If drk is given and rdk is None (or vice versa), then :math:`\zeta = DDK - 2DRK + RRK`
           is returned.
         - If drk and rdk are both given, then :math:`\zeta = DDK - DRK - RDK + RRK` is returned.
 
-        where DDK is the data NNK correlation function, which is the current object.
+        Here DDK is the data NNK correlation function, which is the current object.
 
-        After calling this method, you can use the `Corr2.estimate_cov` method or use this
-        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and
-        varzeta returned from this function will be available as attributes.
+        After calling this method, you can use this correlation object in the
+        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this
+        function will be available as attributes.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rrk (NNKCorrelation):   The correlation of the random points with the scalar field

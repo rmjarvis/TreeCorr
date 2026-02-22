@@ -2056,7 +2056,7 @@ def test_nnn_logruv_jk():
 @timer
 def test_brute_jk():
     # With bin_slop = 0, the jackknife calculation from patches should match a
-    # brute force calcaulation where we literally remove one patch at a time to make
+    # brute force calculation where we literally remove one patch at a time to make
     # the vectors.
 
     # Skip this test on windows, since it is vv slow.

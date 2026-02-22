@@ -882,7 +882,8 @@ def test_varzeta_logruv():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x1 = (rng.random_sample(nlens)-0.5) * L
             y1 = (rng.random_sample(nlens)-0.5) * L
             x2 = (rng.random_sample(nsource)-0.5) * L
@@ -1589,7 +1590,7 @@ def test_direct_logsas_cross12():
     with assert_raises(ValueError):
         kkn.process(cat2)
 
-    # With ordered=False, doesn't do anything difference, since there is no other valid order.
+    # With ordered=False, doesn't do anything different, since there is no other valid order.
     nkk.process(cat1, cat2, ordered=False, algo='triangle')
     np.testing.assert_array_equal(nkk.ntri, true_ntri_122)
     np.testing.assert_allclose(nkk.weight, true_weight_122, rtol=1.e-5)
@@ -2181,7 +2182,7 @@ def test_nkk_logsas():
         print('mean ratio = ',np.mean(corr.zeta[m]/true_zeta[m]))
         np.testing.assert_allclose(corr.zeta[m], true_zeta[m], rtol=0.15*tol_factor)
         print('ave error = ',np.abs(np.mean(corr.zeta[m] - true_zeta[m])/np.mean(true_zeta[m])))
-        assert np.abs(np.mean(corr.zeta[m] - true_zeta[m])) < 0.05 * np.mean(true_zeta[m]) * tol_factor
+        assert np.abs(np.mean(corr.zeta[m]-true_zeta[m])) < 0.05*np.mean(true_zeta[m])*tol_factor
 
         # Repeat this using Multipole and then convert to SAS:
         t0 = time.time()
@@ -2376,7 +2377,8 @@ def test_varzeta():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x1 = (rng.random_sample(nlens)-0.5) * L
             y1 = (rng.random_sample(nlens)-0.5) * L
             x2 = (rng.random_sample(nsource)-0.5) * L

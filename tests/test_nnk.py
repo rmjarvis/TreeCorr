@@ -1052,7 +1052,8 @@ def test_varzeta_logruv():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x1 = (rng.random_sample(nlens)-0.5) * L
             y1 = (rng.random_sample(nlens)-0.5) * L
             x2 = (rng.random_sample(nsource)-0.5) * L
@@ -1758,7 +1759,7 @@ def test_direct_logsas_cross21():
     with assert_raises(ValueError):
         knn.process(cat2)
 
-    # With ordered=False, doesn't do anything difference, since there is no other valid order.
+    # With ordered=False, doesn't do anything different, since there is no other valid order.
     nnk.process(cat2, cat1, ordered=False, algo='triangle')
     np.testing.assert_array_equal(nnk.ntri, true_ntri_221)
     np.testing.assert_allclose(nnk.weight, true_weight_221, rtol=1.e-5)
@@ -2579,7 +2580,8 @@ def test_varzeta():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x1 = (rng.random_sample(nlens)-0.5) * L
             y1 = (rng.random_sample(nlens)-0.5) * L
             x2 = (rng.random_sample(nsource)-0.5) * L
@@ -3048,34 +3050,40 @@ def test_nnk_logsas_jk():
     print('with rand nnk cov diag = ',np.diagonal(cov_nnk))
     print('nnk zeta var ratio = ',np.diagonal(cov_nnk)/var_nnk_rr)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_nnk))-np.log(var_nnk_rr))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_nnk)), np.log(var_nnk_rr), atol=0.8*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_nnk)), np.log(var_nnk_rr), atol=0.8*tol_factor)
     cov_nnk = nnk_dr.estimate_cov('jackknife')
     print('with rand/dr nnk cov diag = ',np.diagonal(cov_nnk))
     print('nnk zeta var ratio = ',np.diagonal(cov_nnk)/var_nnk_dr)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_nnk))-np.log(var_nnk_dr))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_nnk)), np.log(var_nnk_dr), atol=0.8*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_nnk)), np.log(var_nnk_dr), atol=0.8*tol_factor)
 
     cov_nkn = nkn_rr.estimate_cov('jackknife')
     print('with rand nkn cov diag = ',np.diagonal(cov_nkn))
     print('nkn zeta var ratio = ',np.diagonal(cov_nkn)/var_nkn_rr)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_nkn))-np.log(var_nkn_rr))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_nkn)), np.log(var_nkn_rr), atol=0.7*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_nkn)), np.log(var_nkn_rr), atol=0.7*tol_factor)
     cov_nkn = nkn_dr.estimate_cov('jackknife')
     print('with rand/dr nkn cov diag = ',np.diagonal(cov_nkn))
     print('nkn zeta var ratio = ',np.diagonal(cov_nkn)/var_nkn_dr)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_nkn))-np.log(var_nkn_dr))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_nkn)), np.log(var_nkn_dr), atol=0.8*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_nkn)), np.log(var_nkn_dr), atol=0.8*tol_factor)
 
     cov_knn = knn_rr.estimate_cov('jackknife')
     print('with rand knn cov diag = ',np.diagonal(cov_knn))
     print('knn zeta var ratio = ',np.diagonal(cov_knn)/var_knn_rr)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_knn))-np.log(var_knn_rr))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_knn)), np.log(var_knn_rr), atol=0.7*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_knn)), np.log(var_knn_rr), atol=0.7*tol_factor)
     cov_knn = knn_dr.estimate_cov('jackknife')
     print('with rand/dr knn cov diag = ',np.diagonal(cov_knn))
     print('knn zeta var ratio = ',np.diagonal(cov_knn)/var_knn_dr)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_knn))-np.log(var_knn_dr))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_knn)), np.log(var_knn_dr), atol=0.7*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_knn)), np.log(var_knn_dr), atol=0.7*tol_factor)
 
 
 if __name__ == '__main__':

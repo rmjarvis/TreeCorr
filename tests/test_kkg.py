@@ -820,7 +820,8 @@ def test_varzeta_logruv():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x = (rng.random_sample(ngal)-0.5) * L
             y = (rng.random_sample(ngal)-0.5) * L
             # Varied weights are hard, but at least check that non-unit weights work correctly.
@@ -1581,7 +1582,7 @@ def test_direct_logsas_cross21():
     with assert_raises(ValueError):
         gkk.process(cat2)
 
-    # With ordered=False, doesn't do anything difference, since there is no other valid order.
+    # With ordered=False, doesn't do anything different, since there is no other valid order.
     kkg.process(cat2, cat1, ordered=False, algo='triangle')
     np.testing.assert_array_equal(kkg.ntri, true_ntri_221)
     np.testing.assert_allclose(kkg.weight, true_weight_221, rtol=1.e-5)
@@ -2374,7 +2375,8 @@ def test_varzeta():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x = (rng.random_sample(ngal)-0.5) * L
             y = (rng.random_sample(ngal)-0.5) * L
             # Varied weights are hard, but at least check that non-unit weights work correctly.

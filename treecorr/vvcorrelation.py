@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: ggcorrelation
+.. module:: vvcorrelation
 """
 
 import numpy as np
@@ -26,7 +26,7 @@ class VVCorrelation(BaseZZCorrelation):
     r"""This class handles the calculation and storage of a 2-point vector-vector correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class
@@ -54,16 +54,19 @@ class VVCorrelation(BaseZZCorrelation):
     The typical usage pattern is as follows:
 
         >>> vv = treecorr.VVCorrelation(config)
-        >>> vv.process(cat)         # For auto-correlation.
-        >>> vv.process(cat1,cat2)   # For cross-correlation.
-        >>> vv.write(file_name)     # Write out to a file.
-        >>> xip = vv.xip            # Or access the correlation function directly.
+        >>> vv.process(cat)                # Compute the auto-correlation.
+        >>> # vv.process(cat1, cat2)       # ... or the cross-correlation.
+        >>> vv.write(file_name)            # Write out to a file.
+        >>> xip, xim = vv.xip, vv.xim      # Or access the correlation functions directly.
+
+    See also: `NVCorrelation`, `KVCorrelation`, `GGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr2`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:

@@ -34,7 +34,8 @@ def set_max_omp_threads(num_threads, logger=None):
     further TreeCorr functions
 
     :param num_threads: The target maximum number of threads to allow.  None means no limit.
-    :param logger:      If desired, a logger object for logging any warnings here. (default: None)
+    :param logger:      If desired, a ``Logger`` object for logging any warnings here.
+                        (default: None)
     """
     global max_omp_threads
     max_omp_threads=num_threads
@@ -43,7 +44,8 @@ def set_omp_threads(num_threads, logger=None):
     """Set the number of OpenMP threads to use in the C++ layer.
 
     :param num_threads: The target number of threads to use
-    :param logger:      If desired, a logger object for logging any warnings here. (default: None)
+    :param logger:      If desired, a ``Logger`` object for logging any warnings here.
+                        (default: None)
 
     :returns:           The  number of threads OpenMP reports that it will use.  Typically this
                         matches the input, but OpenMP reserves the right not to comply with
@@ -90,7 +92,7 @@ def get_omp_threads():
 
     :returns:           The  number of threads OpenMP reports that it will use.
     """
-    # Some OMP implemenations have a bug where if omp_get_max_threads() is called
+    # Some OMP implementations have a bug where if omp_get_max_threads() is called
     # (which is what this function does), it sets something called thread affinity.
     # The upshot of that is that multiprocessing (i.e. not even just omp threading) is
     # confined to a single hardware thread.  Yeah, it's idiotic, but that seems to be
@@ -146,7 +148,7 @@ def make_writer(file_name, precision=4, file_type=None, logger=None):
     return writer
 
 def make_reader(file_name, file_type=None, logger=None):
-    """Factory function to make a writer instance of the correct type.
+    """Factory function to make a reader instance of the correct type.
     """
     # Figure out which file type to use.
     file_type = parse_file_type(file_type, file_name, output=False, logger=logger)
@@ -162,9 +164,9 @@ def make_reader(file_name, file_type=None, logger=None):
     return reader
 
 class LRU_Cache(object):
-    """ Simplified Least Recently Used Cache.
-    Mostly stolen from http://code.activestate.com/recipes/577970-simplified-lru-cache/,
-    but added a method for dynamic resizing.  The least recently used cached item is
+    """Simplified Least Recently Used Cache.
+    Based on http://code.activestate.com/recipes/577970-simplified-lru-cache/,
+    with an added method for dynamic resizing. The least recently used cached item is
     overwritten on a cache miss.
 
     Note: This has additional functionality beyond what functools.lru_cache provides.
@@ -172,7 +174,7 @@ class LRU_Cache(object):
           2. The key is only on the args, not kwargs, so a logger can be provided as a kwarg
              without triggering a cache miss.
 
-    :param user_function:  A python function to cache.
+    :param user_function:  A Python function to cache.
     :param maxsize:        Maximum number of inputs to cache.  [Default: 1024]
 
     Usage
@@ -182,7 +184,7 @@ class LRU_Cache(object):
     >>>
     >>> v1 = slow_function(*k1)  # Calling function is slow
     >>> v1 = slow_function(*k1)  # Calling again with same args is still slow
-    >>> cache = galsim.utilities.LRU_Cache(slow_function)
+    >>> cache = treecorr.util.LRU_Cache(slow_function)
     >>> v1 = cache(*k1)  # Returns slow_function(*k1), slowly the first time
     >>> v1 = cache(*k1)  # Returns slow_function(*k1) again, but fast this time.
 
@@ -242,7 +244,7 @@ class LRU_Cache(object):
         return self.root[0][3]
 
     def resize(self, maxsize):
-        """ Resize the cache.  Increasing the size of the cache is non-destructive, i.e.,
+        """ Resize the cache.  Increasing the size of the cache is non-destructive, i.e.
         previously cached inputs remain in the cache.  Decreasing the size of the cache will
         necessarily remove items from the cache if the cache is already filled.  Items are removed
         in least recently used order.
@@ -329,7 +331,7 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
     if metric in ['Rperp', 'OldRperp', 'FisherRperp'] and coords != '3d':
         raise ValueError("%s metric is only valid for catalogs with 3d positions."%metric)
     if metric == 'Rlens' and auto:
-        raise ValueError("Rlens metric is only valid for cross correlations.")
+        raise ValueError("Rlens metric is only valid for cross-correlations.")
     if metric == 'Rlens' and coords != '3d':
         raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
     if metric == 'Arc' and coords not in ['spherical', '3d']:
@@ -400,11 +402,12 @@ def parse_xyzsep(args, kwargs, _coords):
         :param dec:     The declination of the location for which to count nearby points.
         :param sep:     The separation distance as an angle
 
-    For all angle parameters (ra, dec, sep), this quantity may be a coord.Angle instance, or
+    For all angle parameters (ra, dec, sep), this quantity may be a
+    :class:`coord.Angle` instance, or
     units maybe be provided as ra_units, dec_units or sep_units respectively.
 
-    Finally, in cases where ra, dec are allowed, a coord.CelestialCoord instance may be
-    provided as the first argument.
+    Finally, in cases where ra, dec are allowed, a :class:`coord.CelestialCoord` instance
+    may be provided as the first argument.
 
     :returns: The effective (x, y, z, sep) as a tuple.
     """
@@ -599,8 +602,8 @@ class lazy_property(object):
             x =  ...  # Some slow calculation.
             return x
 
-    Base on an answer from http://stackoverflow.com/a/6849299
-    This implementation taken from GalSim utilities.py
+    Based on an answer from http://stackoverflow.com/a/6849299
+    This implementation was taken from GalSim utilities.py
     """
     def __init__(self, fget):
         self.fget = fget

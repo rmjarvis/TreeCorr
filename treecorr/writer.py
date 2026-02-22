@@ -28,7 +28,8 @@ class AsciiWriter(object):
         Parameters:
             file_name:      The file name.
             precision:      The number of digits of precision to output.
-            logger:         If desired, a logger object for logging. (default: None)
+            logger (:class:`logging.Logger`):
+                            If desired, a ``Logger`` object for logging. (default: None)
         """
         self.file_name = file_name
         self.logger = logger
@@ -51,11 +52,11 @@ class AsciiWriter(object):
         """Write some columns to an output ASCII file with the given column names.
 
         Parameters:
-            col_names:      A list of columns names for the given columns. These will be written
+            col_names:      A list of column names for the given columns. These will be written
                             in a header comment line at the top of the output file.
             columns:        A list of numpy arrays with the data to write.
             params:         A dict of extra parameters to write at the top of the output file.
-            ext:            Optional ext name for these data. (default: None)
+            ext:            Optional extension name for these data. (default: None)
         """
         ncol = len(col_names)
         data = np.empty( (len(columns[0]), ncol) )
@@ -80,7 +81,7 @@ class AsciiWriter(object):
 
         Parameters:
             data:           The array to write.
-            ext:            Optional ext name for these data. (default: None)
+            ext:            Optional extension name for these data. (default: None)
         """
         if ext is not None:
             s = '## %s\n'%ext
@@ -103,7 +104,8 @@ class FitsWriter(object):
         """
         Parameters:
             file_name:      The file name.
-            logger:         If desired, a logger object for logging. (default: None)
+            logger (:class:`logging.Logger`):
+                            If desired, a ``Logger`` object for logging. (default: None)
         """
         try:
             import fitsio  # noqa: F401
@@ -126,15 +128,15 @@ class FitsWriter(object):
         return self._file
 
     def write(self, col_names, columns, *, params=None, ext=None):
-        """Write some columns to an output ASCII file with the given column names.
+        """Write some columns to an output FITS table with the given column names.
 
-        If name is not None, then it is used as the name of the extension for these data.
+        If ``ext`` is not None, then it is used as the name of the extension for these data.
 
         Parameters:
-            col_names:      A list of columns names for the given columns.
+            col_names:      A list of column names for the given columns.
             columns:        A list of numpy arrays with the data to write.
-            params:         A dict of extra parameters to write at the top of the output file.
-            ext:            Optional ext name for these data. (default: None)
+            params:         A dict of extra parameters to write in the extension header.
+            ext:            Optional extension name for these data. (default: None)
         """
         data = np.empty(len(columns[0]), dtype=[ (c,'f8') for c in col_names ])
         for (c, col) in zip(col_names, columns):
@@ -146,7 +148,7 @@ class FitsWriter(object):
 
         Parameters:
             data:           The array to write.
-            ext:            Optional ext name for these data. (default: None)
+            ext:            Optional extension name for these data. (default: None)
         """
         self.file.write(data, extname=ext)
 
@@ -162,13 +164,14 @@ class FitsWriter(object):
 
 class HdfWriter(object):
     """Writer interface for HDF5 files.
-    Uses h5py to read columns, etc.
+    Uses h5py to write columns, etc.
     """
     def __init__(self, file_name, *, logger=None):
         """
         Parameters:
             file_name:      The file name.
-            logger:         If desired, a logger object for logging. (default: None)
+            logger (:class:`logging.Logger`):
+                            If desired, a ``Logger`` object for logging. (default: None)
         """
         try:
             import h5py  # noqa: F401
@@ -191,14 +194,14 @@ class HdfWriter(object):
         return self._file
 
     def write(self, col_names, columns, *, params=None, ext=None):
-        """Write some columns to an output ASCII file with the given column names.
+        """Write some columns to an output HDF5 group with the given column names.
 
-        If name is not None, then it is used as the name of the extension for these data.
+        If ``ext`` is not None, then it is used as the name of the group for these data.
 
         Parameters:
-            col_names:      A list of columns names for the given columns.
+            col_names:      A list of column names for the given columns.
             columns:        A list of numpy arrays with the data to write.
-            params:         A dict of extra parameters to write at the top of the output file.
+            params:         A dict of extra parameters to write in the group attributes.
             ext:            Optional group name for these data. (default: None)
         """
         if ext is not None:
@@ -215,7 +218,7 @@ class HdfWriter(object):
 
         Parameters:
             data:           The array to write.
-            ext:            Optional ext name for these data. (default: None)
+            ext:            Optional group name for these data. (default: None)
         """
         if ext is not None:
             hdf = self.file.create_group(ext)

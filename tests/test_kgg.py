@@ -948,7 +948,8 @@ def test_vargam_logruv():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x = (rng.random_sample(ngal)-0.5) * L
             y = (rng.random_sample(ngal)-0.5) * L
             # Varied weights are hard, but at least check that non-unit weights work correctly.
@@ -1917,7 +1918,7 @@ def test_direct_logsas_cross12():
     with assert_raises(ValueError):
         ggk.process(cat2)
 
-    # With ordered=False, doesn't do anything difference, since there is no other valid order.
+    # With ordered=False, doesn't do anything different, since there is no other valid order.
     kgg.process(cat1, cat2, ordered=False, algo='triangle')
     np.testing.assert_array_equal(kgg.ntri, true_ntri_122)
     np.testing.assert_allclose(kgg.weight, true_weight_122, rtol=1.e-5)
@@ -2589,10 +2590,12 @@ def test_kgg_logsas():
     # And kappa(r) = kappa0 exp(-r^2/2r0^2)
     #
     # Doing the direct integral yields
-    # gam0 = int(int( g(x+x1,y+y1) g(x+x2,y+y2) k(x-x1-x2,y-y1-y2) (x1-Iy1)^2/(x1^2+y1^2) (x2-Iy2)^2/(x2^2+y2^2) ))
+    # gam0 = int(int( g(x+x1,y+y1) g(x+x2,y+y2) k(x-x1-x2,y-y1-y2)
+    #                 (x1-Iy1)^2/(x1^2+y1^2) (x2-Iy2)^2/(x2^2+y2^2) ))
     #      = 2pi/3 kappa0 gamma0^2 |q1|^2 |q2|^2 exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2) / r0^2
     #
-    # gam1 = int(int( g(x+x1,y+y1)* g(x+x2,y+y2) k(x-x1-x2,y-y1-y2) (x1+Iy1)^2/(x1^2+y1^2) (x2-Iy2)^2/(x2^2+y2^2) ))
+    # gam1 = int(int( g(x+x1,y+y1)* g(x+x2,y+y2) k(x-x1-x2,y-y1-y2)
+    #                 (x1+Iy1)^2/(x1^2+y1^2) (x2-Iy2)^2/(x2^2+y2^2) ))
     #      = 2pi/3 kappa0 gamma0^2 exp(-(|q1|^2+|q2|^2+|q3|^2)/2r0^2) / r0^2 x
     #           (q1*^2 q2^2 + 8/3 q1* q2 r0^2 + 8/9 r0^4) q1 q2* / (q1* q2)
     #
@@ -2671,7 +2674,8 @@ def test_kgg_logsas():
 
         L = L - (np.abs(q1) + np.abs(q2) + np.abs(q3))/3.
 
-        true_gam0 = (2.*np.pi * gamma0**2 * kappa0)/(3*L**2*r0**2) * np.exp(-(nq1+nq2+nq3)/(2.*r0**2))
+        true_gam0 = ((2.*np.pi * gamma0**2 * kappa0)/(3*L**2*r0**2) *
+                     np.exp(-(nq1+nq2+nq3)/(2.*r0**2)))
 
         if name == 'kgg':
             true_gam1 = true_gam0 * (nq2*nq3 + 8/3*q2*q3c*r0**2 + 8/9*q2*q3c*r0**4/(q2c*q3))
@@ -2886,7 +2890,8 @@ def test_vargam():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x = (rng.random_sample(ngal)-0.5) * L
             y = (rng.random_sample(ngal)-0.5) * L
             # Varied weights are hard, but at least check that non-unit weights work correctly.
@@ -3289,25 +3294,31 @@ def test_kgg_logsas_jk():
     print('kgg var ratio = ',np.diagonal(cov_kgg)[0:n]/var_kgg0)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_kgg)[0:n])-np.log(var_kgg0))))
     np.testing.assert_allclose(np.diagonal(cov_kgg)[0:n], var_kgg0, rtol=0.4 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_kgg)[0:n]), np.log(var_kgg0), atol=0.5*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_kgg)[0:n]), np.log(var_kgg0), atol=0.5*tol_factor)
     np.testing.assert_allclose(np.diagonal(cov_kgg)[n:2*n], var_kgg1, rtol=0.4 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_kgg)[n:2*n]), np.log(var_kgg1), atol=0.5*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_kgg)[n:2*n]), np.log(var_kgg1), atol=0.5*tol_factor)
 
     cov_gkg = gkg.estimate_cov('jackknife')
     print('gkg var ratio = ',np.diagonal(cov_gkg)[0:n]/var_gkg0)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gkg)[0:n])-np.log(var_gkg0))))
     np.testing.assert_allclose(np.diagonal(cov_gkg)[0:n], var_gkg0, rtol=0.4 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_gkg)[0:n]), np.log(var_gkg0), atol=0.5*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_gkg)[0:n]), np.log(var_gkg0), atol=0.5*tol_factor)
     np.testing.assert_allclose(np.diagonal(cov_gkg)[n:2*n], var_gkg1, rtol=0.4 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_gkg)[n:2*n]), np.log(var_gkg1), atol=0.5*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_gkg)[n:2*n]), np.log(var_gkg1), atol=0.5*tol_factor)
 
     cov_ggk = ggk.estimate_cov('jackknife')
     print('ggk var ratio = ',np.diagonal(cov_ggk)[0:n]/var_ggk0)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ggk)[0:n])-np.log(var_ggk0))))
     np.testing.assert_allclose(np.diagonal(cov_ggk)[0:n], var_ggk0, rtol=0.5 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_ggk)[0:n]), np.log(var_ggk0), atol=0.7*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_ggk)[0:n]), np.log(var_ggk0), atol=0.7*tol_factor)
     np.testing.assert_allclose(np.diagonal(cov_ggk)[n:2*n], var_ggk1, rtol=0.4 * tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_ggk)[n:2*n]), np.log(var_ggk1), atol=0.7*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_ggk)[n:2*n]), np.log(var_ggk1), atol=0.7*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     file_name = os.path.join('output','test_write_results_kgg.dat')

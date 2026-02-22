@@ -454,7 +454,8 @@ def test_kt():
     print('Time for kt process = ',t2-t1)
 
     # Using nbins=None rather than omiting nbins is equivalent.
-    kt2 = treecorr.KTCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
+    kt2 = treecorr.KTCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None,
+                                 sep_units='arcmin')
     kt2.process(lens_cat, source_cat, num_threads=1)
     assert kt2 == kt
 

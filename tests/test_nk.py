@@ -408,7 +408,8 @@ def test_nk():
     print('Time for nk process = ',t1-t0)
 
     # Using nbins=None rather than omitting nbins is equivalent.
-    nk2 = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
+    nk2 = treecorr.NKCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None,
+                                 sep_units='arcmin')
     nk2.process(lens_cat, source_cat, num_threads=1)
     assert nk2 == nk
 

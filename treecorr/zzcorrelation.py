@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: ggcorrelation
+.. module:: zzcorrelation
 """
 
 import numpy as np
@@ -115,8 +115,8 @@ class BaseZZCorrelation(Corr2):
                         that fell into each bin
         xip             The real part of the :math:`\xi_+` correlation function
         xim             The real part of the :math:`\xi_-` correlation function
-        xip_im          The imag part of the :math:`\xi_+` correlation function
-        xim_im          The imag part of the :math:`\xi_-` correlation function
+        xip_im          The imaginary part of the :math:`\xi_+` correlation function
+        xim_im          The imaginary part of the :math:`\xi_-` correlation function
         sigma_xip       The sqrt of the variance estimate of :math:`\xi_+`
         sigma_xim       The sqrt of the variance estimate of :math:`\xi_-`
         weight          The total weight contributing to each bin
@@ -131,7 +131,7 @@ class BaseZZCorrelation(Corr2):
             file_name (str):    The name of the file to write to.
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
                                         (default: False)
@@ -172,7 +172,7 @@ class ZZCorrelation(BaseZZCorrelation):
     r"""This class handles the calculation and storage of a 2-point correlation function
     of two complex spin-0 fields.  If either spin-0 field is real, you should instead use
     `KZCorrelation` as it will be faster, and if both are real, you should use `KKCorrelation`.
-    This class is intended for correlations of scalar fields with a complex values that
+    This class is intended for correlations of scalar fields with complex values that
     don't change with orientation.
 
     To be consistent with the other spin correlation functions, we compute two quantities:
@@ -185,7 +185,7 @@ class ZZCorrelation(BaseZZCorrelation):
     There is no projection along the line connecting the two points as there is for the other
     complex fields, since the field values don't change with orientation.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class
@@ -213,16 +213,19 @@ class ZZCorrelation(BaseZZCorrelation):
     The typical usage pattern is as follows:
 
         >>> zz = treecorr.ZZCorrelation(config)
-        >>> zz.process(cat)         # For auto-correlation.
-        >>> zz.process(cat1,cat2)   # For cross-correlation.
-        >>> zz.write(file_name)     # Write out to a file.
-        >>> xip = zz.xip            # Or access the correlation function directly.
+        >>> zz.process(cat)                # Compute the auto-correlation.
+        >>> # zz.process(cat1, cat2)       # ... or the cross-correlation.
+        >>> zz.write(file_name)            # Write out to a file.
+        >>> xip, xim = zz.xip, zz.xim      # Or access the correlation functions directly.
+
+    See also: `NZCorrelation`, `KZCorrelation`, `VVCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr2`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:

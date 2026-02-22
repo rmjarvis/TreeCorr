@@ -91,7 +91,7 @@ class Corr2(object):
 
     See `Metrics` for more information about these various metric options.
 
-    There are also a few different possibile binning prescriptions to define the range of
+    There are also a few different possible binning prescriptions to define the range of
     distances, which should be placed into each bin.
 
         - 'Log' - logarithmic binning in the distance.  The bin steps will be uniform in
@@ -143,10 +143,12 @@ class Corr2(object):
 
     Parameters:
         config (dict):      A configuration dict that can be used to pass in the below kwargs if
-                            desired.  This dict is allowed to have addition entries in addition
-                            to those listed below, which are ignored here. (default: None)
-        logger:             If desired, a logger object for logging. (default: None, in which case
-                            one will be built according to the config dict's verbose level.)
+                            desired.  This dict is allowed to have additional entries beyond
+                            those listed below, which are ignored here. (default: None)
+        logger (:class:`logging.Logger`):
+                            If desired, a ``Logger`` object for logging. (default: None, in
+                            which case one will be built according to the config dict's
+                            verbose level.)
 
     Keyword Arguments:
 
@@ -177,7 +179,7 @@ class Corr2(object):
                             If bin_slop = 1, then the bin into which a particular pair is placed
                             may be incorrect by at most 1.0 bin widths.  (default: None, which
                             means to use a bin_slop that gives a maximum error of 10% on any bin,
-                            which has been found to yield good results for most application.
+                            which has been found to yield good results for most applications.
         angle_slop (float): How much slop to allow in the angular direction. This works very
                             similarly to bin_slop, but applies to the projection angle of a pair
                             of cells. The projection angle for any two objects in a pair of cells
@@ -204,7 +206,7 @@ class Corr2(object):
 
         log_file (str):     If no logger is provided, this will specify a file to write the logging
                             output.  (default: None; i.e. output to standard output)
-        output_dots (bool): Whether to output progress dots during the calcualtion of the
+        output_dots (bool): Whether to output progress dots during the calculation of the
                             correlation function. (default: False unless verbose is given and >= 2,
                             in which case True)
 
@@ -255,8 +257,9 @@ class Corr2(object):
         cross_patch_weight (str): How to weight pairs that cross between two patches when one patch
                             is deselected (e.g. in a jackknife sense) and the other is selected.
                             (default None)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
-                            random number generation. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            bootstrap random number generation. (default: None)
 
         num_threads (int):  How many OpenMP threads to use during the calculation.
                             (default: use the number of cpu cores)
@@ -830,7 +833,8 @@ class Corr2(object):
                 cat2e.name = cat1.name + " (expanded)"
         return cat2e
 
-    def _single_process12(self, c1, c2, ij, metric, num_threads, corr_only, temp, force_write=False):
+    def _single_process12(self, c1, c2, ij, metric, num_threads, corr_only, temp,
+                          force_write=False):
         # Helper function for _process_all_auto and _process_cross for doing cross pairs.
         temp._clear()
         if c2 is not None and not self._trivially_zero(c1, c2):
@@ -860,7 +864,7 @@ class Corr2(object):
 
             # Now the tricky part.  If using MPI, we need to divide up the jobs smartly.
             # The first point is to divvy up the auto jobs evenly.  This is where most of the
-            # work is done, so we want those to be spreads as evenly as possibly across procs.
+            # work is done, so we want those to be spread as evenly as possible across procs.
             # Therefore, if both indices are mine, then do the job.
             # This reduces the number of catalogs this machine needs to load up.
             # If the auto i,i and j,j are both my job, then i and j are already being loaded
@@ -1168,9 +1172,9 @@ class Corr2(object):
         In addition to computing the correlation function, this function also computes a
         few ancillary quantities that are useful for interpreting the resulting correlation
         function, including the attributes ``meanr``, ``meanlogr`` and ``npairs``.  For most
-        use cases these calculation impart negligible overhead to the calculation time.
-        The exception is `NNCorrelation`, where they can result in somthing like 20-30%
-        overhead in the compute time.  So if you want to optimize the efficiency of the
+        use cases these calculations impart negligible overhead.
+        The exception is `NNCorrelation`, where they can result in something like 20-30%
+        higher computation time.  So if you want to optimize the efficiency of the
         calculation, we provide the option ``corr_only=True``, which skips these computations.
         In this case the resulting ``meanr`` and ``meanlogr`` attributes are the nominal
         centers of the bins, not the actual mean values.  And ``npairs`` is estimated from
@@ -1186,7 +1190,8 @@ class Corr2(object):
             num_threads (int):  How many OpenMP threads to use during the calculation.
                                 (default: use the number of cpu cores; this value can also be given
                                 in the constructor in the config dict.)
-            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between
+            comm (:class:`mpi4py.MPI.Comm`):
+                                If running MPI, a ``Comm`` object to communicate between
                                 processes.  If used, the rank=0 process will have the final
                                 computation. This only works if using patches. (default: None)
             low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.
@@ -1222,7 +1227,8 @@ class Corr2(object):
         if cat2 is None:
             self._process_all_auto(cat1, metric, num_threads, corr_only, comm, low_mem, local)
         else:
-            self._process_all_cross(cat1, cat2, metric, num_threads, corr_only, comm, low_mem, local)
+            self._process_all_cross(cat1, cat2, metric, num_threads, corr_only, comm, low_mem,
+                                    local)
 
         self._processed_cats1.extend(cat1)
         if cat2 is not None:
@@ -1404,14 +1410,14 @@ class Corr2(object):
               leads to a different weight for pairs that cross between two selected patches.
               This option is only valid for bootstrap.
             - 'match' = Use the "optimal" weight that matches the effect of auto- and cross-pairs
-              in the estimate of the jackknife covariance. MP22 calculate this for the to
+              in the estimate of the jackknife covariance. MP22 calculate this to
               be w = 1 - n_patch / (2 + sqrt(2) (n_patch-1)).
               This option is only valid for jackknife.
 
         .. note::
 
             For most classes, there is only a single statistic, so this calculates a covariance
-            matrix for that vector.  `GGCorrelation` other complex auto-correaltions have two:
+            matrix for that vector.  `GGCorrelation` and other complex auto-correlations have two:
             ``xip`` and ``xim``, so in this case the full data vector is ``xip`` followed by
             ``xim``, and this calculates the covariance matrix for that full vector including
             both statistics.  The helper function `getStat` returns the relevant statistic in all
@@ -1450,7 +1456,8 @@ class Corr2(object):
             func (function):    A unary function that acts on the current correlation object and
                                 returns the desired data vector. (default: None, which is
                                 equivalent to ``lambda corr: corr.getStat()``.)
-            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+            comm (:class:`mpi4py.MPI.Comm`):
+                                If using MPI, a ``Comm`` object to communicate between
                                 processes.  (default: None)
             num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                                 'marked_bootstrap' var_methods.  (default: 500; this value
@@ -1482,7 +1489,7 @@ class Corr2(object):
         corresponds to a different estimate of the data vector, :math:`\\xi_i` (or
         :math:`f(\\xi_i)` if using the optional ``func`` parameter).
 
-        The different of rows in the matrix for each valid ``method`` are:
+        The different rows in the matrix for each valid ``method`` are:
 
             - 'shot': This method is not valid here.
             - 'jackknife': The data vector when excluding a single patch.
@@ -1503,10 +1510,11 @@ class Corr2(object):
 
         Parameters:
             method (str):       Which method to use to estimate the covariance matrix.
-            func (function):    A unary function that takes the list ``corrs`` and returns the
-                                desired full data vector. (default: None, which is equivalent to
-                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
-            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+            func (function):    A unary function that acts on the current correlation object and
+                                returns the desired data vector. (default: None, which is
+                                equivalent to ``lambda corr: corr.getStat()``)
+            comm (:class:`mpi4py.MPI.Comm`):
+                                If using MPI, a ``Comm`` object to communicate between
                                 processes.  (default: None)
             num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                                 'marked_bootstrap' var_methods.  (default: 500; this value
@@ -1665,9 +1673,9 @@ class Corr2(object):
         Returns:
             Tuple containing
 
-                - i1 (array): indices of objects from cat1
-                - i2 (array): indices of objects from cat2
-                - sep (array): separations of the pairs of objects (i1,i2)
+                - i1 (:class:`numpy.ndarray`): indices of objects from cat1
+                - i2 (:class:`numpy.ndarray`): indices of objects from cat2
+                - sep (:class:`numpy.ndarray`): separations of the pairs of objects (i1,i2)
         """
         if metric is None:
             metric = self.config.get('metric', 'Euclidean')
@@ -2083,9 +2091,11 @@ class Corr2(object):
             file_name (str):    The name of the file to read in.
             file_type (str):    The type of file ('ASCII', 'FITS', or 'HDF').  (default: determine
                                 the type automatically from the extension of file_name.)
-            logger (Logger):    If desired, a logger object to use for logging. (default: None)
-            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
-                                random number generation. (default: None)
+            logger (:class:`logging.Logger`):
+                                If desired, a ``Logger`` object to use for logging. (default: None)
+            rng (:class:`numpy.random.Generator`):
+                                If desired, a ``Generator`` instance to use for
+                                bootstrap random number generation. (default: None)
 
         Returns:
             A Correlation object, constructed from the information in the file.
@@ -2122,7 +2132,7 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
                        cross_patch_weight=None):
     """Estimate the covariance matrix of multiple statistics.
 
-    This is like the method `Corr2.estimate_cov`, except that it will acoommodate
+    This is like the method `Corr2.estimate_cov`, except that it will accommodate
     multiple statistics from a list ``corrs`` of `Corr2` objects.
 
     Options for ``method`` include:
@@ -2170,11 +2180,11 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
           leads to a different weight for pairs that cross between two selected patches.
           This option is only valid for bootstrap.
         - 'match' = Use the "optimal" weight that matches the effect of auto- and cross-pairs
-          in the estimate of the jackknife covariance. MP22 calculate this for the to
+          in the estimate of the jackknife covariance. MP22 calculate this to
           be w = 1 - n_patch / (2 + sqrt(2) (n_patch-1)).
           This option is only valid for jackknife.
 
-    For example, to find the combined covariance matrix for an NG tangential shear statistc,
+    For example, to find the combined covariance matrix for an NG tangential shear statistic,
     along with the GG xi+ and xi- from the same area, using jackknife covariance estimation,
     you would write::
 
@@ -2216,7 +2226,8 @@ def estimate_multi_cov(corrs, method, *, func=None, comm=None, num_bootstrap=Non
         func (function):    A unary function that takes the list ``corrs`` and returns the
                             desired full data vector. (default: None, which is equivalent to
                             ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
-        comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+        comm (:class:`mpi4py.MPI.Comm`):
+                            If using MPI, a ``Comm`` object to communicate between
                             processes.  (default: None)
         num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                             'marked_bootstrap' var_methods.  (default: 500)
@@ -2254,7 +2265,7 @@ def build_multi_cov_design_matrix(corrs, method, *, func=None, comm=None, num_bo
     corresponds to a different estimate of the data vector, :math:`\\xi_i` (or
     :math:`f(\\xi_i)` if using the optional ``func`` parameter).
 
-    The different of rows in the matrix for each valid ``method`` are:
+    The different rows in the matrix for each valid ``method`` are:
 
         - 'shot': This method is not valid here.
         - 'jackknife': The data vector when excluding a single patch.
@@ -2278,7 +2289,8 @@ def build_multi_cov_design_matrix(corrs, method, *, func=None, comm=None, num_bo
         func (function):    A unary function that takes the list ``corrs`` and returns the
                             desired full data vector. (default: None, which is equivalent to
                             ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)
-        comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between
+        comm (:class:`mpi4py.MPI.Comm`):
+                            If using MPI, a ``Comm`` object to communicate between
                             processes.  (default: None)
         num_bootstrap (int): How many bootstrap samples to use for the 'bootstrap' and
                             'marked_bootstrap' var_methods.  (default: 500)
@@ -2313,7 +2325,7 @@ def _make_cov_design_matrix_core(corrs, plist, func, name, rank=0, size=1):
     # We aggregate and finalize each correlation function based on those pairs, and then call
     # the function func on that list of correlation objects.  This is the data vector for
     # each row in the design matrix.
-    # We also make a parallel array of the total weight in each row in case the calling routing
+    # We also make a parallel array of the total weight in each row in case the calling routine
     # needs it. So far, only sample uses the returned w, but it's very little overhead to compute
     # it, and only a small memory overhead to build that array and return it.
 

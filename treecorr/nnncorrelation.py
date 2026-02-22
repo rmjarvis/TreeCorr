@@ -27,24 +27,28 @@ class NNNCorrelation(Corr3):
     """This class handles the calculation and storage of a 3-point count-count-count correlation
     function.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     The typical usage pattern is as follows:
 
         >>> nnn = treecorr.NNNCorrelation(config)
-        >>> nnn.process(cat)         # Compute auto-correlation.
-        >>> rrr.process(rand)        # Compute auto-correlation of random field.
-        >>> drr.process(cat,rand)    # If desired, compute data-random cross-correlations
-        >>> rdd.process(rand,cat)    # Also compute cross-correlation with two data and one random
-        >>> nnn.write(file_name, rrr=rrr, drr=drr, ...)  # Write out to a file.
-        >>> zeta,varzeta = nnn.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)  # Calculate zeta
+        >>> nnn.process(cat)                 # Compute the auto-correlation.
+        >>> # nnn.process(cat1, cat2, cat3)  # ... or the cross-correlation.
+        >>> rrr.process(rand)                # Compute the random auto-correlation.
+        >>> drr.process(cat, rand)           # Optionally compute data-random cross-correlation.
+        >>> rdd.process(rand, cat)           # Also compute random-data cross-correlation.
+        >>> zeta, varzeta = nnn.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)  # Calculate zeta.
+        >>> nnn.write(file_name, rrr=rrr, drr=drr, ...)   # Write out to a file.
+
+    See also: `NNCorrelation`, `NNGCorrelation`, `NNKCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -224,7 +228,7 @@ class NNNCorrelation(Corr3):
 
     def calculateZeta(self, *, rrr, drr=None, rdd=None):
         r"""Calculate the 3pt function given another 3pt function of random
-        points using the same mask, and possibly cross correlations of the data and random.
+        points using the same mask, and possibly cross-correlations of the data and random.
 
         There are two possible formulae that are currently supported.
 
@@ -251,7 +255,7 @@ class NNNCorrelation(Corr3):
 
            .. note::
 
-                One might thing the formula should be :math:`\zeta = (DDD-3RDD+3DRR-RRR)/RRR`
+                One might think the formula should be :math:`\zeta = (DDD-3RDD+3DRR-RRR)/RRR`
                 by analogy with the 2pt Landy-Szalay formula. However, the way these are
                 calculated, the object we are calling RDD already includes triangles where R
                 is in each of the 3 locations.  So it is really more like RDD + DRD + DDR.
@@ -266,9 +270,16 @@ class NNNCorrelation(Corr3):
         .. note::
 
             This method is not valid for bin_type='LogMultipole'. I don't think there is
-            a straightforward way to go directly from the multipole expoansion of DDD and
+            a straightforward way to go directly from the multipole expansion of DDD and
             RRR to Zeta.  Normally one would instead convert both to LogSAS binning
             (cf. `toSAS`) and then call `calculateZeta` with those.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rrr (NNNCorrelation):   The auto-correlation of the random field (RRR)
@@ -311,7 +322,7 @@ class NNNCorrelation(Corr3):
         else:
             self.zeta = self.weight - rdd.weight * rddf + drr.weight * drrf - denom
 
-        # Divide by DRR in all cases.
+        # Divide by RRR in all cases.
         if np.any(rrr.weight == 0):
             self.logger.warning("Warning: Some bins for the randoms had no triangles.")
             denom[rrr.weight==0] = 1.  # guard against division by 0.
@@ -553,7 +564,7 @@ class NNNCorrelation(Corr3):
             file_type (str):        The type of file to write ('ASCII' or 'FITS').
                                     (default: determine the type automatically from the extension
                                     of file_name.)
-            precision (int):        For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):        For ASCII output files, the desired precision. (default: 4;
                                     this value can also be given in the constructor in the config
                                     dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
@@ -678,9 +689,11 @@ class NNNCorrelation(Corr3):
             file_name (str):    The name of the file to read in.
             file_type (str):    The type of file ('ASCII', 'FITS', or 'HDF').  (default: determine
                                 the type automatically from the extension of file_name.)
-            logger (Logger):    If desired, a logger object to use for logging. (default: None)
-            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap
-                                random number generation. (default: None)
+            logger (:class:`logging.Logger`):
+                                If desired, a ``Logger`` object to use for logging. (default: None)
+            rng (:class:`numpy.random.Generator`):
+                                If desired, a ``Generator`` instance to use for
+                                bootstrap random number generation. (default: None)
 
         Returns:
             An NNNCorrelation object, constructed from the information in the file.

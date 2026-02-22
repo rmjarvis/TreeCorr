@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: corr2ex
+.. module:: exec_corr2
 """
 
 from .catalog import Catalog, read_catalogs
@@ -71,7 +71,7 @@ corr2_valid_params = {
     'nn_file_name' : (str, False, None, None,
             'The output filename for point-point correlation function.'),
     'nn_statistic' : (str, False, 'compensated', ['compensated','simple'],
-            'Which statistic to use for omega as the estimator fo the NN correlation function. '),
+            'Which statistic to use for omega as the estimator for the NN correlation function. '),
     'nk_file_name' : (str, False, None, None,
             'The output filename for count-scalar correlation function.'),
     'nk_statistic' : (str, False, None, ['compensated', 'simple'],
@@ -154,11 +154,11 @@ def corr2(config, logger=None):
     The function `print_corr2_params` will output information about the valid parameters
     that are expected to be in the config dict.
 
-    Optionally a logger parameter maybe given, in which case it is used for logging.
+    Optionally a logger parameter may be given, in which case it is used for logging.
     If not given, the logging will be based on the verbose and log_file parameters.
 
     :param config:  The configuration dict which defines what to do.
-    :param logger:  If desired, a logger object for logging. (default: None, in which case
+    :param logger:  If desired, a ``Logger`` object for logging. (default: None, in which case
                     one will be built according to the config dict's verbose level.)
     """
     # Setup logger based on config verbose value

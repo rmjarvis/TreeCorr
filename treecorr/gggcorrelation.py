@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: nnncorrelation
+.. module:: gggcorrelation
 """
 
 import numpy as np
@@ -35,8 +35,8 @@ class GGGCorrelation(Corr3):
     this definition.  It is also a fairly simple point to calculate in the code compared to
     some of the other options they offer, so projections relative to it are fairly efficient.
 
-    There are 4 complex-valued 3-point shear corrletion functions defined for triples of shear
-    values projected relative to the line joining the location of the shear to the cenroid of
+    There are 4 complex-valued 3-point shear correlation functions defined for triples of shear
+    values projected relative to the line joining the location of the shear to the centroid of
     the triangle:
 
     .. math::
@@ -46,11 +46,11 @@ class GGGCorrelation(Corr3):
         \Gamma_2 &= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2})^* \gamma(\mathbf{x3}) \rangle \\
         \Gamma_3 &= \langle \gamma(\mathbf{x1}) \gamma(\mathbf{x2}) \gamma(\mathbf{x3})^* \rangle \\
 
-    where :math:`\mathbf{x1}, \mathbf{x2}, \mathbf{x3}` are the corners of the triange opposite
+    where :math:`\mathbf{x1}, \mathbf{x2}, \mathbf{x3}` are the corners of the triangle opposite
     sides d1, d2, d3 respectively, where d1 > d2 > d3, and :math:`{}^*` indicates complex
     conjugation.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -61,29 +61,30 @@ class GGGCorrelation(Corr3):
         gam1:       The 1st "natural" correlation function, :math:`\Gamma_1`.
         gam2:       The 2nd "natural" correlation function, :math:`\Gamma_2`.
         gam3:       The 3rd "natural" correlation function, :math:`\Gamma_3`.
-        vargam0:    The variance of :math:`\Gamma_0`, only including the shot noise
-                    propagated into the final correlation.  This (and the related values for
-                    1,2,3) does not include sample variance, so it is always an underestimate
-                    of the actual variance.
-        vargam1:    The variance of :math:`\Gamma_1`.
-        vargam2:    The variance of :math:`\Gamma_2`.
-        vargam3:    The variance of :math:`\Gamma_3`.
+        vargam0:    The variance estimate of :math:`\Gamma_0`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam1:    The variance estimate of :math:`\Gamma_1`.
+        vargam2:    The variance estimate of :math:`\Gamma_2`.
+        vargam3:    The variance estimate of :math:`\Gamma_3`.
 
     The typical usage pattern is as follows::
 
         >>> ggg = treecorr.GGGCorrelation(config)
-        >>> ggg.process(cat)              # Compute auto-correlation.
-        >>> ggg.process(cat1, cat2, cat3) # Compute cross-correlation.
-        >>> ggg.write(file_name)          # Write out to a file.
-        >>> gam0 = ggg.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = ggg.gam0r             # Or access real and imag parts separately.
+        >>> ggg.process(cat)                # Compute the auto-correlation.
+        >>> # ggg.process(cat1, cat2, cat3) # ... or the cross-correlation.
+        >>> ggg.write(file_name)            # Write out to a file.
+        >>> gam0 = ggg.gam0, etc.           # Access gamma values directly.
+        >>> gam0r = ggg.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = ggg.gam0i
+
+    See also: `KGGCorrelation`, `NGGCorrelation`, `GGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -228,13 +229,13 @@ class GGGCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         gam0r           The real part of the estimator of :math:`\Gamma_0`
-        gam0i           The imag part of the estimator of :math:`\Gamma_0`
+        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`
         gam1r           The real part of the estimator of :math:`\Gamma_1`
-        gam1i           The imag part of the estimator of :math:`\Gamma_1`
+        gam1i           The imaginary part of the estimator of :math:`\Gamma_1`
         gam2r           The real part of the estimator of :math:`\Gamma_2`
-        gam2i           The imag part of the estimator of :math:`\Gamma_2`
+        gam2i           The imaginary part of the estimator of :math:`\Gamma_2`
         gam3r           The real part of the estimator of :math:`\Gamma_3`
-        gam3i           The imag part of the estimator of :math:`\Gamma_3`
+        gam3i           The imaginary part of the estimator of :math:`\Gamma_3`
         sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
         sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`
         sigma_gam2      The sqrt of the variance estimate of :math:`\Gamma_2`
@@ -413,8 +414,9 @@ class GGGCorrelation(Corr3):
             ``m2_uform`` = 'Crittenden'.
 
         Parameters:
-            R (array):      The R values at which to calculate the aperture mass statistics.
-                            (default: None, which means use self.rnom1d)
+            R (:class:`numpy.ndarray`):
+                            The R values at which to calculate the aperture mass statistics.
+                            (default: None, which means to use self.rnom1d)
             k2 (float):     If given, the ratio R2/R1 in the SKL formulae. (default: 1)
             k3 (float):     If given, the ratio R3/R1 in the SKL formulae. (default: 1)
 
@@ -650,11 +652,12 @@ class GGGCorrelation(Corr3):
 
         Parameters:
             file_name (str):    The name of the file to write to.
-            R (array):          The R values at which to calculate the statistics.
-                                (default: None, which means use self.rnom)
+            R (:class:`numpy.ndarray`):
+                                The R values at which to calculate the statistics.
+                                (default: None, which means to use self.rnom)
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
         """
         self.logger.info('Writing Map^3 from GGG correlations to %s',file_name)

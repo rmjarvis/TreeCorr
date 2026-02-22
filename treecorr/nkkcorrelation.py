@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: nnkcorrelation
+.. module:: nkkcorrelation
 """
 
 import numpy as np
@@ -30,7 +30,7 @@ class NKKCorrelation(Corr3):
     scalar value.  Use `KNKCorrelation` and `KKNCorrelation` for classes with the scalar in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -38,26 +38,30 @@ class NKKCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance estimate, only including the shot noise propagated into the
-                    final correlation.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows:
 
         >>> nkk = treecorr.NKKCorrelation(config)
-        >>> nkk.process(cat1, cat2)        # Compute cross-correlation of two fields.
-        >>> nkk.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> nkk.write(file_name)           # Write out to a file.
-        >>> rkk.process(rand, cat2)        # Compute cross-correlation with randoms.
-        >>> nkk.calculateZeta(rkk=rkk)     # Calculate zeta using randoms
-        >>> zeta = nkk.zeta                # Access correlation function
-        >>> zetar = nkk.zetar              # Or access real and imaginary parts separately
+        >>> nkk.process(cat1, cat2)          # Compute the cross-correlation of two fields.
+        >>> # nkk.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> nkk.write(file_name)             # Write out to a file.
+        >>> rkk.process(rand, cat2)          # Compute the random cross-correlation.
+        >>> nkk.calculateZeta(rkk=rkk)       # Calculate zeta using randoms.
+        >>> zeta = nkk.zeta                  # Access the correlation function.
+        >>> zetar = nkk.zetar                # Or access real and imaginary parts separately.
         >>> zetai = nkk.zetai
+
+    See also: `KNKCorrelation`, `KKNCorrelation`, `NNKCorrelation`, `KKKCorrelation`,
+    `NKCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -153,7 +157,14 @@ class NKKCorrelation(Corr3):
 
         After calling this function, the attributes ``zeta``, ``varzeta`` and ``cov`` will
         correspond to the compensated values (if rkk is provided).  The raw, uncompensated values
-        are available as ``rawxi`` and ``raw_varxi``.
+        are available as ``raw_zeta`` and ``raw_varzeta``.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rkk (NKKCorrelation): The cross-correlation using random locations as the lenses (RKK),
@@ -255,7 +266,7 @@ class KNKCorrelation(Corr3):
     scalar value.  Use `NKKCorrelation` and `KKNCorrelation` for classes with the scalar in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -263,26 +274,30 @@ class KNKCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance estimate, only including the shot noise propagated into the
-                    final correlation.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows:
 
-        >>> knk = treecorr.NKKCorrelation(config)
-        >>> knk.process(cat1, cat2, cat1)  # Compute cross-correlation of two fields.
-        >>> knk.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> knk.write(file_name)           # Write out to a file.
-        >>> krk.process(cat1, rand, cat1)  # Compute cross-correlation with randoms.
-        >>> knk.calculateZeta(krk=krk)     # Calculate zeta using randoms
-        >>> zeta = knk.zeta                # Access correlation function
-        >>> zetar = knk.zetar              # Or access real and imaginary parts separately
+        >>> knk = treecorr.KNKCorrelation(config)
+        >>> knk.process(cat1, cat2, cat1)    # Compute the cross-correlation of two fields.
+        >>> # knk.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> knk.write(file_name)             # Write out to a file.
+        >>> krk.process(cat1, rand, cat1)    # Compute the random cross-correlation.
+        >>> knk.calculateZeta(krk=krk)       # Calculate zeta using randoms.
+        >>> zeta = knk.zeta                  # Access the correlation function.
+        >>> zetar = knk.zetar                # Or access real and imaginary parts separately.
         >>> zetai = knk.zetai
+
+    See also: `NKKCorrelation`, `KKNCorrelation`, `NNKCorrelation`, `KKKCorrelation`,
+    `NKCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -378,10 +393,17 @@ class KNKCorrelation(Corr3):
 
         After calling this function, the attributes ``zeta``, ``varzeta`` and ``cov`` will
         correspond to the compensated values (if krk is provided).  The raw, uncompensated values
-        are available as ``rawxi`` and ``raw_varxi``.
+        are available as ``raw_zeta`` and ``raw_varzeta``.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
-            krk (KNKCorrelation): The cross-correlation using random locations as the lenses (RKK),
+            krk (KNKCorrelation): The cross-correlation using random locations as the lenses (KRK),
                                   if desired.  (default: None)
 
         Returns:
@@ -480,7 +502,7 @@ class KKNCorrelation(Corr3):
     scalar value.  Use `NKKCorrelation` and `KNKCorrelation` for classes with the scalar in the
     other two positions.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -488,26 +510,30 @@ class KKNCorrelation(Corr3):
 
     Attributes:
         zeta:       The correlation function, :math:`\zeta`.
-        varzeta:    The variance estimate, only including the shot noise propagated into the
-                    final correlation.
+        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows:
 
         >>> kkn = treecorr.KKNCorrelation(config)
-        >>> kkn.process(cat1, cat2)        # Compute cross-correlation of two fields.
-        >>> kkn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.
-        >>> kkn.write(file_name)           # Write out to a file.
-        >>> kkr.process(cat1, rand)        # Compute cross-correlation with randoms.
-        >>> kkn.calculateZeta(kkr=kkr)     # Calculate zeta using randoms
-        >>> zeta = kkn.zeta                # Access correlation function
-        >>> zetar = kkn.zetar              # Or access real and imaginary parts separately
+        >>> kkn.process(cat1, cat2)          # Compute the cross-correlation of two fields.
+        >>> # kkn.process(cat1, cat2, cat3)  # ... or of three fields.
+        >>> kkn.write(file_name)             # Write out to a file.
+        >>> kkr.process(cat1, rand)          # Compute the random cross-correlation.
+        >>> kkn.calculateZeta(kkr=kkr)       # Calculate zeta using randoms.
+        >>> zeta = kkn.zeta                  # Access the correlation function.
+        >>> zetar = kkn.zetar                # Or access real and imaginary parts separately.
         >>> zetai = kkn.zetai
+
+    See also: `NKKCorrelation`, `KNKCorrelation`, `NNKCorrelation`, `KKKCorrelation`,
+    `NKCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -598,15 +624,22 @@ class KKNCorrelation(Corr3):
 
         - If kkr is None, the simple correlation function (self.zeta) is returned.
         - If kkr is not None, then a compensated calculation is done:
-          :math:`\zeta = (DKK - RKK)`, where DKK represents the correlation of the kappa
-          field with the data points and RKK represents the correlation with random points.
+          :math:`\zeta = (KKD - KKR)`, where KKD represents the correlation of the kappa
+          field with the data points and KKR represents the correlation with random points.
 
         After calling this function, the attributes ``zeta``, ``varzeta`` and ``cov`` will
         correspond to the compensated values (if kkr is provided).  The raw, uncompensated values
-        are available as ``rawxi`` and ``raw_varxi``.
+        are available as ``raw_zeta`` and ``raw_varzeta``.
+
+        .. note::
+
+            The returned variance estimate (``varzeta``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr3.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
-            kkr (KKNCorrelation): The cross-correlation using random locations as the lenses (RKK),
+            kkr (KKNCorrelation): The cross-correlation using random locations as the lenses (KKR),
                                   if desired.  (default: None)
 
         Returns:

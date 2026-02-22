@@ -2977,9 +2977,12 @@ def test_nnn_logruv():
         np.testing.assert_almost_equal(corr3_output['zeta'], zeta.flatten())
         np.testing.assert_almost_equal(corr3_output['sigma_zeta'], np.sqrt(varzeta).flatten())
         np.testing.assert_almost_equal(corr3_output['DDD'], ddd.ntri.flatten())
-        np.testing.assert_almost_equal(corr3_output['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
-        np.testing.assert_almost_equal(corr3_output['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
-        np.testing.assert_almost_equal(corr3_output['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
+        np.testing.assert_almost_equal(
+            corr3_output['RRR'], rrr.ntri.flatten() * (ddd.tot / rrr.tot))
+        np.testing.assert_almost_equal(
+            corr3_output['DRR'], drr.ntri.flatten() * (ddd.tot / drr.tot))
+        np.testing.assert_almost_equal(
+            corr3_output['RDD'], rdd.ntri.flatten() * (ddd.tot / rdd.tot))
         header = fitsio.read_header(corr3_outfile, 1)
         np.testing.assert_almost_equal(header['tot']/ddd.tot, 1.)
 
@@ -3346,7 +3349,10 @@ def test_direct_logsas_auto():
     np.testing.assert_allclose(ddd3.meanphi, ddd.meanphi)
 
     # Check that the repr is minimal
-    assert repr(ddd3) == f"NNNCorrelation(min_sep={min_sep}, bin_size={bin_size}, nbins={nbins}, nphi_bins={nphi_bins})"
+    assert repr(ddd3) == (
+        f"NNNCorrelation(min_sep={min_sep}, bin_size={bin_size}, "
+        f"nbins={nbins}, nphi_bins={nphi_bins})"
+    )
 
     # New in version 5.0 is a simpler API for reading
     ddd3b = treecorr.NNNCorrelation.from_file(ascii_name)
@@ -4437,32 +4443,44 @@ def test_nnn_logsas():
     # The mean values are closer.
     np.testing.assert_allclose(np.mean(ddds.ntri), np.mean(ddd.ntri), rtol=0.03*tol_factor)
     np.testing.assert_allclose(np.mean(ddds.meand1), np.mean(ddd.meand1), rtol=0.03*tol_factor)
-    np.testing.assert_allclose(np.mean(ddds.meanlogd1), np.mean(ddd.meanlogd1), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(
+        np.mean(ddds.meanlogd1), np.mean(ddd.meanlogd1), rtol=0.04*tol_factor)
     np.testing.assert_allclose(np.mean(ddds.meand2), np.mean(ddd.meand2), rtol=0.03*tol_factor)
-    np.testing.assert_allclose(np.mean(ddds.meanlogd2), np.mean(ddd.meanlogd2), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(
+        np.mean(ddds.meanlogd2), np.mean(ddd.meanlogd2), rtol=0.04*tol_factor)
     np.testing.assert_allclose(np.mean(ddds.meand3), np.mean(ddd.meand3), rtol=0.03*tol_factor)
-    np.testing.assert_allclose(np.mean(ddds.meanlogd3), np.mean(ddd.meanlogd3), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(
+        np.mean(ddds.meanlogd3), np.mean(ddd.meanlogd3), rtol=0.04*tol_factor)
     np.testing.assert_allclose(np.mean(drrs.ntri), np.mean(drr.ntri), rtol=0.03*tol_factor)
     np.testing.assert_allclose(np.mean(drrs.meand1), np.mean(drr.meand1), rtol=0.03*tol_factor)
-    np.testing.assert_allclose(np.mean(drrs.meanlogd1), np.mean(drr.meanlogd1), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(
+        np.mean(drrs.meanlogd1), np.mean(drr.meanlogd1), rtol=0.04*tol_factor)
     np.testing.assert_allclose(np.mean(drrs.meand2), np.mean(drr.meand2), rtol=0.03*tol_factor)
-    np.testing.assert_allclose(np.mean(drrs.meanlogd2), np.mean(drr.meanlogd2), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(
+        np.mean(drrs.meanlogd2), np.mean(drr.meanlogd2), rtol=0.04*tol_factor)
     np.testing.assert_allclose(np.mean(drrs.meand3), np.mean(drr.meand3), rtol=0.03*tol_factor)
-    np.testing.assert_allclose(np.mean(drrs.meanlogd3), np.mean(drr.meanlogd3), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(
+        np.mean(drrs.meanlogd3), np.mean(drr.meanlogd3), rtol=0.04*tol_factor)
     np.testing.assert_allclose(np.mean(rdds.ntri), np.mean(rdd.ntri), rtol=0.03*tol_factor)
     np.testing.assert_allclose(np.mean(rdds.meand1), np.mean(rdd.meand1), rtol=0.03*tol_factor)
-    np.testing.assert_allclose(np.mean(rdds.meanlogd1), np.mean(rdd.meanlogd1), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(
+        np.mean(rdds.meanlogd1), np.mean(rdd.meanlogd1), rtol=0.04*tol_factor)
     np.testing.assert_allclose(np.mean(rdds.meand2), np.mean(rdd.meand2), rtol=0.03*tol_factor)
-    np.testing.assert_allclose(np.mean(rdds.meanlogd2), np.mean(rdd.meanlogd2), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(
+        np.mean(rdds.meanlogd2), np.mean(rdd.meanlogd2), rtol=0.04*tol_factor)
     np.testing.assert_allclose(np.mean(rdds.meand3), np.mean(rdd.meand3), rtol=0.03*tol_factor)
-    np.testing.assert_allclose(np.mean(rdds.meanlogd3), np.mean(rdd.meanlogd3), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(
+        np.mean(rdds.meanlogd3), np.mean(rdd.meanlogd3), rtol=0.04*tol_factor)
     np.testing.assert_allclose(np.mean(rrrs.ntri), np.mean(rrr.ntri), rtol=0.03*tol_factor)
     np.testing.assert_allclose(np.mean(rrrs.meand1), np.mean(rrr.meand1), rtol=0.03*tol_factor)
-    np.testing.assert_allclose(np.mean(rrrs.meanlogd1), np.mean(rrr.meanlogd1), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(
+        np.mean(rrrs.meanlogd1), np.mean(rrr.meanlogd1), rtol=0.04*tol_factor)
     np.testing.assert_allclose(np.mean(rrrs.meand2), np.mean(rrr.meand2), rtol=0.03*tol_factor)
-    np.testing.assert_allclose(np.mean(rrrs.meanlogd2), np.mean(rrr.meanlogd2), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(
+        np.mean(rrrs.meanlogd2), np.mean(rrr.meanlogd2), rtol=0.04*tol_factor)
     np.testing.assert_allclose(np.mean(rrrs.meand3), np.mean(rrr.meand3), rtol=0.03*tol_factor)
-    np.testing.assert_allclose(np.mean(rrrs.meanlogd3), np.mean(rrr.meanlogd3), rtol=0.04*tol_factor)
+    np.testing.assert_allclose(
+        np.mean(rrrs.meanlogd3), np.mean(rrr.meanlogd3), rtol=0.04*tol_factor)
 
     # Now check the automatic multipole algorithm.
     # Note: omitting algo defaults to multipole.
@@ -4615,7 +4633,8 @@ def test_direct_logmultipole_auto():
     np.testing.assert_allclose(corr3_output['n'], ddd.n.flatten(), rtol=1.e-4)
     np.testing.assert_allclose(corr3_output['ntri'], ddd.ntri.flatten(), rtol=1.e-4)
     np.testing.assert_allclose(corr3_output['weightr'], np.real(ddd.weight).flatten(), rtol=1.e-4)
-    np.testing.assert_allclose(corr3_output['weighti'], np.imag(ddd.weight).flatten(), rtol=1.e-4, atol=1.e-9)
+    np.testing.assert_allclose(
+        corr3_output['weighti'], np.imag(ddd.weight).flatten(), rtol=1.e-4, atol=1.e-9)
 
     # Test I/O
     ascii_name = 'output/nnn_ascii_logmultipole.txt'
@@ -5114,10 +5133,22 @@ def test_direct_logmultipole_cross():
     t0 = time.time()
     ddd.process(cat1, cat2, cat3, ordered=False)
     t1 = time.time()
-    true_ntri_sum = true_ntri_123 + true_ntri_132 + true_ntri_213 + true_ntri_231 + true_ntri_312 + true_ntri_321
-    true_weight_sum = true_weight_123 + true_weight_132 + true_weight_213 + true_weight_231 + true_weight_312 + true_weight_321
-    true_ntri_sas_sum = true_ntri_sas_123 + true_ntri_sas_132 + true_ntri_sas_213 + true_ntri_sas_231 + true_ntri_sas_312 + true_ntri_sas_321
-    true_weight_sas_sum = true_weight_sas_123 + true_weight_sas_132 + true_weight_sas_213 + true_weight_sas_231 + true_weight_sas_312 + true_weight_sas_321
+    true_ntri_sum = (
+        true_ntri_123 + true_ntri_132 + true_ntri_213 +
+        true_ntri_231 + true_ntri_312 + true_ntri_321
+    )
+    true_weight_sum = (
+        true_weight_123 + true_weight_132 + true_weight_213 +
+        true_weight_231 + true_weight_312 + true_weight_321
+    )
+    true_ntri_sas_sum = (
+        true_ntri_sas_123 + true_ntri_sas_132 + true_ntri_sas_213 +
+        true_ntri_sas_231 + true_ntri_sas_312 + true_ntri_sas_321
+    )
+    true_weight_sas_sum = (
+        true_weight_sas_123 + true_weight_sas_132 + true_weight_sas_213 +
+        true_weight_sas_231 + true_weight_sas_312 + true_weight_sas_321
+    )
     print('time for bin_slop=0 unordered: ',t1-t0)
     np.testing.assert_array_equal(ddd.ntri, true_ntri_sum)
     np.testing.assert_allclose(ddd.weight, true_weight_sum, rtol=1.e-5)

@@ -691,7 +691,8 @@ def test_direct_logruv_cross():
     rcatpx = treecorr.Catalog(x=xr, y=yr, npatch=20, rng=rng)
     cat1px = treecorr.Catalog(x=x1, y=y1, w=w1, patch_centers=rcatpx.patch_centers)
     cat2px = treecorr.Catalog(x=x2, y=y2, w=w2, patch_centers=rcatpx.patch_centers)
-    cat3px = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=rcatpx.patch_centers)
+    cat3px = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3,
+                              patch_centers=rcatpx.patch_centers)
     nng.process(cat1px, cat2px, cat3px, ordered=False)
     with assert_raises(RuntimeError):
         nng.calculateZeta(rrg=rrg)
@@ -1240,7 +1241,8 @@ def test_varzeta_logruv():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x1 = (rng.random_sample(nlens)-0.5) * L
             y1 = (rng.random_sample(nlens)-0.5) * L
             x2 = (rng.random_sample(nsource)-0.5) * L
@@ -2006,7 +2008,7 @@ def test_direct_logsas_cross21():
     with assert_raises(ValueError):
         gnn.process(cat2)
 
-    # With ordered=False, doesn't do anything difference, since there is no other valid order.
+    # With ordered=False, doesn't do anything different, since there is no other valid order.
     nng.process(cat2, cat1, ordered=False, algo='triangle')
     np.testing.assert_array_equal(nng.ntri, true_ntri_221)
     np.testing.assert_allclose(nng.weight, true_weight_221, rtol=1.e-5)
@@ -2864,7 +2866,8 @@ def test_varzeta():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x1 = (rng.random_sample(nlens)-0.5) * L
             y1 = (rng.random_sample(nlens)-0.5) * L
             x2 = (rng.random_sample(nsource)-0.5) * L
@@ -3375,34 +3378,40 @@ def test_nng_logsas_jk():
     print('with rand nng cov diag = ',np.diagonal(cov_nng))
     print('nng zeta var ratio = ',np.diagonal(cov_nng)/var_nng_rr)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_nng))-np.log(var_nng_rr))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_nng)), np.log(var_nng_rr), atol=0.6*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_nng)), np.log(var_nng_rr), atol=0.6*tol_factor)
     cov_nng = nng_dr.estimate_cov('jackknife')
     print('with rand/dr nng cov diag = ',np.diagonal(cov_nng))
     print('nng zeta var ratio = ',np.diagonal(cov_nng)/var_nng_dr)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_nng))-np.log(var_nng_dr))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_nng)), np.log(var_nng_dr), atol=0.6*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_nng)), np.log(var_nng_dr), atol=0.6*tol_factor)
 
     cov_ngn = ngn_rr.estimate_cov('jackknife')
     print('with rand ngn cov diag = ',np.diagonal(cov_ngn))
     print('ngn zeta var ratio = ',np.diagonal(cov_ngn)/var_ngn_rr)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ngn))-np.log(var_ngn_rr))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_ngn)), np.log(var_ngn_rr), atol=0.6*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_ngn)), np.log(var_ngn_rr), atol=0.6*tol_factor)
     cov_ngn = ngn_dr.estimate_cov('jackknife')
     print('with rand/dr ngn cov diag = ',np.diagonal(cov_ngn))
     print('ngn zeta var ratio = ',np.diagonal(cov_ngn)/var_ngn_dr)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ngn))-np.log(var_ngn_dr))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_ngn)), np.log(var_ngn_dr), atol=0.6*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_ngn)), np.log(var_ngn_dr), atol=0.6*tol_factor)
 
     cov_gnn = gnn_rr.estimate_cov('jackknife')
     print('with rand gnn cov diag = ',np.diagonal(cov_gnn))
     print('gnn zeta var ratio = ',np.diagonal(cov_gnn)/var_gnn_rr)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gnn))-np.log(var_gnn_rr))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_gnn)), np.log(var_gnn_rr), atol=0.6*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_gnn)), np.log(var_gnn_rr), atol=0.6*tol_factor)
     cov_gnn = gnn_dr.estimate_cov('jackknife')
     print('with rand/dr gnn cov diag = ',np.diagonal(cov_gnn))
     print('gnn zeta var ratio = ',np.diagonal(cov_gnn)/var_gnn_dr)
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gnn))-np.log(var_gnn_dr))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_gnn)), np.log(var_gnn_dr), atol=0.7*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_gnn)), np.log(var_gnn_dr), atol=0.7*tol_factor)
 
 
 if __name__ == '__main__':

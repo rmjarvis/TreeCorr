@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: ngcorrelation
+.. module:: nzcorrelation
 """
 
 import numpy as np
@@ -102,7 +102,9 @@ class BaseNZCorrelation(Corr2):
             self._rz = rz
 
             if rz.npatch1 not in (1,self.npatch1) or rz.npatch2 != self.npatch2:
-                raise RuntimeError(f"R{self._letter2} must be run with the same patches as D{self._letter2}")
+                raise RuntimeError(
+                    f"R{self._letter2} must be run with the same patches as D{self._letter2}"
+                )
 
             if len(self.results) > 0:
                 # If there are any rz patch pairs that aren't in results (e.g. due to different
@@ -173,10 +175,10 @@ class NZCorrelation(BaseNZCorrelation):
     r"""This class handles the calculation and storage of a 2-point count-complex correlation
     function, where the complex field is taken to have spin-0 rotational properties.  If the
     spin-0 field is real, you should instead use `NKCorrelation` as it will be faster.
-    This class is intended for correlations of a scalar field with a complex values that
+    This class is intended for correlations of a scalar field with complex values that
     don't change with orientation.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class
@@ -203,15 +205,18 @@ class NZCorrelation(BaseNZCorrelation):
     The typical usage pattern is as follows:
 
         >>> nz = treecorr.NZCorrelation(config)
-        >>> nz.process(cat1,cat2)   # Compute the cross-correlation.
-        >>> nz.write(file_name)     # Write out to a file.
-        >>> xi = nz.xi              # Or access the correlation function directly.
+        >>> nz.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> nz.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = nz.xi, nz.xi_im    # Or access the correlation function directly.
+
+    See also: `NKCorrelation`, `NGCorrelation`, `KZCorrelation`, `ZZCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr2`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -252,7 +257,14 @@ class NZCorrelation(BaseNZCorrelation):
 
         After calling this function, the attributes ``xi``, ``xi_im``, ``varxi``, and ``cov`` will
         correspond to the compensated values (if rz is provided).  The raw, uncompensated values
-        are available as ``rawxi``, ``raw_xi_im``, and ``raw_varxi``.
+        are available as ``raw_xi``, ``raw_xi_im``, and ``raw_varxi``.
+
+        .. note::
+
+            The returned variance estimate (``varxi``) is computed according to this object's
+            ``var_method`` setting, specified when constructing the object (default: ``'shot'``).
+            Internally, this method calls `Corr2.estimate_cov`; see that method for details
+            about available variance and covariance estimation schemes.
 
         Parameters:
             rz (NZCorrelation): The cross-correlation using random locations as the lenses
@@ -286,9 +298,10 @@ class NZCorrelation(BaseNZCorrelation):
                         into each bin
         meanlogr        The mean value :math:`\langle \log(r) \rangle` of pairs that
                         fell into each bin
-        z_real          The mean real component, :math:`\langle real(z) \rangle(r)`
-        z_imag          The mean imaginary component, :math:`\langle imag(z) \rangle(r)`.
-        sigma           The sqrt of the variance estimate of either of these
+        z_real          The mean real component, :math:`\langle \operatorname{Re}(z) \rangle(r)`
+        z_imag          The mean imaginary component,
+                        :math:`\langle \operatorname{Im}(z) \rangle(r)`.
+        sigma           The sqrt of the variance estimate of each of these
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
         ==========      =============================================================
@@ -303,7 +316,7 @@ class NZCorrelation(BaseNZCorrelation):
                                 (RZ), if desired.  (default: None)
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
                                         (default: False)

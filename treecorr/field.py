@@ -146,10 +146,14 @@ class Field(object):
         3. For spherical coordinates:
 
         Parameters:
-            ra (float or Angle):    The right ascension of the target location
-            dec (float or Angle):   The declination of the target location
-            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
-            sep (float or Angle):   The separation distance
+            ra (float or :class:`coord.Angle`):
+                                    The right ascension of the target location
+            dec (float or :class:`coord.Angle`):
+                                    The declination of the target location
+            c (:class:`coord.CelestialCoord`):
+                                    A ``CelestialCoord`` object in lieu of (ra, dec)
+            sep (float or :class:`coord.Angle`):
+                                    The separation distance
             ra_units (str):         The units of ra if given as a float
             dec_units (str):        The units of dec if given as a float
             sep_units (str):        The units of sep if given as a float
@@ -157,9 +161,12 @@ class Field(object):
         4. For spherical coordinates with distances:
 
         Parameters:
-            ra (float or Angle):    The right ascension of the target location
-            dec (float or Angle):   The declination of the target location
-            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
+            ra (float or :class:`coord.Angle`):
+                                    The right ascension of the target location
+            dec (float or :class:`coord.Angle`):
+                                    The declination of the target location
+            c (:class:`coord.CelestialCoord`):
+                                    A ``CelestialCoord`` object in lieu of (ra, dec)
             r (float):              The distance to the target location
             sep (float):            The separation distance
             ra_units (str):         The units of ra if given as a float
@@ -170,7 +177,7 @@ class Field(object):
         or sep_units respectively to specify which angular units are providing.
 
         Finally, in cases where ra, dec are allowed, you may instead provide a
-        ``coord.CelestialCoord`` instance as the first argument to specify both RA and Dec.
+        :class:`coord.CelestialCoord` instance as the first argument to specify both RA and Dec.
         """
         if self.min_size == 0:
             # If min_size = 0, then regular method is already exact.
@@ -214,10 +221,14 @@ class Field(object):
         3. For spherical coordinates:
 
         Parameters:
-            ra (float or Angle):    The right ascension of the target location
-            dec (float or Angle):   The declination of the target location
-            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
-            sep (float or Angle):   The separation distance
+            ra (float or :class:`coord.Angle`):
+                                    The right ascension of the target location
+            dec (float or :class:`coord.Angle`):
+                                    The declination of the target location
+            c (:class:`coord.CelestialCoord`):
+                                    A ``CelestialCoord`` object in lieu of (ra, dec)
+            sep (float or :class:`coord.Angle`):
+                                    The separation distance
             ra_units (str):         The units of ra if given as a float
             dec_units (str):        The units of dec if given as a float
             sep_units (str):        The units of sep if given as a float
@@ -225,9 +236,12 @@ class Field(object):
         4. For spherical coordinates with distances:
 
         Parameters:
-            ra (float or Angle):    The right ascension of the target location
-            dec (float or Angle):   The declination of the target location
-            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)
+            ra (float or :class:`coord.Angle`):
+                                    The right ascension of the target location
+            dec (float or :class:`coord.Angle`):
+                                    The declination of the target location
+            c (:class:`coord.CelestialCoord`):
+                                    A ``CelestialCoord`` object in lieu of (ra, dec)
             r (float):              The distance to the target location
             sep (float):            The separation distance
             ra_units (str):         The units of ra if given as a float
@@ -238,7 +252,7 @@ class Field(object):
         or sep_units respectively to specify which angular units are providing.
 
         Finally, in cases where ra, dec are allowed, you may instead provide a
-        ``coord.CelestialCoord`` instance as the first argument to specify both RA and Dec.
+        :class:`coord.CelestialCoord` instance as the first argument to specify both RA and Dec.
         """
         x,y,z,sep = parse_xyzsep(args, kwargs, self._coords)
         if self.min_size == 0:
@@ -309,7 +323,7 @@ class Field(object):
         can produce slightly better patches for the purpose of patch-based covariance estimation.
         The ideal patch definition for such use would be to minimize the standard deviation (std)
         of the inertia of each patch, not the total (or mean) inertia.  It turns out that it is
-        difficult to devise an algorithm that literally does this, since it has a tendancy to
+        difficult to devise an algorithm that literally does this, since it has a tendency to
         become unstable and not converge.
 
         However, adding a penalty term to the patch assignment step of the normal k-means
@@ -360,22 +374,25 @@ class Field(object):
                                       field, traversing down to a level where there are npatch
                                       cells, and use the centroids of these cells as the initial
                                       centers.  This is almost always the best choice.
-                                    - 'random' =  Use npatch random points as the intial centers.
+                                    - 'random' =  Use npatch random points as the initial centers.
                                     - 'kmeans++' =  Use the k-means++ algorithm.
                                       cf. https://en.wikipedia.org/wiki/K-means%2B%2B
 
             alt (bool):         Use the alternate assignment algorithm to minimize the standard
                                 deviation of the inertia rather than the total inertia (aka WCSS).
                                 (default: False)
-            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                                number generation. (default: None)
+            rng (:class:`numpy.random.Generator`):
+                                If desired, a ``Generator`` instance to use for
+                                random number generation. (default: None)
 
         Returns:
             Tuple containing
 
-                - patches (array): An array of patch labels, all integers from 0..npatch-1.
+                - patches (:class:`numpy.ndarray`): An array of patch labels,
+                  all integers from 0..npatch-1.
                   Size is self.ntot.
-                - centers (array): An array of center coordinates used to make the patches.
+                - centers (:class:`numpy.ndarray`): An array of center coordinates
+                  used to make the patches.
                   Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
                   spherical geometries.  In the latter case, the centers represent
                   (x,y,z) coordinates on the unit sphere.
@@ -407,12 +424,13 @@ class Field(object):
                                       field, traversing down to a level where there are npatch
                                       cells, and use the centroids of these cells as the initial
                                       centers.  This is almost always the best choice.
-                                    - 'random' =  Use npatch random points as the intial centers.
+                                    - 'random' =  Use npatch random points as the initial centers.
                                     - 'kmeans++' =  Use the k-means++ algorithm.
                                       cf. https://en.wikipedia.org/wiki/K-means%2B%2B
 
-            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                                number generation. (default: None)
+            rng (:class:`numpy.random.Generator`):
+                                If desired, a ``Generator`` instance to use for
+                                random number generation. (default: None)
 
         Returns:
             An array of center coordinates.
@@ -473,7 +491,8 @@ class Field(object):
         the sizes at each step.
 
         Parameters:
-            centers (array):    An array of center coordinates. (modified by this function)
+            centers (:class:`numpy.ndarray`):
+                                An array of center coordinates. (modified by this function)
                                 Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
                                 spherical geometries.  In the latter case, the centers represent
                                 (x,y,z) coordinates on the unit sphere.
@@ -490,11 +509,12 @@ class Field(object):
     def kmeans_assign_patches(self, centers):
         """Assign patch numbers to each point according to the given centers.
 
-        This is final step in the full K-Means algorithm.  It assignes patch numbers to each
+        This is the final step in the full K-Means algorithm. It assigns patch numbers to each
         point in the field according to which center is closest.
 
         Parameters:
-            centers (array):    An array of center coordinates.
+            centers (:class:`numpy.ndarray`):
+                                An array of center coordinates.
                                 Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or
                                 spherical geometries.  In the latter case, the centers represent
                                 (x,y,z) coordinates on the unit sphere.
@@ -530,9 +550,11 @@ class NField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
@@ -593,9 +615,11 @@ class KField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
@@ -656,9 +680,11 @@ class ZField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
@@ -719,9 +745,11 @@ class VField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
@@ -782,9 +810,11 @@ class GField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
@@ -845,9 +875,11 @@ class TField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):
@@ -907,9 +939,11 @@ class QField(Field):
         max_top (int):      The maximum number of top layers to use when setting up the field.
                             (default: 10)
         coords (str):       The kind of coordinate system to use. (default: cat.coords)
-        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random
-                            number generation. (default: None)
-        logger (Logger):    A logger file if desired. (default: None)
+        rng (:class:`numpy.random.Generator`):
+                            If desired, a ``Generator`` instance to use for
+                            random number generation. (default: None)
+        logger (:class:`logging.Logger`):
+                            A ``Logger`` object if desired. (default: None)
     """
     def __init__(self, cat, *, min_size=0, max_size=None, split_method='mean', brute=False,
                  min_top=None, max_top=10, coords=None, rng=None, logger=None):

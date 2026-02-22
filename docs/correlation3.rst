@@ -38,9 +38,8 @@ which field is on each vertex of the triangle.
     kkg
     kgg
 
-Each of the above classes is a sub-class of the base class Corr3, so they have a number of
+Each of the above classes is a subclass of the base class Corr3, so they have a number of
 features in common about how they are constructed.  The common features are documented here.
 
 .. autoclass:: treecorr.Corr3
     :members:
-

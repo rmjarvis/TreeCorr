@@ -629,7 +629,7 @@ struct MetricHelper<Rlens, P>
         // In this case, d2, d3 are normal, but d1 needs both points projected to the plane
         // of p1 do get the right separation.
         // If we do it the normal way then d1 is too big by a factor r2/r1.
-        // So just do that, then then scale down by that factor.
+        // So just do that, then scale down by that factor.
         double s;
         if (d1sq == 0.)
             d1sq = DistSq(p2, p3, s, s);
@@ -963,4 +963,3 @@ struct ValidMC<M,ThreeD>
 { enum { _M = MetricHelper<M,0>::_ThreeD == int(ThreeD) ? M : Euclidean }; };
 
 #endif
-

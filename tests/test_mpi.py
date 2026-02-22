@@ -15,7 +15,10 @@ import sys, os
 import warnings
 
 from test_helper import timer
-from mpi_test import setup, do_mpi_gg, do_mpi_ng, do_mpi_nk, do_mpi_nn, do_mpi_kk, do_mpi_kg, do_mpi_cov
+from mpi_test import (
+    setup, do_mpi_gg, do_mpi_ng, do_mpi_nk, do_mpi_nn, do_mpi_kk, do_mpi_kg,
+    do_mpi_cov,
+)
 
 skip = (os.name == 'nt')
 

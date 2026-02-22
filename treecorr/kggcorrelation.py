@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: nnncorrelation
+.. module:: kggcorrelation
 """
 
 import numpy as np
@@ -47,7 +47,7 @@ class KGGCorrelation(Corr3):
     names you find most convenient: ``gam0``, ``gam1``, ``gam2`` and ``gam3`` are all valid
     attributes, which return the corresponding value.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -58,26 +58,34 @@ class KGGCorrelation(Corr3):
         gam1:       The 1st "natural" correlation function, :math:`\Gamma_1`.
         gam2:       The 2nd "natural" correlation function, :math:`\Gamma_2`.
         gam3:       The 3rd "natural" correlation function, :math:`\Gamma_3`.
-        vargam0:    The variance estimate of :math:`\Gamma_0`, only including the shot noise.
-        vargam1:    The variance estimate of :math:`\Gamma_1`, only including the shot noise.
-        vargam2:    The variance estimate of :math:`\Gamma_2`, only including the shot noise.
-        vargam3:    The variance estimate of :math:`\Gamma_3`, only including the shot noise.
+        vargam0:    The variance estimate of :math:`\Gamma_0`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam1:    The variance estimate of :math:`\Gamma_1`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam2:    The variance estimate of :math:`\Gamma_2`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam3:    The variance estimate of :math:`\Gamma_3`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows::
 
         >>> kgg = treecorr.KGGCorrelation(config)
-        >>> kgg.process(cat1, cat2)       # Compute cross-correlation of two fields.
-        >>> kgg.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> kgg.write(file_name)          # Write out to a file.
-        >>> gam0 = kgg.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = kgg.gam0r             # Or access real and imag parts separately.
+        >>> kgg.process(cat1, cat2)         # Compute the cross-correlation of two fields.
+        >>> # kgg.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> kgg.write(file_name)            # Write out to a file.
+        >>> gam0 = kgg.gam0, etc.           # Access gamma values directly.
+        >>> gam0r = kgg.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = kgg.gam0i
+
+    See also: `GKGCorrelation`, `GGKCorrelation`, `KKGCorrelation`, `GGGCorrelation`,
+    `KGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -209,9 +217,9 @@ class KGGCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         gam0r           The real part of the estimator of :math:`\Gamma_0`
-        gam0i           The imag part of the estimator of :math:`\Gamma_0`
+        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`
         gam2r           The real part of the estimator of :math:`\Gamma_2`
-        gam2i           The imag part of the estimator of :math:`\Gamma_2`
+        gam2i           The imaginary part of the estimator of :math:`\Gamma_2`
         sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
         sigma_gam2      The sqrt of the variance estimate of :math:`\Gamma_2`
         """)
@@ -261,7 +269,7 @@ class GKGCorrelation(Corr3):
     names you find most convenient: ``gam0``, ``gam1``, ``gam2`` and ``gam3`` are all valid
     attributes, which return the corresponding value.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -272,26 +280,34 @@ class GKGCorrelation(Corr3):
         gam1:       The 1st "natural" correlation function, :math:`\Gamma_1`.
         gam2:       The 2nd "natural" correlation function, :math:`\Gamma_2`.
         gam3:       The 3rd "natural" correlation function, :math:`\Gamma_3`.
-        vargam0:    The variance estimate of :math:`\Gamma_0`, only including the shot noise.
-        vargam1:    The variance estimate of :math:`\Gamma_1`, only including the shot noise.
-        vargam2:    The variance estimate of :math:`\Gamma_2`, only including the shot noise.
-        vargam3:    The variance estimate of :math:`\Gamma_3`, only including the shot noise.
+        vargam0:    The variance estimate of :math:`\Gamma_0`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam1:    The variance estimate of :math:`\Gamma_1`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam2:    The variance estimate of :math:`\Gamma_2`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam3:    The variance estimate of :math:`\Gamma_3`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows::
 
         >>> gkg = treecorr.GKGCorrelation(config)
-        >>> gkg.process(cat1, cat2, cat1) # Compute cross-correlation of two fields.
-        >>> gkg.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> gkg.write(file_name)          # Write out to a file.
-        >>> gam0 = gkg.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = gkg.gam0r             # Or access real and imag parts separately.
+        >>> gkg.process(cat1, cat2, cat1)   # Compute the cross-correlation of two fields.
+        >>> # gkg.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> gkg.write(file_name)            # Write out to a file.
+        >>> gam0 = gkg.gam0, etc.           # Access gamma values directly.
+        >>> gam0r = gkg.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = gkg.gam0i
+
+    See also: `KGGCorrelation`, `GGKCorrelation`, `KKGCorrelation`, `GGGCorrelation`,
+    `KGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -421,9 +437,9 @@ class GKGCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         gam0r           The real part of the estimator of :math:`\Gamma_0`
-        gam0i           The imag part of the estimator of :math:`\Gamma_0`
+        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`
         gam1r           The real part of the estimator of :math:`\Gamma_1`
-        gam1i           The imag part of the estimator of :math:`\Gamma_1`
+        gam1i           The imaginary part of the estimator of :math:`\Gamma_1`
         sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
         sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`
         """)
@@ -452,8 +468,8 @@ class GGKCorrelation(Corr3):
     r"""This class handles the calculation and storage of a 3-point shear-shear-scalar correlation
     function.
 
-    With this class, point 1 of the triangle (i.e. the vertex opposite d1) is the one with the
-    shear value.  Use `GKGCorrelation` and `KGGCorrelation` for classes with the shear in the
+    With this class, point 3 of the triangle (i.e. the vertex opposite d3) is the one with the
+    scalar value.  Use `GKGCorrelation` and `KGGCorrelation` for classes with the scalar in the
     other two positions.
 
     For the shear projection, we follow the lead of the 3-point shear-shear-shear correlation
@@ -473,7 +489,7 @@ class GGKCorrelation(Corr3):
     names you find most convenient: ``gam0``, ``gam1``, ``gam2`` and ``gam3`` are all valid
     attributes, which return the corresponding value.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr3` for a description of how the triangles are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr3` subclasses, objects of this class
@@ -484,26 +500,34 @@ class GGKCorrelation(Corr3):
         gam1:       The 1st "natural" correlation function, :math:`\Gamma_1`.
         gam2:       The 2nd "natural" correlation function, :math:`\Gamma_2`.
         gam3:       The 3rd "natural" correlation function, :math:`\Gamma_3`.
-        vargam0:    The variance estimate of :math:`\Gamma_0`, only including the shot noise.
-        vargam1:    The variance estimate of :math:`\Gamma_1`, only including the shot noise.
-        vargam2:    The variance estimate of :math:`\Gamma_2`, only including the shot noise.
-        vargam3:    The variance estimate of :math:`\Gamma_3`, only including the shot noise.
+        vargam0:    The variance estimate of :math:`\Gamma_0`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam1:    The variance estimate of :math:`\Gamma_1`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam2:    The variance estimate of :math:`\Gamma_2`, computed according to ``var_method``
+                    (default: ``'shot'``).
+        vargam3:    The variance estimate of :math:`\Gamma_3`, computed according to ``var_method``
+                    (default: ``'shot'``).
 
     The typical usage pattern is as follows::
 
         >>> ggk = treecorr.GGKCorrelation(config)
-        >>> ggk.process(cat1, cat2)       # Compute cross-correlation of two fields.
-        >>> ggk.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.
-        >>> ggk.write(file_name)          # Write out to a file.
-        >>> gam0 = ggk.gam0, etc.         # Access gamma values directly.
-        >>> gam0r = ggk.gam0r             # Or access real and imag parts separately.
+        >>> ggk.process(cat1, cat2)         # Compute the cross-correlation of two fields.
+        >>> # ggk.process(cat1, cat2, cat3) # ... or of three fields.
+        >>> ggk.write(file_name)            # Write out to a file.
+        >>> gam0 = ggk.gam0, etc.           # Access gamma values directly.
+        >>> gam0r = ggk.gam0r               # Or access real and imaginary parts separately.
         >>> gam0i = ggk.gam0i
+
+    See also: `KGGCorrelation`, `GKGCorrelation`, `KKGCorrelation`, `GGGCorrelation`,
+    `KGCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr3`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -633,9 +657,9 @@ class GGKCorrelation(Corr3):
     write.__doc__ = Corr3.write.__doc__.format(
         r"""
         gam0r           The real part of the estimator of :math:`\Gamma_0`
-        gam0i           The imag part of the estimator of :math:`\Gamma_0`
+        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`
         gam1r           The real part of the estimator of :math:`\Gamma_1`
-        gam1i           The imag part of the estimator of :math:`\Gamma_1`
+        gam1i           The imaginary part of the estimator of :math:`\Gamma_1`
         sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`
         sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`
         """)

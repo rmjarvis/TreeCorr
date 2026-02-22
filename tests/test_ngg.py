@@ -551,8 +551,10 @@ def test_direct_logruv_cross():
     # Check when some patches have no objects
     rcatpx = treecorr.Catalog(x=xr, y=yr, npatch=20, rng=rng)
     cat1px = treecorr.Catalog(x=x1, y=y1, w=w1, patch_centers=rcatpx.patch_centers)
-    cat2px = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2, patch_centers=rcatpx.patch_centers)
-    cat3px = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3, patch_centers=rcatpx.patch_centers)
+    cat2px = treecorr.Catalog(x=x2, y=y2, w=w2, g1=g1_2, g2=g2_2,
+                              patch_centers=rcatpx.patch_centers)
+    cat3px = treecorr.Catalog(x=x3, y=y3, w=w3, g1=g1_3, g2=g2_3,
+                              patch_centers=rcatpx.patch_centers)
     ngg.process(cat1px, cat2px, cat3px, ordered=False)
     with assert_raises(RuntimeError):
         ngg.calculateGam(rgg=rgg)
@@ -1023,7 +1025,8 @@ def test_vargam_logruv():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x1 = (rng.random_sample(nlens)-0.5) * L
             y1 = (rng.random_sample(nlens)-0.5) * L
             x2 = (rng.random_sample(nsource)-0.5) * L
@@ -1991,7 +1994,7 @@ def test_direct_logsas_cross12():
     with assert_raises(ValueError):
         ggn.process(cat2)
 
-    # With ordered=False, doesn't do anything difference, since there is no other valid order.
+    # With ordered=False, doesn't do anything different, since there is no other valid order.
     ngg.process(cat1, cat2, ordered=False, algo='triangle')
     np.testing.assert_array_equal(ngg.ntri, true_ntri_122)
     np.testing.assert_allclose(ngg.weight, true_weight_122, rtol=1.e-5)
@@ -3005,7 +3008,8 @@ def test_vargam():
 
         for run in range(nruns):
             print(f'{run}/{nruns}')
-            # In addition to the shape noise below, there is shot noise from the random x,y positions.
+            # In addition to the shape noise below, there is shot noise
+            # from the random x,y positions.
             x1 = (rng.random_sample(nlens)-0.5) * L
             y1 = (rng.random_sample(nlens)-0.5) * L
             x2 = (rng.random_sample(nsource)-0.5) * L
@@ -3509,27 +3513,39 @@ def test_ngg_logsas_jk():
     cov_ngg = ngg.estimate_cov('jackknife')
     n = ngg.vargam0.size
     print('ngg gam0 var ratio = ',np.diagonal(cov_ngg)[0:n]/var_ngg0)
-    print('ngg0 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ngg)[0:n])-np.log(var_ngg0))))
+    print('ngg0 max log(ratio) = ',
+          np.max(np.abs(np.log(np.diagonal(cov_ngg)[0:n]) - np.log(var_ngg0))))
     print('ngg gam2 var ratio = ',np.diagonal(cov_ngg)[n:2*n]/var_ngg2)
-    print('ngg2 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ngg)[n:2*n])-np.log(var_ngg2))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_ngg)[0:n]), np.log(var_ngg0), atol=0.4*tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_ngg)[n:2*n]), np.log(var_ngg2), atol=0.4*tol_factor)
+    print('ngg2 max log(ratio) = ',
+          np.max(np.abs(np.log(np.diagonal(cov_ngg)[n:2*n]) - np.log(var_ngg2))))
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_ngg)[0:n]), np.log(var_ngg0), atol=0.4*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_ngg)[n:2*n]), np.log(var_ngg2), atol=0.4*tol_factor)
 
     cov_gng = gng.estimate_cov('jackknife')
     print('gng gam0 var ratio = ',np.diagonal(cov_gng)[0:n]/var_gng0)
-    print('gng0 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gng)[0:n])-np.log(var_gng0))))
+    print('gng0 max log(ratio) = ',
+          np.max(np.abs(np.log(np.diagonal(cov_gng)[0:n]) - np.log(var_gng0))))
     print('gng gam1 var ratio = ',np.diagonal(cov_gng)[n:2*n]/var_gng1)
-    print('gng1 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_gng)[n:2*n])-np.log(var_gng1))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_gng)[0:n]), np.log(var_gng0), atol=0.4*tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_gng)[n:2*n]), np.log(var_gng1), atol=0.5*tol_factor)
+    print('gng1 max log(ratio) = ',
+          np.max(np.abs(np.log(np.diagonal(cov_gng)[n:2*n]) - np.log(var_gng1))))
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_gng)[0:n]), np.log(var_gng0), atol=0.4*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_gng)[n:2*n]), np.log(var_gng1), atol=0.5*tol_factor)
 
     cov_ggn = ggn.estimate_cov('jackknife')
     print('ggn gam0 var ratio = ',np.diagonal(cov_ggn)[0:n]/var_ggn0)
-    print('ggn0 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ggn)[0:n])-np.log(var_ggn0))))
+    print('ggn0 max log(ratio) = ',
+          np.max(np.abs(np.log(np.diagonal(cov_ggn)[0:n]) - np.log(var_ggn0))))
     print('ggn gam1 var ratio = ',np.diagonal(cov_ggn)[n:2*n]/var_ggn1)
-    print('ggn1 max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov_ggn)[n:2*n])-np.log(var_ggn1))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov_ggn)[0:n]), np.log(var_ggn0), atol=0.5*tol_factor)
-    np.testing.assert_allclose(np.log(np.diagonal(cov_ggn)[n:2*n]), np.log(var_ggn1), atol=0.5*tol_factor)
+    print('ggn1 max log(ratio) = ',
+          np.max(np.abs(np.log(np.diagonal(cov_ggn)[n:2*n]) - np.log(var_ggn1))))
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_ggn)[0:n]), np.log(var_ggn0), atol=0.5*tol_factor)
+    np.testing.assert_allclose(
+        np.log(np.diagonal(cov_ggn)[n:2*n]), np.log(var_ggn1), atol=0.5*tol_factor)
 
     # Check that these still work after roundtripping through a file.
     file_name = os.path.join('output','test_write_results_ngg.dat')

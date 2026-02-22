@@ -72,7 +72,8 @@ def test_fits_reader():
 
             assert r.row_count('RA', ext=ext) == 390935
             assert r.row_count('GAMMA1', ext=ext) == 390935
-            assert set(r.names(ext=ext)) == set("INDEX RA DEC Z EPSILON GAMMA1 GAMMA2 KAPPA MU".split())
+            assert set(r.names(ext=ext)) == set(
+                "INDEX RA DEC Z EPSILON GAMMA1 GAMMA2 KAPPA MU".split())
             assert set(r.names(ext=ext)) == set(r.names())
 
         # Can read without slice or ext to use defaults

@@ -619,7 +619,8 @@ def test_nt():
     print('Time for nt process = ',t2-t1)
 
     # Using nbins=None rather than omitting nbins is equivalent.
-    nt2 = treecorr.NTCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None, sep_units='arcmin')
+    nt2 = treecorr.NTCorrelation(bin_size=0.1, min_sep=1., max_sep=20., nbins=None,
+                                 sep_units='arcmin')
     nt2.process(lens_cat, source_cat, num_threads=1)
     assert nt2 == nt
 
@@ -1129,7 +1130,7 @@ def test_jk():
         patch_dir = 'output'
         low_mem = True
     except ImportError:
-        # If we cannot write to a fits file, skip the save_patch_dir tests.
+        # If we cannot write to a FITS file, skip the save_patch_dir tests.
         patch_dir = None
         low_mem = False
     cat2p = treecorr.Catalog(x=x2, y=y2, t1=t1, t2=t2, npatch=npatch, save_patch_dir=patch_dir)

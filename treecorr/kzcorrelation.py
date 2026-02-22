@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: kvcorrelation
+.. module:: kzcorrelation
 """
 
 import numpy as np
@@ -89,13 +89,13 @@ class KZCorrelation(BaseKZCorrelation):
     r"""This class handles the calculation and storage of a 2-point scalar-complex correlation
     function, where the complex field is taken to have spin-0 rotational properties.  If the
     spin-0 field is real, you should instead use `KKCorrelation` as it will be faster.
-    This class is intended for correlations of a scalar field with a complex values that
+    This class is intended for correlations of a scalar field with complex values that
     don't change with orientation.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
-    In addition to the attributes common to all `Corr3` subclasses, objects of this class
+    In addition to the attributes common to all `Corr2` subclasses, objects of this class
     hold the following attributes:
 
     In addition, the following attributes are numpy arrays of length (nbins):
@@ -116,16 +116,19 @@ class KZCorrelation(BaseKZCorrelation):
 
     The typical usage pattern is as follows:
 
-        >>> kv = treecorr.KZCorrelation(config)
-        >>> kv.process(cat1,cat2)   # Calculate the cross-correlation
-        >>> kv.write(file_name)     # Write out to a file.
-        >>> xi = kv.xi              # Or access the correlation function directly.
+        >>> kz = treecorr.KZCorrelation(config)
+        >>> kz.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> kz.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = kz.xi, kz.xi_im    # Or access the correlation function directly.
+
+    See also: `NZCorrelation`, `ZZCorrelation`, `KVCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr2`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -169,9 +172,9 @@ class KZCorrelation(BaseKZCorrelation):
                         fell into each bin
         meanlogr        The mean value :math:`\langle \log(r)\rangle` of pairs
                         that fell into each bin
-        xi              The real part of correlation function,
+        xi              The real part of the correlation function,
                         :math:`xi(r) = \langle \kappa\, z\rangle`
-        xi_im           The imaginary part of correlation function.
+        xi_im           The imaginary part of the correlation function.
         sigma           The sqrt of the variance estimate of both of these
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
@@ -185,7 +188,7 @@ class KZCorrelation(BaseKZCorrelation):
             file_name (str):    The name of the file to write to.
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
                                         (default: False)

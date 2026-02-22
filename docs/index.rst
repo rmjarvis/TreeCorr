@@ -7,6 +7,7 @@ TreeCorr Documentation
    :maxdepth: 2
 
    overview
+   guide
    catalog
    correlation2
    correlation3
@@ -18,11 +19,9 @@ TreeCorr Documentation
    cov
    field
    scripts
-   guide
    changes
    history
 
 * :ref:`genindex`
 * :ref:`modindex`
 * :ref:`search`
-

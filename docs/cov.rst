@@ -24,11 +24,24 @@ patches to estimate the overall sample variance.
 
 See `Patches` for information on defining the patches to use for your input `Catalog`.
 
+.. admonition:: Recommendation
+
+    For most use cases, the most accurate covariance estimate seems to be
+    jackknife covariances with matched cross-patch weights, so we recommend
+    this option for most users who want empirical covariance estimates from
+    the data.  I.e. use ``method='jackknife', cross_patch_weight='match'``,
+    as described below.
+
+    For the 5.x version series, the matched cross-patch weights are not the default
+    in order to maintain backwards-compatibility, but this may change at the
+    next major version (6.0).
+
+
 Variance Methods
 ----------------
 
 To get one of the patch-based variance estimates for the ``varxi`` or similar
-attribute, you can set the ``var_method`` parameter in the constructor.  e.g.::
+attribute, you can set the ``var_method`` parameter in the constructor.  For example::
 
     >>> ng = treecorr.NGCorrelation(nbins=10, min_sep=1, max_sep=100, var_method='jackknife')
 
@@ -60,7 +73,7 @@ from the sample.  Then the covariance matrix is estimated as
 "sample"
 ^^^^^^^^
 
-This is the simplest patch-based covariance estimate estimate.  It computes the
+This is the simplest patch-based covariance estimate.  It computes the
 correlation function for each patch, where at least one point falls in
 that patch.  Then the estimated covariance matrix is simply the sample covariance
 of these vectors, scaled by the relative total weight in each patch.
@@ -84,7 +97,7 @@ This estimate implements a bootstrap resampling of the patches as follows:
    will appear more than once, and some will be missing.
 
 2. Calculate the total correlation function that would have been computed
-   from these patches rather than the original patches.
+   from these patches rather than from the original patches.
 
 3. The auto-correlations are included at the selected repetition for the bootstrap
    samples.  So if a patch number is repeated, its auto-correlation is included that
@@ -137,7 +150,7 @@ Cross-patch Weights
 -------------------
 
 There is some ambiguity as to the exact calculation of :math:`\xi` in each of the above
-formulae, specifically with respect to the treatment of pairs (or triples for 3 point
+formulae, specifically with respect to the treatment of pairs (or triples for 3-point
 statistics) that cross between a selected patch and an unselected patch.
 `Mohammad and Percival (2022; MP22 hereafter)
 <https://ui.adsabs.harvard.edu/abs/2022MNRAS.514.1289M/>`_ explored several different options
@@ -152,8 +165,8 @@ which can be provided in the `Corr2` or `Corr3` constructor or in the call to
   which means the weight is the product of the two patch weights.
   For jackknife, the weights are all 1 or 0, so this means the pair is used only if
   both points are not in the excluded patch.  For bootstrap, the weights are some
-  integer corresponding the multiplicity of that patch in the bootstrap selection.
-  Cross patch pairs are included at the product of the multipilicity of the two patches.
+  integer corresponding to the multiplicity of that patch in the bootstrap selection.
+  Cross patch pairs are included at the product of the multiplicity of the two patches.
   For sample and marked_bootstrap, a pair is included if the first point is the selected
   sample.
 * 'mean' involves weighting pairs by the mean of the patch weights.  For jackknife, this
@@ -172,7 +185,7 @@ which can be provided in the `Corr2` or `Corr3` constructor or in the call to
   (what they call mult) or 'mean'.
 
 The default value of ``cross_patch_weight`` is 'simple' for all variance methods.
-MP22 recommends to instead use 'match' for jackknife covariances and 'geom' for
+MP22 instead recommends using 'match' for jackknife covariances and 'geom' for
 bootstrap covariances.  In order to maintain API consistency, we haven't made this
 the default yet, but we may in a future version of TreeCorr.
 
@@ -180,9 +193,36 @@ For now, we recommend
 explicitly setting ``cross_patch_weight`` to either 'match' or 'geom' as appropriate,
 especially if your field has significant sample variance, but not much super-sample variance,
 where these options seem to be more optimal than the default weighting.
+In many practical analyses, we find jackknife with ``cross_patch_weight='match'`` to be
+the most accurate default choice, with bootstrap/``'geom'`` as a useful comparison.
 For 'sample' and 'marked_bootstrap', we don't see much difference between 'simple' and 'mean',
-althought we welcome feedback from users whether 'mean' might be a better
+although we welcome feedback from users whether 'mean' might be a better
 choice for these methods.
+
+Recommended Baseline Workflow
+-----------------------------
+
+For most analyses, a good baseline is jackknife covariance with ``'match'`` weighting:
+
+.. code-block:: python
+
+    cat1 = treecorr.Catalog(cat1_file, npatch=50)
+    cat2 = treecorr.Catalog(cat2_file, patch_centers=cat1.patch_centers)
+    ng = treecorr.NGCorrelation(config)
+    ng.process(cat1, cat2)
+    cov = ng.estimate_cov(method='jackknife', cross_patch_weight='match')
+
+Patch consistency checklist for cross-correlations:
+
+1. Use a single shared patch definition across all relevant catalogs.
+2. In particular, do not use ``npatch`` on multiple catalogs, since that will create different
+   patch definitions for the different data sets.
+3. Typically use ``patch_centers`` to copy the patch definitions from one catalog to any other
+   catalogs being used in the correlation calculation.
+4. This applies to random catalogs as well.  If you are using random catalogs, use the same
+   patch definitions as the data.
+5. Ensure any correlations combined with ``estimate_multi_cov`` were processed with compatible
+   patches.
 
 
 Covariance Matrix
@@ -194,7 +234,7 @@ is complete.
 
 However, if the processing was done using patches, then you can also compute the
 covariance matrix for any of the above methods without redoing the processing
-using `Corr2.estimate_cov` or `Corr3.estimate_cov`.  E.g.::
+using `Corr2.estimate_cov` or `Corr3.estimate_cov`.  For example::
 
     >>> ng = treecorr.NGCorrelation(nbins=10, min_sep=1, max_sep=100)
     >>> ng.process(lens_cat, source_cat)  # At least one of these needs to have patches set.
@@ -202,7 +242,7 @@ using `Corr2.estimate_cov` or `Corr3.estimate_cov`.  E.g.::
     >>> cov_boot = ng.estimate_cov('bootstrap')
 
 Additionally, you can compute the joint covariance matrix for a number of statistics
-that were processed using the same patches with `estimate_multi_cov`.  E.g.::
+that were processed using the same patches with `estimate_multi_cov`.  For example::
 
     >>> ng = treecorr.NGCorrelation(nbins=10, min_sep=1, max_sep=100)
     >>> ng.process(lens_cat, source_cat)
@@ -218,7 +258,7 @@ Covariance of Derived Quantities
 
 Sometimes your data vector of interest might not be just the raw correlation function,
 or even a list of several correlation functions.  Rather, it might be some derived
-quantity. E.g.
+quantity. For example:
 
 * The ratio or difference of two correlation functions such as ``nk1.xi / nk2.xi``.
 * The aperture mass variance computed by `GGCorrelation.calculateMapSq`.
@@ -226,8 +266,8 @@ quantity. E.g.
 * A reordering of the data vector, such as putting several ``gg.xip`` first for multiple
   tomographic bins and then the ``gg.xim`` for each after that.
 
-These are just examples of what kind of thing you might want. In fact, we enable
-any kind of post-processing you want to do on either a single correlation object
+These are just examples of the kinds of things you might want. In fact, we enable
+any kind of post-processing you might want to do on either a single correlation object
 (using `Corr2.estimate_cov` or `Corr3.estimate_cov`) or a list of
 correlation objects (using `estimate_multi_cov`).
 
@@ -251,8 +291,8 @@ data vector, ``ratio``.
 Random Catalogs
 ---------------
 
-There are a few adjustements to the above prescription when using random
-catalogs, which of course are required when doing an NN correlation.
+There are a few adjustments to the above prescription when using random
+catalogs, which are of course required when doing an NN correlation.
 
 1. It is not necessarily required to use patches for the random catalog.
    The random is supposed to be dense enough that it doesn't materially contribute
@@ -273,7 +313,7 @@ catalogs, which of course are required when doing an NN correlation.
    will have ``varxi`` and ``cov`` attributes calculated according
    to whatever ``var_method`` you specified.
 5. It also allows you to call `dd.estimate_cov <Corr2.estimate_cov>`
-   with any different method you want.
+   with any method you want.
    And you can include ``dd`` in a list of correlation
    objects passed to `estimate_multi_cov`.
 
@@ -293,11 +333,12 @@ Here is a worked example::
     >>> tx_cov = treecorr.estimate_multi_cov([ng,gg,dd], 'bootstrap') # Or include in multi_cov
 
 As mentioned above, using ``patch_centers`` is optional for ``rand``, but probably recommended.
-In the last line, it would be required that ``ng`` and ``gg`` were also made using catalogs
+In the last line, it is required that ``ng`` and ``gg`` were also made using catalogs
 with the same patch centers that ``dd`` used.
 
-The use pattern for `NNNCorrelation` is analogous, where `calculateZeta <NNNCorrelation.calculateZeta>`
-needs to be run to get the covariance estimate, after which it may be used in a list
+The usage pattern for `NNNCorrelation` is analogous, where
+`calculateZeta <NNNCorrelation.calculateZeta>` needs to be run to get the covariance estimate,
+after which it may be used in a list
 passed to `estimate_multi_cov`.
 
 Design Matrix
@@ -309,7 +350,7 @@ described `above <Variance Methods>`.
 
 This matrix is available using a parallel pair of functions to `estimate_cov <Corr2.estimate_cov>`
 and `estimate_multi_cov`.  Namely `build_cov_design_matrix <Corr2.build_cov_design_matrix>`
-and `build_multi_cov_design_matrix`.  E.g.::
+and `build_multi_cov_design_matrix`.  For example::
 
     >>> A_ng_jk, w = ng.build_cov_design_matrix(method='jackknife')
     >>> A_tx_bs, w = treecorr.build_multi_cov_design_matrix([ng,gg,dd], method='bootstrap')

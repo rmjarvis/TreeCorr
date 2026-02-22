@@ -12,7 +12,7 @@
 #    and/or other materials provided with the distribution.
 
 """
-.. module:: ngcorrelation
+.. module:: ntcorrelation
 """
 
 import numpy as np
@@ -26,7 +26,7 @@ class NTCorrelation(BaseNZCorrelation):
     r"""This class handles the calculation and storage of a 2-point count-trefoil correlation
     function, where a trefoil is any field with spin-3 rotational properties.
 
-    See the doc string of `Corr3` for a description of how the triangles are binned along
+    See the docstring of `Corr2` for a description of how the pairs are binned along
     with the attributes related to the different binning options.
 
     In addition to the attributes common to all `Corr2` subclasses, objects of this class
@@ -53,15 +53,18 @@ class NTCorrelation(BaseNZCorrelation):
     The typical usage pattern is as follows:
 
         >>> nt = treecorr.NTCorrelation(config)
-        >>> nt.process(cat1,cat2)   # Compute the cross-correlation.
-        >>> nt.write(file_name)     # Write out to a file.
-        >>> xi = nt.xi              # Or access the correlation function directly.
+        >>> nt.process(cat1, cat2)         # Compute the cross-correlation.
+        >>> nt.write(file_name)            # Write out to a file.
+        >>> xi, xi_im = nt.xi, nt.xi_im    # Or access the correlation function directly.
+
+    See also: `KTCorrelation`, `TTCorrelation`, `NZCorrelation`.
 
     Parameters:
         config (dict):  A configuration dict that can be used to pass in kwargs if desired.
-                        This dict is allowed to have addition entries besides those listed
+                        This dict is allowed to have additional entries besides those listed
                         in `Corr2`, which are ignored here. (default: None)
-        logger:         If desired, a logger object for logging. (default: None, in which case
+        logger (:class:`logging.Logger`):
+                        If desired, a ``Logger`` object for logging. (default: None, in which case
                         one will be built according to the config dict's verbose level.)
 
     Keyword Arguments:
@@ -103,7 +106,7 @@ class NTCorrelation(BaseNZCorrelation):
 
         After calling this function, the attributes ``xi``, ``xi_im``, ``varxi``, and ``cov`` will
         correspond to the compensated values (if rt is provided).  The raw, uncompensated values
-        are available as ``rawxi``, ``raw_xi_im``, and ``raw_varxi``.
+        are available as ``raw_xi``, ``raw_xi_im``, and ``raw_varxi``.
 
         Parameters:
             rt (NTCorrelation): The cross-correlation using random locations as the lenses
@@ -141,7 +144,7 @@ class NTCorrelation(BaseNZCorrelation):
                         center points.
         tR_im           The mean imaginary part of the trefoil field relative to the
                         center points.
-        sigma           The sqrt of the variance estimate of either of these
+        sigma           The sqrt of the variance estimate of each of these
         weight          The total weight contributing to each bin
         npairs          The total number of pairs in each bin
         ==========      =============================================================
@@ -156,7 +159,7 @@ class NTCorrelation(BaseNZCorrelation):
                                 (RT), if desired.  (default: None)
             file_type (str):    The type of file to write ('ASCII' or 'FITS').  (default: determine
                                 the type automatically from the extension of file_name.)
-            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;
+            precision (int):    For ASCII output files, the desired precision. (default: 4;
                                 this value can also be given in the constructor in the config dict.)
             write_patch_results (bool): Whether to write the patch-based results as well.
                                         (default: False)

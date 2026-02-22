@@ -1,20 +1,20 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>treecorr.catalog &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2c218288"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -31,9 +31,6 @@
           <a href="../../index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,6 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
@@ -55,7 +53,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
@@ -114,7 +111,9 @@
 <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">parse_file_type</span><span class="p">,</span> <span class="n">LRU_Cache</span><span class="p">,</span> <span class="n">make_writer</span><span class="p">,</span> <span class="n">make_reader</span><span class="p">,</span> <span class="n">set_omp_threads</span>
 <span class="kn">from</span> <span class="nn">.field</span> <span class="kn">import</span> <span class="n">NField</span><span class="p">,</span> <span class="n">KField</span><span class="p">,</span> <span class="n">ZField</span><span class="p">,</span> <span class="n">VField</span><span class="p">,</span> <span class="n">GField</span><span class="p">,</span> <span class="n">TField</span><span class="p">,</span> <span class="n">QField</span>
 
-<div class="viewcode-block" id="Catalog"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog">[docs]</a><span class="k">class</span> <span class="nc">Catalog</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Catalog">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog">[docs]</a>
+<span class="k">class</span> <span class="nc">Catalog</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;A set of input data (positions and other quantities) to be correlated.</span>
 
 <span class="sd">    A Catalog object keeps track of the relevant information for a number of objects to</span>
@@ -132,7 +131,7 @@
 
 <span class="sd">        &gt;&gt;&gt; cat = treecorr.Catalog(x=x, y=y, k=k, w=w)</span>
 
-<span class="sd">    Each of these input paramters should be a numpy array, where each corresponding element</span>
+<span class="sd">    Each of these input parameters should be a numpy array, where each corresponding element</span>
 <span class="sd">    is the value for that object.  Of course, all the arrays should be the same size.</span>
 
 <span class="sd">    In some cases, there are additional required parameters.  For instance, with RA and Dec</span>
@@ -334,47 +333,70 @@
 <span class="sd">                            catalog for the N has num=0, the one for G has num=1.  This is only</span>
 <span class="sd">                            necessary if you are using a config dict where things like ``x_col``</span>
 <span class="sd">                            have multiple values. (default: 0)</span>
-<span class="sd">        logger:             If desired, a Logger object for logging. (default: None, in which case</span>
-<span class="sd">                            one will be built according to the config dict&#39;s verbose level.)</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                        If desired, a ``Logger`` object for logging.</span>
+<span class="sd">                            (default: None, in which case one will be built according to the</span>
+<span class="sd">                            config dict&#39;s verbose level.)</span>
 <span class="sd">        is_rand (bool):     If this is a random file, then setting is_rand to True will let them</span>
 <span class="sd">                            skip k_col, g1_col, and g2_col if they were set for the main catalog.</span>
 <span class="sd">                            (default: False)</span>
 
-<span class="sd">        x (array):          The x values. (default: None; When providing values directly, either</span>
+<span class="sd">        x (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The x values. (default: None; When providing values directly, either</span>
 <span class="sd">                            x,y are required or ra,dec are required.)</span>
-<span class="sd">        y (array):          The y values. (default: None; When providing values directly, either</span>
+<span class="sd">        y (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The y values. (default: None; When providing values directly, either</span>
 <span class="sd">                            x,y are required or ra,dec are required.)</span>
-<span class="sd">        z (array):          The z values, if doing 3d positions. (default: None; invalid in</span>
+<span class="sd">        z (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The z values, if doing 3d positions. (default: None; invalid in</span>
 <span class="sd">                            conjunction with ra, dec.)</span>
-<span class="sd">        ra (array):         The RA values. (default: None; When providing values directly, either</span>
+<span class="sd">        ra (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The RA values. (default: None; When providing values directly, either</span>
 <span class="sd">                            x,y are required or ra,dec are required.)</span>
-<span class="sd">        dec (array):        The Dec values. (default: None; When providing values directly, either</span>
+<span class="sd">        dec (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The Dec values. (default: None; When providing values directly, either</span>
 <span class="sd">                            x,y are required or ra,dec are required.)</span>
-<span class="sd">        r (array):          The r values (the distances of each source from Earth). (default: None;</span>
+<span class="sd">        r (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The r values (the distances of each source from Earth). (default: None;</span>
 <span class="sd">                            invalid in conjunction with x, y.)</span>
-<span class="sd">        w (array):          The weights to apply when computing the correlations. (default: None)</span>
-<span class="sd">        wpos (array):       The weights to use for position centroiding. (default: None, which</span>
+<span class="sd">        w (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The weights to apply when computing the correlations. (default: None)</span>
+<span class="sd">        wpos (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The weights to use for position centroiding. (default: None, which</span>
 <span class="sd">                            means to use the value weights, w, to weight the positions as well.)</span>
-<span class="sd">        flag (array):       An optional array of flags, indicating objects to skip.  Rows with</span>
+<span class="sd">        flag (:class:`numpy.ndarray`):</span>
+<span class="sd">                            An optional array of flags, indicating objects to skip.  Rows with</span>
 <span class="sd">                            flag != 0 (or technically flag &amp; ~ok_flag != 0) will be given a weight</span>
 <span class="sd">                            of 0. (default: None)</span>
-<span class="sd">        k (array):          The kappa values to use for scalar correlations. (This may represent</span>
+<span class="sd">        k (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The kappa values to use for scalar correlations. (This may represent</span>
 <span class="sd">                            any scalar field.) (default: None)</span>
-<span class="sd">        z1 (array):         The z1 values to use for complex scalar correlations. (default: None)</span>
-<span class="sd">        z2 (array):         The z2 values to use for complex scalar correlations. (default: None)</span>
-<span class="sd">        v1 (array):         The v1 values to use for vector correlations. (default: None)</span>
-<span class="sd">        v2 (array):         The v2 values to use for vector correlations. (default: None)</span>
-<span class="sd">        g1 (array):         The g1 values to use for shear correlations. (g1,g2 may represent any</span>
+<span class="sd">        z1 (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The z1 values to use for complex scalar correlations. (default: None)</span>
+<span class="sd">        z2 (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The z2 values to use for complex scalar correlations. (default: None)</span>
+<span class="sd">        v1 (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The v1 values to use for vector correlations. (default: None)</span>
+<span class="sd">        v2 (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The v2 values to use for vector correlations. (default: None)</span>
+<span class="sd">        g1 (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The g1 values to use for shear correlations. (g1,g2 may represent any</span>
 <span class="sd">                            spin-2 field.) (default: None)</span>
-<span class="sd">        g2 (array):         The g2 values to use for shear correlations. (g1,g2 may represent any</span>
+<span class="sd">        g2 (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The g2 values to use for shear correlations. (g1,g2 may represent any</span>
 <span class="sd">                            spin-2 field.) (default: None)</span>
-<span class="sd">        t1 (array):         The t1 values to use for trefoil (spin-3) correlations. (default: None)</span>
-<span class="sd">        t2 (array):         The t2 values to use for trefoil (spin-3) correlations. (default: None)</span>
-<span class="sd">        q1 (array):         The q1 values to use for quatrefoil (spin-4) correlations.</span>
+<span class="sd">        t1 (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The t1 values to use for trefoil (spin-3) correlations. (default: None)</span>
+<span class="sd">        t2 (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The t2 values to use for trefoil (spin-3) correlations. (default: None)</span>
+<span class="sd">        q1 (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The q1 values to use for quatrefoil (spin-4) correlations.</span>
 <span class="sd">                            (default: None)</span>
-<span class="sd">        q2 (array):         The q2 values to use for quatrefoil (spin-4) correlations.</span>
+<span class="sd">        q2 (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The q2 values to use for quatrefoil (spin-4) correlations.</span>
 <span class="sd">                            (default: None)</span>
-<span class="sd">        patch (array or int): Optionally, patch numbers to use for each object. (default: None)</span>
+<span class="sd">        patch (:class:`numpy.ndarray` or int):</span>
+<span class="sd">                            Optionally, patch numbers to use for each object. (default: None)</span>
 
 <span class="sd">                            .. note::</span>
 
@@ -387,9 +409,14 @@
 <span class="sd">                                given patch number, and ``npatch`` is required to set the total</span>
 <span class="sd">                                number of patches, which this catalog is a part of.</span>
 
-<span class="sd">        patch_centers (array or str): Alternative to setting patch by hand or using kmeans, you</span>
+<span class="sd">        patch_centers (:class:`numpy.ndarray` or str):</span>
+<span class="sd">                            Alternative to setting patch by hand or using kmeans, you</span>
 <span class="sd">                            may instead give patch_centers either as a file name or an array</span>
 <span class="sd">                            from which the patches will be determined. (default: None)</span>
+
+<span class="sd">                            For cross-correlations that use patch-based covariance estimates,</span>
+<span class="sd">                            all catalogs should use consistent patch definitions, typically by</span>
+<span class="sd">                            sharing the same ``patch_centers``.</span>
 
 <span class="sd">        file_type (str):    What kind of file is the input file. Valid options are &#39;ASCII&#39;, &#39;FITS&#39;</span>
 <span class="sd">                            &#39;HDF&#39;, or &#39;Parquet&#39; (default: if the file_name extension starts with</span>
@@ -415,6 +442,11 @@
 <span class="sd">                            If ``patch`` is given, then this sets the total number of patches</span>
 <span class="sd">                            that are relevant for the area that was split into patches, which</span>
 <span class="sd">                            may include more catalogs than just this one.</span>
+
+<span class="sd">                            If two catalogs in a cross-correlation both use patches, avoid</span>
+<span class="sd">                            running separate ``npatch`` assignments for each one. Use shared</span>
+<span class="sd">                            ``patch_centers`` instead so corresponding patch IDs refer to the</span>
+<span class="sd">                            same sky regions.</span>
 
 <span class="sd">        kmeans_init (str):  If using kmeans to make patches, which init method to use.</span>
 <span class="sd">                            cf. `Field.run_kmeans` (default: &#39;tree&#39;)</span>
@@ -595,9 +627,10 @@
 <span class="sd">                            should be an integer, which specifies how many digits to write.</span>
 <span class="sd">                            (default: 16)</span>
 
-<span class="sd">        rng (np.Generator): If desired, a numpy.random.Generator or numpy.random.RandomState</span>
-<span class="sd">                            instance to use for any random number generation (e.g. kmeans patches).</span>
-<span class="sd">                            (default: None)</span>
+<span class="sd">        rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                            If desired, a ``Generator`` instance to use for any random number</span>
+<span class="sd">                            generation (e.g. kmeans patches). Legacy ``RandomState`` instances are</span>
+<span class="sd">                            also accepted. (default: None)</span>
 
 <span class="sd">        num_threads (int):  How many OpenMP threads to use during the catalog load steps.</span>
 <span class="sd">                            (default: use the number of cpu cores)</span>
@@ -1539,7 +1572,9 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;   nobj = </span><span class="si">%d</span><span class="s2">&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">nobj</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Catalog.combine"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.combine">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="Catalog.combine">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.combine">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">combine</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">mask_list</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Combine several Catalogs into a single larger Catalog</span>
 
@@ -1605,6 +1640,7 @@
         <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
             <span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">kwargs</span><span class="p">[</span><span class="n">key</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">Catalog</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">_assign_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># This is equivalent to the following:</span>
@@ -1683,7 +1719,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_patch</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">select</span><span class="p">(</span><span class="n">indx</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Catalog.select"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.select">[docs]</a>    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indx</span><span class="p">):</span>
+<div class="viewcode-block" id="Catalog.select">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.select">[docs]</a>
+    <span class="k">def</span> <span class="nf">select</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indx</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Trim the catalog to only include those objects with the give indices.</span>
 
 <span class="sd">        Parameters:</span>
@@ -1712,7 +1750,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_q2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2</span><span class="p">[</span><span class="n">indx</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_q2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_patch</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_patch</span><span class="p">[</span><span class="n">indx</span><span class="p">]</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_patch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="kc">None</span></div>
 
-<div class="viewcode-block" id="Catalog.makeArray"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.makeArray">[docs]</a>    <span class="k">def</span> <span class="nf">makeArray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">col_str</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Catalog.makeArray">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.makeArray">[docs]</a>
+    <span class="k">def</span> <span class="nf">makeArray</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">col_str</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Turn the input column into a numpy array if it wasn&#39;t already.</span>
 <span class="sd">        Also make sure the input is 1-d.</span>
 
@@ -1734,11 +1775,15 @@
             <span class="n">col</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">col</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">end</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">every_nth</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">col</span></div>
 
-<div class="viewcode-block" id="Catalog.checkForNaN"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.checkForNaN">[docs]</a>    <span class="k">def</span> <span class="nf">checkForNaN</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">col_str</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Catalog.checkForNaN">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.checkForNaN">[docs]</a>
+    <span class="k">def</span> <span class="nf">checkForNaN</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">col_str</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if the column has any NaNs.  If so, set those rows to have w[k]=0.</span>
 
 <span class="sd">        Parameters:</span>
-<span class="sd">            col (array):    The input column to check.</span>
+<span class="sd">            col (:class:`numpy.ndarray`):</span>
+<span class="sd">                            The input column to check.</span>
 <span class="sd">            col_str (str):  The name of the column.  Used only as information in logging output.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">col</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">col</span><span class="p">)):</span>
@@ -1754,6 +1799,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones_like</span><span class="p">(</span><span class="n">col</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_w</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="n">col</span><span class="p">[</span><span class="n">index</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># Don&#39;t leave the nans there.</span></div>
+
 
     <span class="k">def</span> <span class="nf">_check_file</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="n">reader</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">is_rand</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="c1"># Just check the consistency of the various column numbers so we can fail fast.</span>
@@ -2366,7 +2412,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_qfields</span> <span class="o">=</span> <span class="n">LRU_Cache</span><span class="p">(</span><span class="n">get_qfield</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_qfields</span>
 
-<div class="viewcode-block" id="Catalog.resize_cache"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.resize_cache">[docs]</a>    <span class="k">def</span> <span class="nf">resize_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxsize</span><span class="p">):</span>
+<div class="viewcode-block" id="Catalog.resize_cache">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.resize_cache">[docs]</a>
+    <span class="k">def</span> <span class="nf">resize_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">maxsize</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Resize all field caches.</span>
 
 <span class="sd">        The various kinds of fields built from this catalog are cached.  This may or may not</span>
@@ -2422,7 +2470,10 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_tfields&#39;</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">tfields</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">maxsize</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_qfields&#39;</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">qfields</span><span class="o">.</span><span class="n">resize</span><span class="p">(</span><span class="n">maxsize</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Catalog.clear_cache"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.clear_cache">[docs]</a>    <span class="k">def</span> <span class="nf">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Catalog.clear_cache">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.clear_cache">[docs]</a>
+    <span class="k">def</span> <span class="nf">clear_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear all field caches.</span>
 
 <span class="sd">        The various kinds of fields built from this catalog are cached.  This may or may not</span>
@@ -2461,6 +2512,7 @@
         <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="s1">&#39;_qfields&#39;</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">qfields</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="k">lambda</span> <span class="p">:</span> <span class="kc">None</span>  <span class="c1"># Acts like a dead weakref</span></div>
 
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">field</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># The default is to return None here.</span>
@@ -2468,7 +2520,9 @@
         <span class="c1"># But if the weakref is alive, this returns the field we want.</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_field</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Catalog.getNField"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getNField">[docs]</a>    <span class="k">def</span> <span class="nf">getNField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="Catalog.getNField">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getNField">[docs]</a>
+    <span class="k">def</span> <span class="nf">getNField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                   <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an `NField` based on the positions in this catalog.</span>
 
@@ -2487,7 +2541,8 @@
 <span class="sd">            max_top (int):      The maximum number of top layers to use when setting up the</span>
 <span class="sd">                                field. (default: 10)</span>
 <span class="sd">            coords (str):       The kind of coordinate system to use. (default: self.coords)</span>
-<span class="sd">            logger:             A Logger object if desired (default: self.logger)</span>
+<span class="sd">            logger (:class:`logging.Logger`):</span>
+<span class="sd">                                A ``Logger`` object if desired (default: self.logger)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            An `NField` object</span>
@@ -2502,7 +2557,10 @@
         <span class="k">return</span> <span class="n">field</span></div>
 
 
-<div class="viewcode-block" id="Catalog.getKField"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getKField">[docs]</a>    <span class="k">def</span> <span class="nf">getKField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Catalog.getKField">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getKField">[docs]</a>
+    <span class="k">def</span> <span class="nf">getKField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                   <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a `KField` based on the k values in this catalog.</span>
 
@@ -2521,7 +2579,8 @@
 <span class="sd">            max_top (int):      The maximum number of top layers to use when setting up the</span>
 <span class="sd">                                field. (default: 10)</span>
 <span class="sd">            coords (str):       The kind of coordinate system to use. (default self.coords)</span>
-<span class="sd">            logger:             A Logger object if desired (default: self.logger)</span>
+<span class="sd">            logger (:class:`logging.Logger`):</span>
+<span class="sd">                                A ``Logger`` object if desired (default: self.logger)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A `KField` object</span>
@@ -2537,7 +2596,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">field</span></div>
 
-<div class="viewcode-block" id="Catalog.getZField"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getZField">[docs]</a>    <span class="k">def</span> <span class="nf">getZField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Catalog.getZField">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getZField">[docs]</a>
+    <span class="k">def</span> <span class="nf">getZField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                   <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a `VField` based on the z1,z2 values in this catalog.</span>
 
@@ -2556,7 +2618,8 @@
 <span class="sd">            max_top (int):      The maximum number of top layers to use when setting up the</span>
 <span class="sd">                                field. (default: 10)</span>
 <span class="sd">            coords (str):       The kind of coordinate system to use. (default self.coords)</span>
-<span class="sd">            logger:             A Logger object if desired (default: self.logger)</span>
+<span class="sd">            logger (:class:`logging.Logger`):</span>
+<span class="sd">                                A ``Logger`` object if desired (default: self.logger)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A `ZField` object</span>
@@ -2572,7 +2635,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">field</span></div>
 
-<div class="viewcode-block" id="Catalog.getVField"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getVField">[docs]</a>    <span class="k">def</span> <span class="nf">getVField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Catalog.getVField">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getVField">[docs]</a>
+    <span class="k">def</span> <span class="nf">getVField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                   <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a `VField` based on the v1,v2 values in this catalog.</span>
 
@@ -2591,7 +2657,8 @@
 <span class="sd">            max_top (int):      The maximum number of top layers to use when setting up the</span>
 <span class="sd">                                field. (default: 10)</span>
 <span class="sd">            coords (str):       The kind of coordinate system to use. (default self.coords)</span>
-<span class="sd">            logger:             A Logger object if desired (default: self.logger)</span>
+<span class="sd">            logger (:class:`logging.Logger`):</span>
+<span class="sd">                                A ``Logger`` object if desired (default: self.logger)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A `VField` object</span>
@@ -2607,7 +2674,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">field</span></div>
 
-<div class="viewcode-block" id="Catalog.getGField"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getGField">[docs]</a>    <span class="k">def</span> <span class="nf">getGField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Catalog.getGField">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getGField">[docs]</a>
+    <span class="k">def</span> <span class="nf">getGField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                   <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a `GField` based on the g1,g2 values in this catalog.</span>
 
@@ -2626,7 +2696,8 @@
 <span class="sd">            max_top (int):      The maximum number of top layers to use when setting up the</span>
 <span class="sd">                                field. (default: 10)</span>
 <span class="sd">            coords (str):       The kind of coordinate system to use. (default self.coords)</span>
-<span class="sd">            logger:             A Logger object if desired (default: self.logger)</span>
+<span class="sd">            logger (:class:`logging.Logger`):</span>
+<span class="sd">                                A ``Logger`` object if desired (default: self.logger)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A `GField` object</span>
@@ -2642,7 +2713,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">field</span></div>
 
-<div class="viewcode-block" id="Catalog.getTField"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getTField">[docs]</a>    <span class="k">def</span> <span class="nf">getTField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Catalog.getTField">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getTField">[docs]</a>
+    <span class="k">def</span> <span class="nf">getTField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                   <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a `TField` based on the t1,t2 values in this catalog.</span>
 
@@ -2661,7 +2735,8 @@
 <span class="sd">            max_top (int):      The maximum number of top layers to use when setting up the</span>
 <span class="sd">                                field. (default: 10)</span>
 <span class="sd">            coords (str):       The kind of coordinate system to use. (default self.coords)</span>
-<span class="sd">            logger:             A Logger object if desired (default: self.logger)</span>
+<span class="sd">            logger (:class:`logging.Logger`):</span>
+<span class="sd">                                A ``Logger`` object if desired (default: self.logger)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A `TField` object</span>
@@ -2677,7 +2752,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">field</span></div>
 
-<div class="viewcode-block" id="Catalog.getQField"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getQField">[docs]</a>    <span class="k">def</span> <span class="nf">getQField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Catalog.getQField">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.getQField">[docs]</a>
+    <span class="k">def</span> <span class="nf">getQField</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                   <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a `QField` based on the q1,q2 values in this catalog.</span>
 
@@ -2696,7 +2774,8 @@
 <span class="sd">            max_top (int):      The maximum number of top layers to use when setting up the</span>
 <span class="sd">                                field. (default: 10)</span>
 <span class="sd">            coords (str):       The kind of coordinate system to use. (default self.coords)</span>
-<span class="sd">            logger:             A Logger object if desired (default: self.logger)</span>
+<span class="sd">            logger (:class:`logging.Logger`):</span>
+<span class="sd">                                A ``Logger`` object if desired (default: self.logger)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A `QField` object</span>
@@ -2712,6 +2791,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_field</span> <span class="o">=</span> <span class="n">weakref</span><span class="o">.</span><span class="n">ref</span><span class="p">(</span><span class="n">field</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">field</span></div>
 
+
     <span class="k">def</span> <span class="nf">_weighted_mean</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">idx</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Find the weighted mean of some column.</span>
         <span class="c1"># If weights are set, then return sum(w * x) / sum(w)</span>
@@ -2724,7 +2804,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span>
 
-<div class="viewcode-block" id="Catalog.get_patch_centers"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.get_patch_centers">[docs]</a>    <span class="k">def</span> <span class="nf">get_patch_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Catalog.get_patch_centers">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.get_patch_centers">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_patch_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return an array of patch centers corresponding to the patches in this catalog.</span>
 
 <span class="sd">        If the patches were set either using K-Means or by giving the centers, then this</span>
@@ -2776,7 +2858,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_computed_centers</span> <span class="o">=</span> <span class="n">centers</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_computed_centers</span></div>
 
-<div class="viewcode-block" id="Catalog.write_patch_centers"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.write_patch_centers">[docs]</a>    <span class="k">def</span> <span class="nf">write_patch_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Catalog.write_patch_centers">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.write_patch_centers">[docs]</a>
+    <span class="k">def</span> <span class="nf">write_patch_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Write the patch centers to a file.</span>
 
 <span class="sd">        The output file will include the following columns:</span>
@@ -2808,14 +2893,17 @@
         <span class="k">with</span> <span class="n">make_writer</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="mi">16</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
             <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">col_names</span><span class="p">,</span> <span class="n">columns</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Catalog.read_patch_centers"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.read_patch_centers">[docs]</a>    <span class="k">def</span> <span class="nf">read_patch_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Catalog.read_patch_centers">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.read_patch_centers">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_patch_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read patch centers from a file.</span>
 
 <span class="sd">        This function typically gets called automatically when setting patch_centers as a</span>
 <span class="sd">        string, being the file name.  The patch centers are read from the file and returned.</span>
 
 <span class="sd">        Parameters:</span>
-<span class="sd">            file_name (str):    The name of the file to write to.</span>
+<span class="sd">            file_name (str):    The name of the file to read from.</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The centers, as an array, which can be used to determine the patches.</span>
@@ -2829,7 +2917,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">((</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;x&#39;</span><span class="p">],</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;y&#39;</span><span class="p">]))</span></div>
 
-<div class="viewcode-block" id="Catalog.load"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.load">[docs]</a>    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Catalog.load">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.load">[docs]</a>
+    <span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Load the data from a file, if it isn&#39;t yet loaded.</span>
 
 <span class="sd">        When a Catalog is read in from a file, it tries to delay the loading of the data from</span>
@@ -2837,7 +2928,7 @@
 <span class="sd">        set of patches, since you may not be able to fit all the patches in memory at once.</span>
 
 <span class="sd">        One does not normally need to call this method explicitly.  It will run automatically</span>
-<span class="sd">        whenever the data is needed.  However, if you want to directly control when the disk</span>
+<span class="sd">        whenever the data are needed.  However, if you want to directly control when the disk</span>
 <span class="sd">        access happens, you can use this function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">loaded</span><span class="p">:</span>
@@ -2845,7 +2936,10 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_read_file</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">reader</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_num</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_is_rand</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_finish_input</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Catalog.unload"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.unload">[docs]</a>    <span class="k">def</span> <span class="nf">unload</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Catalog.unload">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.unload">[docs]</a>
+    <span class="k">def</span> <span class="nf">unload</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Bring the Catalog back to an &quot;unloaded&quot; state, if possible.</span>
 
 <span class="sd">        When a Catalog is read in from a file, it tries to delay the loading of the data from</span>
@@ -2886,7 +2980,10 @@
                         <span class="n">p</span><span class="o">.</span><span class="n">unload</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">clear_cache</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Catalog.get_patch_file_names"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.get_patch_file_names">[docs]</a>    <span class="k">def</span> <span class="nf">get_patch_file_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_patch_dir</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Catalog.get_patch_file_names">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.get_patch_file_names">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_patch_file_names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_patch_dir</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the names of the files to use for reading/writing patches in save_patch_dir</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -2901,7 +2998,10 @@
             <span class="n">names</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;patch</span><span class="si">%03d</span><span class="s1">.fits&#39;</span><span class="o">%</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch</span><span class="p">)]</span>
         <span class="k">return</span> <span class="p">[</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">save_patch_dir</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">names</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="Catalog.write_patches"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.write_patches">[docs]</a>    <span class="k">def</span> <span class="nf">write_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_patch_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Catalog.write_patches">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.write_patches">[docs]</a>
+    <span class="k">def</span> <span class="nf">write_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_patch_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Write the patches to disk as separate files.</span>
 
 <span class="sd">        This can be used in conjunction with ``low_mem=True`` option of `get_patches` (and</span>
@@ -2931,7 +3031,10 @@
                 <span class="n">p</span><span class="o">.</span><span class="n">ra_units</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">dec_units</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="n">p</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Catalog.read_patches"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.read_patches">[docs]</a>    <span class="k">def</span> <span class="nf">read_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_patch_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Catalog.read_patches">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.read_patches">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">save_patch_dir</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read the patches from files on disk.</span>
 
 <span class="sd">        This function assumes that the patches were written using `write_patches`.</span>
@@ -3008,7 +3111,10 @@
                          <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">name</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">file_names</span><span class="p">)]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Patches created from files </span><span class="si">%s</span><span class="s1"> .. </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">file_names</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">file_names</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span></div>
 
-<div class="viewcode-block" id="Catalog.get_patches"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.get_patches">[docs]</a>    <span class="k">def</span> <span class="nf">get_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Catalog.get_patches">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.get_patches">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a list of Catalog instances each representing a single patch from this Catalog</span>
 
 <span class="sd">        After calling this function once, the patches may be repeatedly accessed by the</span>
@@ -3041,7 +3147,7 @@
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_patches</span>
 
         <span class="k">if</span> <span class="n">low_mem</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="c1"># This is a litle tricky, since we don&#39;t want to trigger a load if the catalog</span>
+            <span class="c1"># This is a little tricky, since we don&#39;t want to trigger a load if the catalog</span>
             <span class="c1"># isn&#39;t loaded yet.  So try to get the patches from centers or single_patch first.</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_centers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">patch_set</span> <span class="o">=</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_centers</span><span class="p">))</span>
@@ -3102,7 +3208,10 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_patches</span></div>
 
-<div class="viewcode-block" id="Catalog.write"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Catalog.write">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Write the catalog to a file.</span>
 
 <span class="sd">        The position columns are output using the same units as were used when building the</span>
@@ -3224,9 +3333,13 @@
             <span class="n">writer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">col_names</span><span class="p">,</span> <span class="n">columns</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">col_names</span></div>
 
-<div class="viewcode-block" id="Catalog.copy"><a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Catalog.copy">
+<a class="viewcode-back" href="../../catalog.html#treecorr.Catalog.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make a copy&quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -3306,11 +3419,14 @@
                 <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">patch</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">patch</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="read_catalogs"><a class="viewcode-back" href="../../catalog.html#treecorr.read_catalogs">[docs]</a><span class="k">def</span> <span class="nf">read_catalogs</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">list_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_rand</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="read_catalogs">
+<a class="viewcode-back" href="../../catalog.html#treecorr.read_catalogs">[docs]</a>
+<span class="k">def</span> <span class="nf">read_catalogs</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">list_key</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">is_rand</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Read in a list of catalogs for the given key.</span>
 
 <span class="sd">    key should be the file_name parameter or similar key word.</span>
-<span class="sd">    list_key should be be corresponging file_list parameter, if appropriate.</span>
+<span class="sd">    list_key should be the corresponding file_list parameter, if appropriate.</span>
 <span class="sd">    At least one of key or list_key must be provided.  If both are provided, then only</span>
 <span class="sd">    one of these should be in the config dict.</span>
 
@@ -3327,8 +3443,10 @@
 <span class="sd">                        Either key or list_key is required.  (default: None)</span>
 <span class="sd">        num (int):      Which number catalog does this correspond to. e.g. file_name should use</span>
 <span class="sd">                        num=0, file_name2 should use num=1.  (default: 0)</span>
-<span class="sd">        logger:         If desired, a Logger object for logging. (default: None, in which case</span>
-<span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                        If desired, a ``Logger`` object for logging.</span>
+<span class="sd">                        (default: None, in which case one will be built according to the config</span>
+<span class="sd">                        dict&#39;s verbose level.)</span>
 <span class="sd">        is_rand (bool): If this is a random file, then setting is_rand to True will let them</span>
 <span class="sd">                        skip k_col, g1_col, and g2_col if they were set for the main catalog.</span>
 <span class="sd">                        (default: False)</span>
@@ -3364,6 +3482,7 @@
         <span class="n">ret</span> <span class="o">+=</span> <span class="n">Catalog</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="o">=</span><span class="n">num</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="n">is_rand</span><span class="o">=</span><span class="n">is_rand</span><span class="p">)</span><span class="o">.</span><span class="n">get_patches</span><span class="p">()</span>
     <span class="k">return</span> <span class="n">ret</span></div>
 
+
 <span class="k">def</span> <span class="nf">_compute_var_multi_cat</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="n">k</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">):</span>
     <span class="c1"># k is name of the quantity to get from each catalog:</span>
     <span class="c1"># e.g. vark, _meank, _altmeank.</span>
@@ -3389,7 +3508,9 @@
     <span class="n">vark</span> <span class="o">=</span> <span class="p">(</span><span class="n">vark</span> <span class="o">-</span> <span class="n">meank</span> <span class="o">*</span> <span class="n">sumw2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">altmeank</span> <span class="o">-</span> <span class="n">meank</span><span class="p">))</span> <span class="o">/</span> <span class="n">sumw</span>
     <span class="k">return</span> <span class="n">vark</span>
 
-<div class="viewcode-block" id="calculateMeanW"><a class="viewcode-back" href="../../catalog.html#treecorr.calculateMeanW">[docs]</a><span class="k">def</span> <span class="nf">calculateMeanW</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="calculateMeanW">
+<a class="viewcode-back" href="../../catalog.html#treecorr.calculateMeanW">[docs]</a>
+<span class="k">def</span> <span class="nf">calculateMeanW</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the mean weight from a list of catalogs.</span>
 
 <span class="sd">    The catalogs are assumed to be equivalent, so this is just the average</span>
@@ -3417,7 +3538,10 @@
                 <span class="n">cat</span><span class="o">.</span><span class="n">unload</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">sumw</span> <span class="o">/</span> <span class="n">nobj</span></div>
 
-<div class="viewcode-block" id="calculateVarK"><a class="viewcode-back" href="../../catalog.html#treecorr.calculateVarK">[docs]</a><span class="k">def</span> <span class="nf">calculateVarK</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="calculateVarK">
+<a class="viewcode-back" href="../../catalog.html#treecorr.calculateVarK">[docs]</a>
+<span class="k">def</span> <span class="nf">calculateVarK</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the overall variance of the scalar field from a list of catalogs.</span>
 
 <span class="sd">    The catalogs are assumed to be equivalent, so this is just the average</span>
@@ -3442,7 +3566,10 @@
         <span class="c1"># unit tests have small enough N that this matters.</span>
         <span class="k">return</span> <span class="n">_compute_var_multi_cat</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="s1">&#39;k&#39;</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="calculateVarZ"><a class="viewcode-back" href="../../catalog.html#treecorr.calculateVarZ">[docs]</a><span class="k">def</span> <span class="nf">calculateVarZ</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="calculateVarZ">
+<a class="viewcode-back" href="../../catalog.html#treecorr.calculateVarZ">[docs]</a>
+<span class="k">def</span> <span class="nf">calculateVarZ</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the overall variance of the complex scalar field from a list of catalogs.</span>
 
 <span class="sd">    The catalogs are assumed to be equivalent, so this is just the average vector</span>
@@ -3465,7 +3592,10 @@
         <span class="n">varz2</span> <span class="o">=</span> <span class="n">_compute_var_multi_cat</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="s1">&#39;z2&#39;</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">varz1</span> <span class="o">+</span> <span class="n">varz2</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span></div>
 
-<div class="viewcode-block" id="calculateVarV"><a class="viewcode-back" href="../../catalog.html#treecorr.calculateVarV">[docs]</a><span class="k">def</span> <span class="nf">calculateVarV</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="calculateVarV">
+<a class="viewcode-back" href="../../catalog.html#treecorr.calculateVarV">[docs]</a>
+<span class="k">def</span> <span class="nf">calculateVarV</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the overall variance of the vector field from a list of catalogs.</span>
 
 <span class="sd">    The catalogs are assumed to be equivalent, so this is just the average vector</span>
@@ -3488,7 +3618,10 @@
         <span class="n">varv2</span> <span class="o">=</span> <span class="n">_compute_var_multi_cat</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="s1">&#39;v2&#39;</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">varv1</span> <span class="o">+</span> <span class="n">varv2</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span></div>
 
-<div class="viewcode-block" id="calculateVarG"><a class="viewcode-back" href="../../catalog.html#treecorr.calculateVarG">[docs]</a><span class="k">def</span> <span class="nf">calculateVarG</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="calculateVarG">
+<a class="viewcode-back" href="../../catalog.html#treecorr.calculateVarG">[docs]</a>
+<span class="k">def</span> <span class="nf">calculateVarG</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the overall variance of the shear field from a list of catalogs.</span>
 
 <span class="sd">    The catalogs are assumed to be equivalent, so this is just the average shear</span>
@@ -3511,7 +3644,10 @@
         <span class="n">varg2</span> <span class="o">=</span> <span class="n">_compute_var_multi_cat</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="s1">&#39;g2&#39;</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">varg1</span> <span class="o">+</span> <span class="n">varg2</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span></div>
 
-<div class="viewcode-block" id="calculateVarT"><a class="viewcode-back" href="../../catalog.html#treecorr.calculateVarT">[docs]</a><span class="k">def</span> <span class="nf">calculateVarT</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="calculateVarT">
+<a class="viewcode-back" href="../../catalog.html#treecorr.calculateVarT">[docs]</a>
+<span class="k">def</span> <span class="nf">calculateVarT</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the overall variance of the trefoil field from a list of catalogs.</span>
 
 <span class="sd">    The catalogs are assumed to be equivalent, so this is just the average</span>
@@ -3534,7 +3670,10 @@
         <span class="n">vart2</span> <span class="o">=</span> <span class="n">_compute_var_multi_cat</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="s1">&#39;t2&#39;</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">vart1</span> <span class="o">+</span> <span class="n">vart2</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span></div>
 
-<div class="viewcode-block" id="calculateVarQ"><a class="viewcode-back" href="../../catalog.html#treecorr.calculateVarQ">[docs]</a><span class="k">def</span> <span class="nf">calculateVarQ</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="calculateVarQ">
+<a class="viewcode-back" href="../../catalog.html#treecorr.calculateVarQ">[docs]</a>
+<span class="k">def</span> <span class="nf">calculateVarQ</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate the overall variance of the quatrefoil field from a list of catalogs.</span>
 
 <span class="sd">    The catalogs are assumed to be equivalent, so this is just the average</span>
@@ -3557,7 +3696,10 @@
         <span class="n">varq2</span> <span class="o">=</span> <span class="n">_compute_var_multi_cat</span><span class="p">(</span><span class="n">cat_list</span><span class="p">,</span> <span class="s1">&#39;q2&#39;</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
         <span class="k">return</span> <span class="p">(</span><span class="n">varq1</span> <span class="o">+</span> <span class="n">varq2</span><span class="p">)</span><span class="o">/</span><span class="mf">2.</span></div>
 
-<div class="viewcode-block" id="isKColRequired"><a class="viewcode-back" href="../../catalog.html#treecorr.isKColRequired">[docs]</a><span class="k">def</span> <span class="nf">isKColRequired</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+
+<div class="viewcode-block" id="isKColRequired">
+<a class="viewcode-back" href="../../catalog.html#treecorr.isKColRequired">[docs]</a>
+<span class="k">def</span> <span class="nf">isKColRequired</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A quick helper function that checks whether we need to bother reading the k column.</span>
 
 <span class="sd">    The logic here is the same as for `isGColRequired`, but we check for output files that require</span>
@@ -3579,7 +3721,10 @@
                        <span class="ow">or</span> <span class="p">(</span><span class="n">num</span><span class="o">==</span><span class="mi">0</span> <span class="ow">and</span> <span class="s1">&#39;kq_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">)</span>
                        <span class="ow">or</span> <span class="p">(</span><span class="n">num</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="s1">&#39;nk_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="isZColRequired"><a class="viewcode-back" href="../../catalog.html#treecorr.isZColRequired">[docs]</a><span class="k">def</span> <span class="nf">isZColRequired</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+
+<div class="viewcode-block" id="isZColRequired">
+<a class="viewcode-back" href="../../catalog.html#treecorr.isZColRequired">[docs]</a>
+<span class="k">def</span> <span class="nf">isZColRequired</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A quick helper function that checks whether we need to bother reading the z1,z2 columns.</span>
 
 <span class="sd">    The logic here is the same as for `isGColRequired`, but we check for output files that require</span>
@@ -3598,7 +3743,10 @@
                        <span class="ow">or</span> <span class="p">(</span><span class="n">num</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="s1">&#39;nz_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">)</span>
                        <span class="ow">or</span> <span class="p">(</span><span class="n">num</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="s1">&#39;kz_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="isVColRequired"><a class="viewcode-back" href="../../catalog.html#treecorr.isVColRequired">[docs]</a><span class="k">def</span> <span class="nf">isVColRequired</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+
+<div class="viewcode-block" id="isVColRequired">
+<a class="viewcode-back" href="../../catalog.html#treecorr.isVColRequired">[docs]</a>
+<span class="k">def</span> <span class="nf">isVColRequired</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A quick helper function that checks whether we need to bother reading the v1,v2 columns.</span>
 
 <span class="sd">    The logic here is the same as for `isGColRequired`, but we check for output files that require</span>
@@ -3617,7 +3765,10 @@
                        <span class="ow">or</span> <span class="p">(</span><span class="n">num</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="s1">&#39;nv_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">)</span>
                        <span class="ow">or</span> <span class="p">(</span><span class="n">num</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="s1">&#39;kv_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="isGColRequired"><a class="viewcode-back" href="../../catalog.html#treecorr.isGColRequired">[docs]</a><span class="k">def</span> <span class="nf">isGColRequired</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+
+<div class="viewcode-block" id="isGColRequired">
+<a class="viewcode-back" href="../../catalog.html#treecorr.isGColRequired">[docs]</a>
+<span class="k">def</span> <span class="nf">isGColRequired</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A quick helper function that checks whether we need to bother reading the g1,g2 columns.</span>
 
 <span class="sd">    It checks the config dict for the output file names gg_file_name, ng_file_name (only if</span>
@@ -3648,7 +3799,10 @@
                        <span class="ow">or</span> <span class="p">(</span><span class="n">num</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="s1">&#39;nm_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">)</span>
                        <span class="ow">or</span> <span class="p">(</span><span class="n">num</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="s1">&#39;kg_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="isTColRequired"><a class="viewcode-back" href="../../catalog.html#treecorr.isTColRequired">[docs]</a><span class="k">def</span> <span class="nf">isTColRequired</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+
+<div class="viewcode-block" id="isTColRequired">
+<a class="viewcode-back" href="../../catalog.html#treecorr.isTColRequired">[docs]</a>
+<span class="k">def</span> <span class="nf">isTColRequired</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A quick helper function that checks whether we need to bother reading the t1,t2 columns.</span>
 
 <span class="sd">    The logic here is the same as for `isGColRequired`, but we check for output files that require</span>
@@ -3666,7 +3820,10 @@
                        <span class="ow">or</span> <span class="p">(</span><span class="n">num</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="s1">&#39;nt_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">)</span>
                        <span class="ow">or</span> <span class="p">(</span><span class="n">num</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="s1">&#39;kt_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="isQColRequired"><a class="viewcode-back" href="../../catalog.html#treecorr.isQColRequired">[docs]</a><span class="k">def</span> <span class="nf">isQColRequired</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
+
+<div class="viewcode-block" id="isQColRequired">
+<a class="viewcode-back" href="../../catalog.html#treecorr.isQColRequired">[docs]</a>
+<span class="k">def</span> <span class="nf">isQColRequired</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">num</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A quick helper function that checks whether we need to bother reading the q1,q2 columns.</span>
 
 <span class="sd">    The logic here is the same as for `isGColRequired`, but we check for output files that require</span>
@@ -3683,6 +3840,7 @@
     <span class="k">return</span> <span class="n">config</span> <span class="ow">and</span> <span class="p">(</span><span class="s1">&#39;qq_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span>
                        <span class="ow">or</span> <span class="p">(</span><span class="n">num</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="s1">&#39;nq_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">)</span>
                        <span class="ow">or</span> <span class="p">(</span><span class="n">num</span><span class="o">==</span><span class="mi">1</span> <span class="ow">and</span> <span class="s1">&#39;kq_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">))</span></div>
+
 </pre></div>
 
            </div>

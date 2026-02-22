@@ -1,22 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Three-point Correlation Functions &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2c218288"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -35,9 +35,6 @@
           <a href="index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -48,6 +45,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Three-point Correlation Functions</a><ul>
@@ -103,7 +101,6 @@
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
@@ -133,7 +130,7 @@
            <div itemprop="articleBody">
              
   <section id="three-point-correlation-functions">
-<h1>Three-point Correlation Functions<a class="headerlink" href="#three-point-correlation-functions" title="Permalink to this heading"></a></h1>
+<h1>Three-point Correlation Functions<a class="headerlink" href="#three-point-correlation-functions" title="Link to this heading"></a></h1>
 <p>TreeCorr can compute three-point correlations for several different kinds of fields.
 For notational brevity in the various classes involved, we use a single letter
 to represent each kind of field as follows:</p>
@@ -180,11 +177,11 @@ which field is on each vertex of the triangle.</p>
 <li class="toctree-l1"><a class="reference internal" href="kgg.html#ggkcorrelation-shear-shear-scalar-correlations">GGKCorrelation: Shear-shear-scalar correlations</a></li>
 </ul>
 </div>
-<p>Each of the above classes is a sub-class of the base class Corr3, so they have a number of
+<p>Each of the above classes is a subclass of the base class Corr3, so they have a number of
 features in common about how they are constructed.  The common features are documented here.</p>
 <dl class="py class">
 <dt class="sig sig-object py" id="treecorr.Corr3">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">Corr3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">Corr3</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3" title="Link to this definition"></a></dt>
 <dd><p>This class stores the results of a 3-point correlation calculation, along with some
 ancillary data.</p>
 <p>This is a base class that is not intended to be constructed directly.  But it has a few
@@ -197,7 +194,7 @@ the derived classes for more details:</p>
 </ul>
 <p>Three-point correlations are a bit more complicated than two-point, since the data need
 to be binned in triangles, not just the separation between two points.</p>
-<p>There are currenlty three different ways to quantify the triangle shapes.</p>
+<p>There are currently three different ways to quantify the triangle shapes.</p>
 <ol class="arabic">
 <li><p>The triangle can be defined by its three side lengths (i.e. SSS congruence).
 In this case, we characterize the triangles according to the following three parameters
@@ -285,7 +282,7 @@ than period/2.  This is not enforced.</p>
 </ul>
 </div></blockquote>
 <p>See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for more information about these various metric options.</p>
-<p>There are three allowed value for the <code class="docutils literal notranslate"><span class="pre">bin_type</span></code> for three-point correlations.</p>
+<p>There are three allowed values for the <code class="docutils literal notranslate"><span class="pre">bin_type</span></code> for three-point correlations.</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>‘LogRUV’ uses the SSS description given above converted to r,u,v. The bin steps will be
@@ -421,54 +418,54 @@ will all be in these units.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>If you separate out the steps of the <a class="reference internal" href="#treecorr.Corr3.process" title="treecorr.Corr3.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> command and use <a class="reference internal" href="#treecorr.Corr3.process_auto" title="treecorr.Corr3.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a>
-and/or <a class="reference internal" href="#treecorr.Corr3.process_cross" title="treecorr.Corr3.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, then the units will not be applied to <code class="docutils literal notranslate"><span class="pre">meanr</span></code> or
-<code class="docutils literal notranslate"><span class="pre">meanlogr</span></code> until the <code class="docutils literal notranslate"><span class="pre">finalize</span></code> function is called.</p>
+and/or <a class="reference internal" href="#treecorr.Corr3.process_cross" title="treecorr.Corr3.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>, then the units will not be applied to the <code class="docutils literal notranslate"><span class="pre">meand*</span></code> and
+<code class="docutils literal notranslate"><span class="pre">meanlogd*</span></code> attributes until the <code class="docutils literal notranslate"><span class="pre">finalize</span></code> function is called.</p>
 </div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in the below kwargs if
-desired.  This dict is allowed to have addition entries in addition
-to those listed below, which are ignored here. (default: None)</p></li>
-<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
-one will be built according to the config dict’s verbose level.)</p></li>
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – A configuration dict that can be used to pass in the below kwargs if
+desired.  This dict is allowed to have additional entries beyond
+those listed below, which are ignored here. (default: None)</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Logger</span></code></a>) – If desired, a <code class="docutils literal notranslate"><span class="pre">Logger</span></code> object for logging. (default: None, in which
+case one will be built according to the config dict’s verbose level.)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Keyword Arguments<span class="colon">:</span></dt>
 <dd class="field-even"><ul class="simple">
-<li><p><strong>nbins</strong> (<em>int</em>) – How many bins to use. (Exactly three of nbins, bin_size, min_sep,
+<li><p><strong>nbins</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – How many bins to use. (Exactly three of nbins, bin_size, min_sep,
 max_sep are required. If nbins is not given or set to None, it will be
 calculated from the values of the other three, rounding up to the next
 highest integer. In this case, bin_size will be readjusted to account
 for this rounding up.)</p></li>
-<li><p><strong>bin_size</strong> (<em>float</em>) – The width of the bins in log(separation). (Exactly three of nbins,
+<li><p><strong>bin_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The width of the bins in log(separation). (Exactly three of nbins,
 bin_size, min_sep, max_sep are required.  If bin_size is not given or
 set to None, it will be calculated from the values of the other three.)</p></li>
-<li><p><strong>min_sep</strong> (<em>float</em>) – The minimum separation in units of sep_units, if relevant. (Exactly
+<li><p><strong>min_sep</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The minimum separation in units of sep_units, if relevant. (Exactly
 three of nbins, bin_size, min_sep, max_sep are required.  If min_sep is
 not given or set to None, it will be calculated from the values of the
 other three.)</p></li>
-<li><p><strong>max_sep</strong> (<em>float</em>) – The maximum separation in units of sep_units, if relevant. (Exactly
+<li><p><strong>max_sep</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The maximum separation in units of sep_units, if relevant. (Exactly
 three of nbins, bin_size, min_sep, max_sep are required.  If max_sep is
 not given or set to None, it will be calculated from the values of the
 other three.)</p></li>
-<li><p><strong>sep_units</strong> (<em>str</em>) – The units to use for the separation values, given as a string.  This
+<li><p><strong>sep_units</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The units to use for the separation values, given as a string.  This
 includes both min_sep and max_sep above, as well as the units of the
 output distance values.  Valid options are arcsec, arcmin, degrees,
 hours, radians.  (default: radians if angular units make sense, but for
 3-d or flat 2-d positions, the default will just match the units of
 x,y[,z] coordinates)</p></li>
-<li><p><strong>bin_slop</strong> (<em>float</em>) – How much slop to allow in the placement of triangles in the bins.
-If bin_slop = 1, then the bin into which a particular pair is placed
+<li><p><strong>bin_slop</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – How much slop to allow in the placement of triangles in the bins.
+If bin_slop = 1, then the bin into which a particular triangle is placed
 may be incorrect by at most 1.0 bin widths.  (default: None, which
 means to use a bin_slop that gives a maximum error of 10% on any bin,
-which has been found to yield good results for most application.)</p></li>
-<li><p><strong>angle_slop</strong> (<em>float</em>) – How much slop to allow in the angular direction. This works very
+which has been found to yield good results for most applications.)</p></li>
+<li><p><strong>angle_slop</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – How much slop to allow in the angular direction. This works very
 similarly to bin_slop, but applies to the projection angle of a pair
 of cells. The projection angle for any two objects in a pair of cells
 will differ by no more than angle_slop radians from the projection
 angle defined by the centers of the cells. (default: 0.1)</p></li>
-<li><p><strong>brute</strong> (<em>bool</em>) – <p>Whether to use the “brute force” algorithm.  (default: False) Options
+<li><p><strong>brute</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – <p>Whether to use the “brute force” algorithm.  (default: False) Options
 are:</p>
 <blockquote>
 <div><ul>
@@ -482,33 +479,33 @@ cat1 when the error is compatible with the given slop values.</p></li>
 </ul>
 </div></blockquote>
 </p></li>
-<li><p><strong>nphi_bins</strong> (<em>int</em>) – Analogous to nbins for the phi values when bin_type=LogSAS.  (The
+<li><p><strong>nphi_bins</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Analogous to nbins for the phi values when bin_type=LogSAS.  (The
 default is to calculate from phi_bin_size = bin_size, min_phi = 0,
-max_u = np.pi, but this can be overridden by specifying up to 3 of
-these four parametes.)</p></li>
-<li><p><strong>phi_bin_size</strong> (<em>float</em>) – Analogous to bin_size for the phi values. (default: bin_size)</p></li>
-<li><p><strong>min_phi</strong> (<em>float</em>) – Analogous to min_sep for the phi values. (default: 0)</p></li>
-<li><p><strong>max_phi</strong> (<em>float</em>) – Analogous to max_sep for the phi values. (default: np.pi)</p></li>
-<li><p><strong>phi_units</strong> (<em>str</em>) – The units to use for the phi values, given as a string.  This
+max_phi = np.pi, but this can be overridden by specifying up to 3 of
+these four parameters.)</p></li>
+<li><p><strong>phi_bin_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Analogous to bin_size for the phi values. (default: bin_size)</p></li>
+<li><p><strong>min_phi</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Analogous to min_sep for the phi values. (default: 0)</p></li>
+<li><p><strong>max_phi</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Analogous to max_sep for the phi values. (default: np.pi)</p></li>
+<li><p><strong>phi_units</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The units to use for the phi values, given as a string.  This
 includes both min_phi and max_phi above, as well as the units of the
 output meanphi values.  Valid options are arcsec, arcmin, degrees,
 hours, radians.  (default: radians)</p></li>
-<li><p><strong>max_n</strong> (<em>int</em>) – The maximum value of n to store for the multipole binning.
+<li><p><strong>max_n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The maximum value of n to store for the multipole binning.
 (required if bin_type=LogMultipole)</p></li>
-<li><p><strong>nubins</strong> (<em>int</em>) – Analogous to nbins for the u values when bin_type=LogRUV.  (The default
+<li><p><strong>nubins</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Analogous to nbins for the u values when bin_type=LogRUV.  (The default
 is to calculate from ubin_size = bin_size, min_u = 0, max_u = 1, but
-this can be overridden by specifying up to 3 of these four parametes.)</p></li>
-<li><p><strong>ubin_size</strong> (<em>float</em>) – Analogous to bin_size for the u values. (default: bin_size)</p></li>
-<li><p><strong>min_u</strong> (<em>float</em>) – Analogous to min_sep for the u values. (default: 0)</p></li>
-<li><p><strong>max_u</strong> (<em>float</em>) – Analogous to max_sep for the u values. (default: 1)</p></li>
-<li><p><strong>nvbins</strong> (<em>int</em>) – Analogous to nbins for the positive v values when bin__type=LogRUV.
+this can be overridden by specifying up to 3 of these four parameters.)</p></li>
+<li><p><strong>ubin_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Analogous to bin_size for the u values. (default: bin_size)</p></li>
+<li><p><strong>min_u</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Analogous to min_sep for the u values. (default: 0)</p></li>
+<li><p><strong>max_u</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Analogous to max_sep for the u values. (default: 1)</p></li>
+<li><p><strong>nvbins</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – Analogous to nbins for the positive v values when bin_type=LogRUV.
 (The default is to calculate from vbin_size = bin_size, min_v = 0,
 max_v = 1, but this can be overridden by specifying up to 3 of these
-four parametes.)</p></li>
-<li><p><strong>vbin_size</strong> (<em>float</em>) – Analogous to bin_size for the v values. (default: bin_size)</p></li>
-<li><p><strong>min_v</strong> (<em>float</em>) – Analogous to min_sep for the positive v values. (default: 0)</p></li>
-<li><p><strong>max_v</strong> (<em>float</em>) – Analogous to max_sep for the positive v values. (default: 1)</p></li>
-<li><p><strong>verbose</strong> (<em>int</em>) – <p>If no logger is provided, this will optionally specify a logging level
+four parameters.)</p></li>
+<li><p><strong>vbin_size</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Analogous to bin_size for the v values. (default: bin_size)</p></li>
+<li><p><strong>min_v</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Analogous to min_sep for the positive v values. (default: 0)</p></li>
+<li><p><strong>max_v</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – Analogous to max_sep for the positive v values. (default: 1)</p></li>
+<li><p><strong>verbose</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – <p>If no logger is provided, this will optionally specify a logging level
 to use:</p>
 <blockquote>
 <div><ul>
@@ -519,12 +516,12 @@ to use:</p>
 </ul>
 </div></blockquote>
 </p></li>
-<li><p><strong>log_file</strong> (<em>str</em>) – If no logger is provided, this will specify a file to write the logging
+<li><p><strong>log_file</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – If no logger is provided, this will specify a file to write the logging
 output.  (default: None; i.e. output to standard output)</p></li>
-<li><p><strong>output_dots</strong> (<em>bool</em>) – Whether to output progress dots during the calcualtion of the
+<li><p><strong>output_dots</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to output progress dots during the calculation of the
 correlation function. (default: False unless verbose is given and &gt;= 2,
 in which case True)</p></li>
-<li><p><strong>split_method</strong> (<em>str</em>) – <p>How to split the cells in the tree when building the tree structure.
+<li><p><strong>split_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – <p>How to split the cells in the tree when building the tree structure.
 Options are:</p>
 <ul>
 <li><p>mean = Use the arithmetic mean of the coordinate being split.
@@ -536,41 +533,41 @@ and maximum value.</p></li>
 the range.</p></li>
 </ul>
 </p></li>
-<li><p><strong>min_top</strong> (<em>int</em>) – The minimum number of top layers to use when setting up the field.
+<li><p><strong>min_top</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The minimum number of top layers to use when setting up the field.
 (default: <span class="math notranslate nohighlight">\(\max(3, \log_2(N_{\rm cpu}))\)</span>)</p></li>
-<li><p><strong>max_top</strong> (<em>int</em>) – The maximum number of top layers to use when setting up the field.
+<li><p><strong>max_top</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The maximum number of top layers to use when setting up the field.
 The top-level cells are where each calculation job starts. There will
 typically be of order <span class="math notranslate nohighlight">\(2^{\rm max\_top}\)</span> top-level cells.
 (default: 10)</p></li>
-<li><p><strong>precision</strong> (<em>int</em>) – The precision to use for the output values. This specifies how many
+<li><p><strong>precision</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The precision to use for the output values. This specifies how many
 digits to write. (default: 4)</p></li>
-<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use for distance measurements.  Options are listed
+<li><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Which metric to use for distance measurements.  Options are listed
 above.  (default: ‘Euclidean’)</p></li>
-<li><p><strong>bin_type</strong> (<em>str</em>) – What type of binning should be used.  Options are listed above.
+<li><p><strong>bin_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – What type of binning should be used.  Options are listed above.
 (default: ‘LogSAS’)</p></li>
-<li><p><strong>min_rpar</strong> (<em>float</em>) – The minimum difference in Rparallel to allow for pairs being included
+<li><p><strong>min_rpar</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The minimum difference in Rparallel to allow for pairs being included
 in the correlation function.  (default: None)</p></li>
-<li><p><strong>max_rpar</strong> (<em>float</em>) – The maximum difference in Rparallel to allow for pairs being included
+<li><p><strong>max_rpar</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The maximum difference in Rparallel to allow for pairs being included
 in the correlation function.  (default: None)</p></li>
-<li><p><strong>period</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in all directions.
+<li><p><strong>period</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – For the ‘Periodic’ metric, the period to use in all directions.
 (default: None)</p></li>
-<li><p><strong>xperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the x direction.
+<li><p><strong>xperiod</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – For the ‘Periodic’ metric, the period to use in the x direction.
 (default: period)</p></li>
-<li><p><strong>yperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the y direction.
+<li><p><strong>yperiod</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – For the ‘Periodic’ metric, the period to use in the y direction.
 (default: period)</p></li>
-<li><p><strong>zperiod</strong> (<em>float</em>) – For the ‘Periodic’ metric, the period to use in the z direction.
+<li><p><strong>zperiod</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – For the ‘Periodic’ metric, the period to use in the z direction.
 (default: period)</p></li>
-<li><p><strong>var_method</strong> (<em>str</em>) – Which method to use for estimating the variance. Options are:
+<li><p><strong>var_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Which method to use for estimating the variance. Options are:
 ‘shot’, ‘jackknife’, ‘sample’, ‘bootstrap’, ‘marked_bootstrap’.
 (default: ‘shot’)</p></li>
-<li><p><strong>num_bootstrap</strong> (<em>int</em>) – How many bootstrap samples to use for the ‘bootstrap’ and
+<li><p><strong>num_bootstrap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – How many bootstrap samples to use for the ‘bootstrap’ and
 ‘marked_bootstrap’ var_methods.  (default: 500)</p></li>
-<li><p><strong>cross_patch_weight</strong> (<em>str</em>) – How to weight pairs that cross between two patches when one patch
-is deselected (e.g. in a jackknife sense) and the other is selected.
-(default None)</p></li>
-<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for bootstrap
-random number generation. (default: None)</p></li>
-<li><p><strong>num_threads</strong> (<em>int</em>) – <p>How many OpenMP threads to use during the calculation.
+<li><p><strong>cross_patch_weight</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – How to weight triangles that cross between two patches when
+one patch is deselected (e.g. in a jackknife sense) and the other
+is selected. (default None)</p></li>
+<li><p><strong>rng</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/random/generator.html#numpy.random.Generator" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.random.Generator</span></code></a>) – If desired, a <code class="docutils literal notranslate"><span class="pre">Generator</span></code> instance to use for
+bootstrap random number generation. (default: None)</p></li>
+<li><p><strong>num_threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – <p>How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given in
 the constructor in the config dict.)</p>
 <div class="admonition note">
@@ -584,12 +581,12 @@ the constructor in the config dict.)</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.build_cov_design_matrix">
-<span class="sig-name descname"><span class="pre">build_cov_design_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_bootstrap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_patch_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.build_cov_design_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.build_cov_design_matrix" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">build_cov_design_matrix</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_bootstrap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_patch_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.build_cov_design_matrix"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.build_cov_design_matrix" title="Link to this definition"></a></dt>
 <dd><p>Build the design matrix that is used for estimating the covariance matrix.</p>
 <p>The design matrix for patch-based covariance estimates is a matrix where each row
 corresponds to a different estimate of the data vector, <span class="math notranslate nohighlight">\(\zeta_i\)</span> (or
 <span class="math notranslate nohighlight">\(f(\zeta_i)\)</span> if using the optional <code class="docutils literal notranslate"><span class="pre">func</span></code> parameter).</p>
-<p>The different of rows in the matrix for each valid <code class="docutils literal notranslate"><span class="pre">method</span></code> are:</p>
+<p>The different rows in the matrix for each valid <code class="docutils literal notranslate"><span class="pre">method</span></code> are:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>‘shot’: This method is not valid here.</p></li>
@@ -611,19 +608,18 @@ here in case they are useful.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> (<em>str</em>) – Which method to use to estimate the covariance matrix.</p></li>
-<li><p><strong>func</strong> (<em>function</em>) – A unary function that takes the list <code class="docutils literal notranslate"><span class="pre">corrs</span></code> and returns the
-desired full data vector. (default: None, which is equivalent to
-<code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">corrs:</span> <span class="pre">np.concatenate([c.getStat()</span> <span class="pre">for</span> <span class="pre">c</span> <span class="pre">in</span> <span class="pre">corrs])</span></code>)</p></li>
-<li><p><strong>comm</strong> (<em>mpi4py.Comm</em>) – If using MPI, an mpi4py Comm object to communicate between
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Which method to use to estimate the covariance matrix.</p></li>
+<li><p><strong>func</strong> (<em>function</em>) – A unary function that acts on the current correlation object and
+returns the desired data vector. (default: None, which is
+equivalent to <code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">corr:</span> <span class="pre">corr.getStat()</span></code>)</p></li>
+<li><p><strong>comm</strong> (<a class="reference external" href="https://mpi4py.readthedocs.io/en/stable/reference/mpi4py.MPI.Comm.html#mpi4py.MPI.Comm" title="(in MPI for Python v4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">mpi4py.MPI.Comm</span></code></a>) – If using MPI, a <code class="docutils literal notranslate"><span class="pre">Comm</span></code> object to communicate between
 processes.  (default: None)</p></li>
-<li><p><strong>num_bootstrap</strong> (<em>int</em>) – How many bootstrap samples to use for the ‘bootstrap’ and
+<li><p><strong>num_bootstrap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – How many bootstrap samples to use for the ‘bootstrap’ and
 ‘marked_bootstrap’ var_methods.  (default: 500; this value
 can also be given in the constructor.)</p></li>
-<li><p><strong>cross_patch_weight</strong> (<em>str</em>) – How to weight pairs that cross between two patches when one
-patch is deselected (e.g. in a jackknife sense) and the other is
-selected.  (default ‘simple’; this value can also be given in the
-constructor.)</p></li>
+<li><p><strong>cross_patch_weight</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – How to weight triangles that span selected and
+deselected patches.  (default ‘simple’; this value can also be
+given in the constructor.)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -637,25 +633,25 @@ constructor.)</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.clear">
-<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.clear" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.clear"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.clear" title="Link to this definition"></a></dt>
 <dd><p>Clear all data vectors, the results dict, and any related values.</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.copy" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.copy" title="Link to this definition"></a></dt>
 <dd><p>Make a copy</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="treecorr.Corr3.cov">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cov</span></span><a class="headerlink" href="#treecorr.Corr3.cov" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cov</span></span><a class="headerlink" href="#treecorr.Corr3.cov" title="Link to this definition"></a></dt>
 <dd><p>The estimated covariance matrix</p>
 </dd></dl>
 
 <dl class="py property">
 <dt class="sig sig-object py" id="treecorr.Corr3.cov_diag">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cov_diag</span></span><a class="headerlink" href="#treecorr.Corr3.cov_diag" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">cov_diag</span></span><a class="headerlink" href="#treecorr.Corr3.cov_diag" title="Link to this definition"></a></dt>
 <dd><p>A possibly more efficient way to access just the diagonal of the covariance matrix.</p>
 <p>If var_method == ‘shot’, then this won’t make the full covariance matrix, just to
 then pull out the diagonal.</p>
@@ -663,7 +659,7 @@ then pull out the diagonal.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.estimate_cov">
-<span class="sig-name descname"><span class="pre">estimate_cov</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_bootstrap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_patch_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.estimate_cov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.estimate_cov" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">estimate_cov</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">method</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">func</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_bootstrap</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cross_patch_weight</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.estimate_cov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.estimate_cov" title="Link to this definition"></a></dt>
 <dd><p>Estimate the covariance matrix based on the data</p>
 <p>This function will calculate an estimate of the covariance matrix according to the
 given method.</p>
@@ -694,8 +690,8 @@ construction.</p>
 triangles that cross between two or three patches are weighted when some, but not all
 of the patches are selected.  See Mohammad and Percival (2021)
 (<a class="reference external" href="https://arxiv.org/abs/2109.07071">https://arxiv.org/abs/2109.07071</a>) for an in-depth discussion of these options for
-two-point statistics.  We use a similar definitions for three-point statistics.
-Briefly the options are: (TODO!  This is aspirational so far.)</p>
+two-point statistics. We use a similar set of definitions for three-point statistics.
+Briefly the options are:</p>
 <blockquote>
 <div><ul class="simple">
 <li><p>‘simple’ = Don’t use any triangles where any object is in a deselected patch.
@@ -747,19 +743,18 @@ If method == “shot” then parallelization has no effect.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>method</strong> (<em>str</em>) – Which method to use to estimate the covariance matrix.</p></li>
+<li><p><strong>method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Which method to use to estimate the covariance matrix.</p></li>
 <li><p><strong>func</strong> (<em>function</em>) – A unary function that acts on the current correlation object and
 returns the desired data vector. (default: None, which is
 equivalent to <code class="docutils literal notranslate"><span class="pre">lambda</span> <span class="pre">corr:</span> <span class="pre">corr.getStat()</span></code>)</p></li>
-<li><p><strong>comm</strong> (<em>mpi4py.Comm</em>) – If using MPI, an mpi4py Comm object to communicate between
+<li><p><strong>comm</strong> (<a class="reference external" href="https://mpi4py.readthedocs.io/en/stable/reference/mpi4py.MPI.Comm.html#mpi4py.MPI.Comm" title="(in MPI for Python v4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">mpi4py.MPI.Comm</span></code></a>) – If using MPI, a <code class="docutils literal notranslate"><span class="pre">Comm</span></code> object to communicate between
 processes.  (default: None)</p></li>
-<li><p><strong>num_bootstrap</strong> (<em>int</em>) – How many bootstrap samples to use for the ‘bootstrap’ and
+<li><p><strong>num_bootstrap</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – How many bootstrap samples to use for the ‘bootstrap’ and
 ‘marked_bootstrap’ var_methods.  (default: 500; this value
 can also be given in the constructor.)</p></li>
-<li><p><strong>cross_patch_weight</strong> (<em>str</em>) – How to weight pairs that cross between two patches when one
-patch is deselected (e.g. in a jackknife sense) and the other is
-selected.  (default ‘simple’; this value can also be given in
-the constructor.)</p></li>
+<li><p><strong>cross_patch_weight</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – How to weight triangles that span selected and
+deselected patches.  (default ‘simple’; this value can also be
+given in the constructor.)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -770,7 +765,7 @@ the constructor.)</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.from_file">
-<em class="property"><span class="pre">classmethod</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.from_file" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">from_file</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rng</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.from_file"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.from_file" title="Link to this definition"></a></dt>
 <dd><p>Create a new instance from an output file.</p>
 <p>This should be a file that was written by TreeCorr.</p>
 <div class="admonition note">
@@ -786,12 +781,12 @@ of the following would work and be equivalent:</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</p></li>
-<li><p><strong>file_type</strong> (<em>str</em>) – The type of file (‘ASCII’, ‘FITS’, or ‘HDF’).  (default: determine
+<li><p><strong>file_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The name of the file to read in.</p></li>
+<li><p><strong>file_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The type of file (‘ASCII’, ‘FITS’, or ‘HDF’).  (default: determine
 the type automatically from the extension of file_name.)</p></li>
-<li><p><strong>logger</strong> (<em>Logger</em>) – If desired, a logger object to use for logging. (default: None)</p></li>
-<li><p><strong>rng</strong> (<em>RandomState</em>) – If desired, a numpy.random.RandomState instance to use for bootstrap
-random number generation. (default: None)</p></li>
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Logger</span></code></a>) – If desired, a <code class="docutils literal notranslate"><span class="pre">Logger</span></code> object to use for logging. (default: None)</p></li>
+<li><p><strong>rng</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/random/generator.html#numpy.random.Generator" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.random.Generator</span></code></a>) – If desired, a <code class="docutils literal notranslate"><span class="pre">Generator</span></code> instance to use for
+bootstrap random number generation. (default: None)</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -802,7 +797,7 @@ random number generation. (default: None)</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.getStat">
-<span class="sig-name descname"><span class="pre">getStat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.getStat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.getStat" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">getStat</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.getStat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.getStat" title="Link to this definition"></a></dt>
 <dd><p>The standard statistic for the current correlation object as a 1-d array.</p>
 <p>Usually, this is just self.zeta.  But in case we have a multi-dimensional array
 at some point (like TwoD for 2pt), use self.zeta.ravel().</p>
@@ -812,7 +807,7 @@ at some point (like TwoD for 2pt), use self.zeta.ravel().</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.getWeight">
-<span class="sig-name descname"><span class="pre">getWeight</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.getWeight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.getWeight" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">getWeight</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.getWeight"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.getWeight" title="Link to this definition"></a></dt>
 <dd><p>The weight array for the current correlation object as a 1-d array.</p>
 <p>This is the weight array corresponding to <a class="reference internal" href="#treecorr.Corr3.getStat" title="treecorr.Corr3.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a>. Usually just self.weight.ravel(),
 but duplicated for GGGCorrelation to match what <a class="reference internal" href="#treecorr.Corr3.getStat" title="treecorr.Corr3.getStat"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">getStat</span></code></a> does in that case.</p>
@@ -820,13 +815,13 @@ but duplicated for GGGCorrelation to match what <a class="reference internal" hr
 
 <dl class="py property">
 <dt class="sig sig-object py" id="treecorr.Corr3.nonzero">
-<em class="property"><span class="pre">property</span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nonzero</span></span><a class="headerlink" href="#treecorr.Corr3.nonzero" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></em><span class="sig-name descname"><span class="pre">nonzero</span></span><a class="headerlink" href="#treecorr.Corr3.nonzero" title="Link to this definition"></a></dt>
 <dd><p>Return if there are any values accumulated yet.  (i.e. ntri &gt; 0)</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.process">
-<span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.process" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">process</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat3</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">comm</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">low_mem</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">initialize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">finalize</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">patch_method</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">algo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">max_n</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.process"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.process" title="Link to this definition"></a></dt>
 <dd><p>Compute the 3pt correlation function.</p>
 <ul class="simple">
 <li><p>If only 1 argument is given, then compute an auto-correlation function.</p></li>
@@ -836,7 +831,7 @@ first catalog taking one corner of the triangles, and the second taking two corn
 </ul>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
-<p>For cross correlations where the third field type is different from the other two
+<p>For cross-correlations where the third field type is different from the other two
 (e.g. KKG, NNG, etc.) then the 2 argument version will use the first catalog
 for first two vertices and the second for the third vertex, since that’s the
 only valid combination for those correlation types.</p>
@@ -844,10 +839,10 @@ only valid combination for those correlation types.</p>
 except it will be slightly more efficient, since it knows the first two vertices
 are from a single field.</p>
 </div>
-<p>For cross correlations, the default behavior is to use cat1 for the first vertex (P1),
+<p>For cross-correlations, the default behavior is to use cat1 for the first vertex (P1),
 cat2 for the second vertex (P2), and cat3 for the third vertex (P3).  If only two
 catalogs are given, vertices P2 and P3 both come from cat2.  The sides d1, d2, d3,
-used to define the binning, are taken to be opposte P1, P2, P3 respectively.</p>
+used to define the binning, are taken to be opposite P1, P2, P3 respectively.</p>
 <p>However, if you want to accumulate triangles where objects from each catalog can take
 any position in the triangles, you can set <code class="docutils literal notranslate"><span class="pre">ordered=False</span></code>.  In this case, triangles
 will be formed where P1, P2 and P3 can come from any input catalog, so long as there is
@@ -879,34 +874,34 @@ catalogs.</p>
 (default: None)</p></li>
 <li><p><strong>cat3</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – A catalog or list of catalogs for the third field.
 (default: None)</p></li>
-<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+<li><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
 (default: ‘Euclidean’; this value can also be given in the
 constructor in the config dict.)</p></li>
-<li><p><strong>ordered</strong> (<em>bool</em>) – Whether to fix the order of the triangle vertices to match the
+<li><p><strong>ordered</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to fix the order of the triangle vertices to match the
 catalogs. (see above; default: True)</p></li>
-<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+<li><p><strong>num_threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given
 in the constructor in the config dict.)</p></li>
-<li><p><strong>comm</strong> (<em>mpi4py.Comm</em>) – If running MPI, an mpi4py Comm object to communicate between
+<li><p><strong>comm</strong> (<a class="reference external" href="https://mpi4py.readthedocs.io/en/stable/reference/mpi4py.MPI.Comm.html#mpi4py.MPI.Comm" title="(in MPI for Python v4.1)"><code class="xref py py-class docutils literal notranslate"><span class="pre">mpi4py.MPI.Comm</span></code></a>) – If running MPI, a <code class="docutils literal notranslate"><span class="pre">Comm</span></code> object to communicate between
 processes.  If used, the rank=0 process will have the final
 computation. This only works if using patches. (default: None)</p></li>
-<li><p><strong>low_mem</strong> (<em>bool</em>) – Whether to sacrifice a little speed to try to reduce memory usage.
+<li><p><strong>low_mem</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to sacrifice a little speed to try to reduce memory usage.
 This only works if using patches. (default: False)</p></li>
-<li><p><strong>initialize</strong> (<em>bool</em>) – Whether to begin the calculation with a call to
+<li><p><strong>initialize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to begin the calculation with a call to
 <a class="reference internal" href="#treecorr.Corr3.clear" title="treecorr.Corr3.clear"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.clear</span></code></a>.  (default: True)</p></li>
-<li><p><strong>finalize</strong> (<em>bool</em>) – Whether to complete the calculation with a call to finalize.
+<li><p><strong>finalize</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to complete the calculation with a call to finalize.
 (default: True)</p></li>
-<li><p><strong>patch_method</strong> (<em>str</em>) – Which patch method to use. (default is to use ‘local’ if
+<li><p><strong>patch_method</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Which patch method to use. (default is to use ‘local’ if
 bin_type=LogMultipole, and ‘global’ otherwise)</p></li>
-<li><p><strong>algo</strong> (<em>str</em>) – Which accumulation algorithm to use. (options are ‘triangle’ or
+<li><p><strong>algo</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Which accumulation algorithm to use. (options are ‘triangle’ or
 ‘multipole’; default is ‘multipole’ unless bin_type is ‘LogRUV’,
 which can only use ‘triangle’)  cf. <a class="reference internal" href="binning3pt.html#three-point-algorithm"><span class="std std-ref">Three-point Algorithm</span></a>.</p></li>
-<li><p><strong>max_n</strong> (<em>int</em>) – If using the multpole algorithm, and this is not directly using
+<li><p><strong>max_n</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – If using the multipole algorithm, and this is not directly using
 bin_type=’LogMultipole’, then this is the value of max_n to use
 for the multipole part of the calculation. (default is to use
 2pi/phi_bin_size; this value can also be given in the constructor
 in the config dict.)</p></li>
-<li><p><strong>corr_only</strong> (<em>bool</em>) – Whether to skip summing quantities that are not essential for
+<li><p><strong>corr_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to skip summing quantities that are not essential for
 computing the correlation function. (default: False)</p></li>
 </ul>
 </dd>
@@ -915,7 +910,7 @@ computing the correlation function. (default: False)</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.process_auto">
-<span class="sig-name descname"><span class="pre">process_auto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.process_auto"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.process_auto" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">process_auto</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.process_auto"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.process_auto" title="Link to this definition"></a></dt>
 <dd><p>Process a single catalog, accumulating the auto-correlation.</p>
 <p>This accumulates the auto-correlation for the given catalog.  After
 calling this function as often as desired, the <code class="docutils literal notranslate"><span class="pre">finalize</span></code> command will
@@ -926,13 +921,13 @@ three triangle vertices.  (E.g. NNN, GGG, KKK)</p>
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>cat</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The catalog to process</p></li>
-<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+<li><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
 (default: ‘Euclidean’; this value can also be given in the
 constructor in the config dict.)</p></li>
-<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+<li><p><strong>num_threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given
 in the constructor in the config dict.)</p></li>
-<li><p><strong>corr_only</strong> (<em>bool</em>) – Whether to skip summing quantities that are not essential for
+<li><p><strong>corr_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to skip summing quantities that are not essential for
 computing the correlation function. (default: False)</p></li>
 </ul>
 </dd>
@@ -941,11 +936,11 @@ computing the correlation function. (default: False)</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.process_cross">
-<span class="sig-name descname"><span class="pre">process_cross</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat3</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.process_cross"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.process_cross" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">process_cross</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat3</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.process_cross"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.process_cross" title="Link to this definition"></a></dt>
 <dd><p>Process a set of three catalogs, accumulating the 3pt cross-correlation.</p>
 <p>This accumulates the cross-correlation for the given catalogs as part of a larger
 auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
-patches, this is appropriate to use for the cross correlation between different patches
+patches, this is appropriate to use for the cross-correlation between different patches
 as part of the complete auto-correlation of the full catalog.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
@@ -953,15 +948,15 @@ as part of the complete auto-correlation of the full catalog.</p>
 <li><p><strong>cat1</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The first catalog to process</p></li>
 <li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process</p></li>
 <li><p><strong>cat3</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The third catalog to process</p></li>
-<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+<li><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
 (default: ‘Euclidean’; this value can also be given in the
 constructor in the config dict.)</p></li>
-<li><p><strong>ordered</strong> (<em>bool</em>) – Whether to fix the order of the triangle vertices to match the
+<li><p><strong>ordered</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to fix the order of the triangle vertices to match the
 catalogs. (default: True)</p></li>
-<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+<li><p><strong>num_threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given
 in the constructor in the config dict.)</p></li>
-<li><p><strong>corr_only</strong> (<em>bool</em>) – Whether to skip summing quantities that are not essential for
+<li><p><strong>corr_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to skip summing quantities that are not essential for
 computing the correlation function. (default: False)</p></li>
 </ul>
 </dd>
@@ -970,12 +965,12 @@ computing the correlation function. (default: False)</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.process_cross12">
-<span class="sig-name descname"><span class="pre">process_cross12</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.process_cross12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.process_cross12" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">process_cross12</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.process_cross12"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.process_cross12" title="Link to this definition"></a></dt>
 <dd><p>Process two catalogs, accumulating the 3pt cross-correlation, where one of the
 points in each triangle come from the first catalog, and two come from the second.</p>
 <p>This accumulates the cross-correlation for the given catalogs as part of a larger
 auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
-patches, this is appropriate to use for the cross correlation between different patches
+patches, this is appropriate to use for the cross-correlation between different patches
 as part of the complete auto-correlation of the full catalog.</p>
 <p>This method is only valid for classes that have the same type of value in vertices
 2 and 3.  (E.g. KKK, KGG, NKK)</p>
@@ -986,15 +981,15 @@ as part of the complete auto-correlation of the full catalog.</p>
 from this catalog.)</p></li>
 <li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process. (2 points in each triangle will come
 from this catalog.)</p></li>
-<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+<li><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
 (default: ‘Euclidean’; this value can also be given in the
 constructor in the config dict.)</p></li>
-<li><p><strong>ordered</strong> (<em>bool</em>) – Whether to fix the order of the triangle vertices to match the
+<li><p><strong>ordered</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to fix the order of the triangle vertices to match the
 catalogs. (default: True)</p></li>
-<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+<li><p><strong>num_threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given
 in the constructor in the config dict.)</p></li>
-<li><p><strong>corr_only</strong> (<em>bool</em>) – Whether to skip summing quantities that are not essential for
+<li><p><strong>corr_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to skip summing quantities that are not essential for
 computing the correlation function. (default: False)</p></li>
 </ul>
 </dd>
@@ -1003,12 +998,12 @@ computing the correlation function. (default: False)</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.process_cross21">
-<span class="sig-name descname"><span class="pre">process_cross21</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.process_cross21"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.process_cross21" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">process_cross21</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cat1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">cat2</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ordered</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">num_threads</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">corr_only</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.process_cross21"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.process_cross21" title="Link to this definition"></a></dt>
 <dd><p>Process two catalogs, accumulating the 3pt cross-correlation, where two of the
 points in each triangle come from the first catalog, and one comes from the second.</p>
 <p>This accumulates the cross-correlation for the given catalogs as part of a larger
 auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into
-patches, this is appropriate to use for the cross correlation between different patches
+patches, this is appropriate to use for the cross-correlation between different patches
 as part of the complete auto-correlation of the full catalog.</p>
 <p>This method is only valid for classes that have the same type of value in vertices
 1 and 2.  (E.g. KKK, KKG, NNK)</p>
@@ -1019,15 +1014,15 @@ as part of the complete auto-correlation of the full catalog.</p>
 from this catalog.)</p></li>
 <li><p><strong>cat2</strong> (<a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><em>Catalog</em></a>) – The second catalog to process. (1 point in each triangle will come
 from this catalog.)</p></li>
-<li><p><strong>metric</strong> (<em>str</em>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
+<li><p><strong>metric</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – Which metric to use.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.
 (default: ‘Euclidean’; this value can also be given in the
 constructor in the config dict.)</p></li>
-<li><p><strong>ordered</strong> (<em>bool</em>) – Whether to fix the order of the triangle vertices to match the
+<li><p><strong>ordered</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to fix the order of the triangle vertices to match the
 catalogs. (default: True)</p></li>
-<li><p><strong>num_threads</strong> (<em>int</em>) – How many OpenMP threads to use during the calculation.
+<li><p><strong>num_threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – How many OpenMP threads to use during the calculation.
 (default: use the number of cpu cores; this value can also be given
 in the constructor in the config dict.)</p></li>
-<li><p><strong>corr_only</strong> (<em>bool</em>) – Whether to skip summing quantities that are not essential for
+<li><p><strong>corr_only</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to skip summing quantities that are not essential for
 computing the correlation function. (default: False)</p></li>
 </ul>
 </dd>
@@ -1036,7 +1031,7 @@ computing the correlation function. (default: False)</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.read">
-<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.read" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">read</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.read"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.read" title="Link to this definition"></a></dt>
 <dd><p>Read in values from a file.</p>
 <p>This should be a file that was written by TreeCorr, preferably a FITS or HDF5 file, so
 there is no loss of information.</p>
@@ -1051,8 +1046,8 @@ the information in the file.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to read in.</p></li>
-<li><p><strong>file_type</strong> (<em>str</em>) – The type of file (‘ASCII’ or ‘FITS’).  (default: determine the type
+<li><p><strong>file_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The name of the file to read in.</p></li>
+<li><p><strong>file_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The type of file (‘ASCII’ or ‘FITS’).  (default: determine the type
 automatically from the extension of file_name.)</p></li>
 </ul>
 </dd>
@@ -1061,7 +1056,7 @@ automatically from the extension of file_name.)</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.toSAS">
-<span class="sig-name descname"><span class="pre">toSAS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.toSAS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.toSAS" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">toSAS</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">target</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.toSAS"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.toSAS" title="Link to this definition"></a></dt>
 <dd><p>Convert a multipole-binned correlation to the corresponding SAS binning.</p>
 <p>This is only valid for bin_type == LogMultipole.</p>
 <dl class="field-list simple">
@@ -1069,7 +1064,7 @@ automatically from the extension of file_name.)</p></li>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>target</strong> – A target Correlation object with LogSAS binning to write to.
 If this is not given, a new object will be created based on the
-configuration paramters of the current object. (default: None)</p></li>
+configuration parameters of the current object. (default: None)</p></li>
 <li><p><strong>**kwargs</strong> – Any kwargs that you want to use to configure the returned object.
 Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.
 The default phi binning is [0,pi] with nphi_bins = self.max_n.</p></li>
@@ -1084,7 +1079,7 @@ but with the SAS binning.</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.Corr3.write">
-<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_patch_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.write" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_patch_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/corr3base.html#Corr3.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.Corr3.write" title="Link to this definition"></a></dt>
 <dd><p>Write the correlation function to the file, file_name.</p>
 <p>For bin_type = LogRUV, the output file will include the following columns:</p>
 <table class="docutils align-default">
@@ -1204,14 +1199,14 @@ radians (for spherical coordinates).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
-<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+<li><p><strong>file_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The name of the file to write to.</p></li>
+<li><p><strong>file_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
 the type automatically from the extension of file_name.)</p></li>
-<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+<li><p><strong>precision</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – For ASCII output files, the desired precision. (default: 4;
 this value can also be given in the constructor in the config dict.)</p></li>
-<li><p><strong>write_patch_results</strong> (<em>bool</em>) – Whether to write the patch-based results as well.
+<li><p><strong>write_patch_results</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to write the patch-based results as well.
 (default: False)</p></li>
-<li><p><strong>write_cov</strong> (<em>bool</em>) – Whether to write the covariance matrix as well. (default: False)</p></li>
+<li><p><strong>write_cov</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to write the covariance matrix as well. (default: False)</p></li>
 </ul>
 </dd>
 </dl>

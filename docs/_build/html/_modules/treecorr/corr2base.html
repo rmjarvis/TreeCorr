@@ -1,20 +1,20 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>treecorr.corr2base &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2c218288"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -31,9 +31,6 @@
           <a href="../../index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,6 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
@@ -55,7 +53,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
@@ -118,7 +115,9 @@
 <span class="k">class</span> <span class="nc">Namespace</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">pass</span>
 
-<div class="viewcode-block" id="Corr2"><a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2">[docs]</a><span class="k">class</span> <span class="nc">Corr2</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Corr2">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2">[docs]</a>
+<span class="k">class</span> <span class="nc">Corr2</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;This class stores the results of a 2-point correlation calculation, along with some</span>
 <span class="sd">    ancillary data.</span>
 
@@ -178,7 +177,7 @@
 
 <span class="sd">    See `Metrics` for more information about these various metric options.</span>
 
-<span class="sd">    There are also a few different possibile binning prescriptions to define the range of</span>
+<span class="sd">    There are also a few different possible binning prescriptions to define the range of</span>
 <span class="sd">    distances, which should be placed into each bin.</span>
 
 <span class="sd">        - &#39;Log&#39; - logarithmic binning in the distance.  The bin steps will be uniform in</span>
@@ -230,10 +229,12 @@
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        config (dict):      A configuration dict that can be used to pass in the below kwargs if</span>
-<span class="sd">                            desired.  This dict is allowed to have addition entries in addition</span>
-<span class="sd">                            to those listed below, which are ignored here. (default: None)</span>
-<span class="sd">        logger:             If desired, a logger object for logging. (default: None, in which case</span>
-<span class="sd">                            one will be built according to the config dict&#39;s verbose level.)</span>
+<span class="sd">                            desired.  This dict is allowed to have additional entries beyond</span>
+<span class="sd">                            those listed below, which are ignored here. (default: None)</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                            If desired, a ``Logger`` object for logging. (default: None, in</span>
+<span class="sd">                            which case one will be built according to the config dict&#39;s</span>
+<span class="sd">                            verbose level.)</span>
 
 <span class="sd">    Keyword Arguments:</span>
 
@@ -264,7 +265,7 @@
 <span class="sd">                            If bin_slop = 1, then the bin into which a particular pair is placed</span>
 <span class="sd">                            may be incorrect by at most 1.0 bin widths.  (default: None, which</span>
 <span class="sd">                            means to use a bin_slop that gives a maximum error of 10% on any bin,</span>
-<span class="sd">                            which has been found to yield good results for most application.</span>
+<span class="sd">                            which has been found to yield good results for most applications.</span>
 <span class="sd">        angle_slop (float): How much slop to allow in the angular direction. This works very</span>
 <span class="sd">                            similarly to bin_slop, but applies to the projection angle of a pair</span>
 <span class="sd">                            of cells. The projection angle for any two objects in a pair of cells</span>
@@ -291,7 +292,7 @@
 
 <span class="sd">        log_file (str):     If no logger is provided, this will specify a file to write the logging</span>
 <span class="sd">                            output.  (default: None; i.e. output to standard output)</span>
-<span class="sd">        output_dots (bool): Whether to output progress dots during the calcualtion of the</span>
+<span class="sd">        output_dots (bool): Whether to output progress dots during the calculation of the</span>
 <span class="sd">                            correlation function. (default: False unless verbose is given and &gt;= 2,</span>
 <span class="sd">                            in which case True)</span>
 
@@ -342,8 +343,9 @@
 <span class="sd">        cross_patch_weight (str): How to weight pairs that cross between two patches when one patch</span>
 <span class="sd">                            is deselected (e.g. in a jackknife sense) and the other is selected.</span>
 <span class="sd">                            (default None)</span>
-<span class="sd">        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap</span>
-<span class="sd">                            random number generation. (default: None)</span>
+<span class="sd">        rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                            If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                            bootstrap random number generation. (default: None)</span>
 
 <span class="sd">        num_threads (int):  How many OpenMP threads to use during the calculation.</span>
 <span class="sd">                            (default: use the number of cpu cores)</span>
@@ -801,7 +803,9 @@
                 <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">npairs</span><span class="p">)</span> <span class="ow">and</span>
                 <span class="nb">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">other</span><span class="o">.</span><span class="n">_xi</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)))</span>
 
-<div class="viewcode-block" id="Corr2.copy"><a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Corr2.copy">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make a copy&quot;&quot;&quot;</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -819,6 +823,7 @@
         <span class="n">ret</span><span class="o">.</span><span class="n">_xi</span> <span class="o">=</span> <span class="p">[</span><span class="n">xi</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xi</span><span class="p">]</span>
         <span class="n">ret</span><span class="o">.</span><span class="n">_corr</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># We&#39;ll want to make a new one of these if we need it.</span>
         <span class="k">return</span> <span class="n">ret</span></div>
+
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="n">make_minimal_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">Corr2</span><span class="o">.</span><span class="n">_valid_params</span><span class="p">)</span>
@@ -839,13 +844,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">setup_logger</span><span class="p">(</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
                                        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_file&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logger_name</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Corr2.clear"><a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Corr2.clear">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.clear">[docs]</a>
+    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear all data vectors, the results dict, and any related values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_clear</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_ok&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nonzero</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -917,7 +925,8 @@
                 <span class="n">cat2e</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">cat1</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot; (expanded)&quot;</span>
         <span class="k">return</span> <span class="n">cat2e</span>
 
-    <span class="k">def</span> <span class="nf">_single_process12</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">ij</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="n">force_write</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_single_process12</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">,</span> <span class="n">ij</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span>
+                          <span class="n">force_write</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="c1"># Helper function for _process_all_auto and _process_cross for doing cross pairs.</span>
         <span class="n">temp</span><span class="o">.</span><span class="n">_clear</span><span class="p">()</span>
         <span class="k">if</span> <span class="n">c2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_trivially_zero</span><span class="p">(</span><span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">):</span>
@@ -947,7 +956,7 @@
 
             <span class="c1"># Now the tricky part.  If using MPI, we need to divide up the jobs smartly.</span>
             <span class="c1"># The first point is to divvy up the auto jobs evenly.  This is where most of the</span>
-            <span class="c1"># work is done, so we want those to be spreads as evenly as possibly across procs.</span>
+            <span class="c1"># work is done, so we want those to be spread as evenly as possible across procs.</span>
             <span class="c1"># Therefore, if both indices are mine, then do the job.</span>
             <span class="c1"># This reduces the number of catalogs this machine needs to load up.</span>
             <span class="c1"># If the auto i,i and j,j are both my job, then i and j are already being loaded</span>
@@ -1132,7 +1141,9 @@
                         <span class="bp">self</span> <span class="o">+=</span> <span class="n">temp</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">results</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Corr2.getStat"><a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.getStat">[docs]</a>    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Corr2.getStat">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.getStat">[docs]</a>
+    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The standard statistic for the current correlation object as a 1-d array.</span>
 
 <span class="sd">        Usually, this is just self.xi.  But if the metric is TwoD, this becomes self.xi.ravel().</span>
@@ -1141,7 +1152,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Corr2.getWeight"><a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.getWeight">[docs]</a>    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Corr2.getWeight">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.getWeight">[docs]</a>
+    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The weight array for the current correlation object as a 1-d array.</span>
 
 <span class="sd">        This is the weight array corresponding to `getStat`. Usually just self.weight, but</span>
@@ -1150,7 +1164,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Corr2.process_auto"><a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.process_auto">[docs]</a>    <span class="k">def</span> <span class="nf">process_auto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Corr2.process_auto">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.process_auto">[docs]</a>
+    <span class="k">def</span> <span class="nf">process_auto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a single catalog, accumulating the auto-correlation.</span>
 
 <span class="sd">        This accumulates the weighted sums into the bins, but does not finalize</span>
@@ -1193,7 +1210,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting </span><span class="si">%d</span><span class="s1"> jobs.&#39;</span><span class="p">,</span><span class="n">field</span><span class="o">.</span><span class="n">nTopLevelNodes</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="o">.</span><span class="n">processAuto</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span> <span class="nb">bool</span><span class="p">(</span><span class="n">corr_only</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Corr2.process_cross"><a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.process_cross">[docs]</a>    <span class="k">def</span> <span class="nf">process_cross</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Corr2.process_cross">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.process_cross">[docs]</a>
+    <span class="k">def</span> <span class="nf">process_cross</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a single pair of catalogs, accumulating the cross-correlation.</span>
 
 <span class="sd">        This accumulates the weighted sums into the bins, but does not finalize</span>
@@ -1242,7 +1262,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting </span><span class="si">%d</span><span class="s1"> jobs.&#39;</span><span class="p">,</span><span class="n">f1</span><span class="o">.</span><span class="n">nTopLevelNodes</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="o">.</span><span class="n">processCross</span><span class="p">(</span><span class="n">f1</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span> <span class="nb">bool</span><span class="p">(</span><span class="n">corr_only</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Corr2.process"><a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Corr2.process">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.process">[docs]</a>
+    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                 <span class="n">initialize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">finalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">patch_method</span><span class="o">=</span><span class="s1">&#39;global&#39;</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the correlation function.</span>
 
@@ -1255,9 +1278,9 @@
 <span class="sd">        In addition to computing the correlation function, this function also computes a</span>
 <span class="sd">        few ancillary quantities that are useful for interpreting the resulting correlation</span>
 <span class="sd">        function, including the attributes ``meanr``, ``meanlogr`` and ``npairs``.  For most</span>
-<span class="sd">        use cases these calculation impart negligible overhead to the calculation time.</span>
-<span class="sd">        The exception is `NNCorrelation`, where they can result in somthing like 20-30%</span>
-<span class="sd">        overhead in the compute time.  So if you want to optimize the efficiency of the</span>
+<span class="sd">        use cases these calculations impart negligible overhead.</span>
+<span class="sd">        The exception is `NNCorrelation`, where they can result in something like 20-30%</span>
+<span class="sd">        higher computation time.  So if you want to optimize the efficiency of the</span>
 <span class="sd">        calculation, we provide the option ``corr_only=True``, which skips these computations.</span>
 <span class="sd">        In this case the resulting ``meanr`` and ``meanlogr`` attributes are the nominal</span>
 <span class="sd">        centers of the bins, not the actual mean values.  And ``npairs`` is estimated from</span>
@@ -1273,7 +1296,8 @@
 <span class="sd">            num_threads (int):  How many OpenMP threads to use during the calculation.</span>
 <span class="sd">                                (default: use the number of cpu cores; this value can also be given</span>
 <span class="sd">                                in the constructor in the config dict.)</span>
-<span class="sd">            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between</span>
+<span class="sd">            comm (:class:`mpi4py.MPI.Comm`):</span>
+<span class="sd">                                If running MPI, a ``Comm`` object to communicate between</span>
 <span class="sd">                                processes.  If used, the rank=0 process will have the final</span>
 <span class="sd">                                computation. This only works if using patches. (default: None)</span>
 <span class="sd">            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.</span>
@@ -1309,7 +1333,8 @@
         <span class="k">if</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_process_all_auto</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">,</span> <span class="n">local</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_process_all_cross</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">,</span> <span class="n">local</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_process_all_cross</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">,</span>
+                                    <span class="n">local</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_processed_cats1</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">cat1</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1351,6 +1376,7 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">finalize</span><span class="p">(</span><span class="n">var1</span><span class="p">,</span> <span class="n">var2</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_processed_cats1</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_processed_cats2</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span></div>
+
 
     <span class="k">def</span> <span class="nf">_finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">mask1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">!=</span> <span class="mi">0</span>
@@ -1438,7 +1464,9 @@
             <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_varxi</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">ravel</span><span class="p">()[:]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cov_diag</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_nbins</span><span class="p">:(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">_nbins</span><span class="p">]</span>
 
-<div class="viewcode-block" id="Corr2.estimate_cov"><a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.estimate_cov">[docs]</a>    <span class="k">def</span> <span class="nf">estimate_cov</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="Corr2.estimate_cov">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.estimate_cov">[docs]</a>
+    <span class="k">def</span> <span class="nf">estimate_cov</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">cross_patch_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Estimate the covariance matrix based on the data</span>
 
@@ -1491,14 +1519,14 @@
 <span class="sd">              leads to a different weight for pairs that cross between two selected patches.</span>
 <span class="sd">              This option is only valid for bootstrap.</span>
 <span class="sd">            - &#39;match&#39; = Use the &quot;optimal&quot; weight that matches the effect of auto- and cross-pairs</span>
-<span class="sd">              in the estimate of the jackknife covariance. MP22 calculate this for the to</span>
+<span class="sd">              in the estimate of the jackknife covariance. MP22 calculate this to</span>
 <span class="sd">              be w = 1 - n_patch / (2 + sqrt(2) (n_patch-1)).</span>
 <span class="sd">              This option is only valid for jackknife.</span>
 
 <span class="sd">        .. note::</span>
 
 <span class="sd">            For most classes, there is only a single statistic, so this calculates a covariance</span>
-<span class="sd">            matrix for that vector.  `GGCorrelation` other complex auto-correaltions have two:</span>
+<span class="sd">            matrix for that vector.  `GGCorrelation` and other complex auto-correlations have two:</span>
 <span class="sd">            ``xip`` and ``xim``, so in this case the full data vector is ``xip`` followed by</span>
 <span class="sd">            ``xim``, and this calculates the covariance matrix for that full vector including</span>
 <span class="sd">            both statistics.  The helper function `getStat` returns the relevant statistic in all</span>
@@ -1537,7 +1565,8 @@
 <span class="sd">            func (function):    A unary function that acts on the current correlation object and</span>
 <span class="sd">                                returns the desired data vector. (default: None, which is</span>
 <span class="sd">                                equivalent to ``lambda corr: corr.getStat()``.)</span>
-<span class="sd">            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between</span>
+<span class="sd">            comm (:class:`mpi4py.MPI.Comm`):</span>
+<span class="sd">                                If using MPI, a ``Comm`` object to communicate between</span>
 <span class="sd">                                processes.  (default: None)</span>
 <span class="sd">            num_bootstrap (int): How many bootstrap samples to use for the &#39;bootstrap&#39; and</span>
 <span class="sd">                                &#39;marked_bootstrap&#39; var_methods.  (default: 500; this value</span>
@@ -1561,7 +1590,10 @@
                                   <span class="n">num_bootstrap</span><span class="o">=</span><span class="n">num_bootstrap</span><span class="p">,</span>
                                   <span class="n">cross_patch_weight</span><span class="o">=</span><span class="n">cross_patch_weight</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Corr2.build_cov_design_matrix"><a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.build_cov_design_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">build_cov_design_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Corr2.build_cov_design_matrix">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.build_cov_design_matrix">[docs]</a>
+    <span class="k">def</span> <span class="nf">build_cov_design_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                 <span class="n">num_bootstrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Build the design matrix that is used for estimating the covariance matrix.</span>
 
@@ -1569,7 +1601,7 @@
 <span class="sd">        corresponds to a different estimate of the data vector, :math:`\\xi_i` (or</span>
 <span class="sd">        :math:`f(\\xi_i)` if using the optional ``func`` parameter).</span>
 
-<span class="sd">        The different of rows in the matrix for each valid ``method`` are:</span>
+<span class="sd">        The different rows in the matrix for each valid ``method`` are:</span>
 
 <span class="sd">            - &#39;shot&#39;: This method is not valid here.</span>
 <span class="sd">            - &#39;jackknife&#39;: The data vector when excluding a single patch.</span>
@@ -1590,10 +1622,11 @@
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            method (str):       Which method to use to estimate the covariance matrix.</span>
-<span class="sd">            func (function):    A unary function that takes the list ``corrs`` and returns the</span>
-<span class="sd">                                desired full data vector. (default: None, which is equivalent to</span>
-<span class="sd">                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)</span>
-<span class="sd">            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between</span>
+<span class="sd">            func (function):    A unary function that acts on the current correlation object and</span>
+<span class="sd">                                returns the desired data vector. (default: None, which is</span>
+<span class="sd">                                equivalent to ``lambda corr: corr.getStat()``)</span>
+<span class="sd">            comm (:class:`mpi4py.MPI.Comm`):</span>
+<span class="sd">                                If using MPI, a ``Comm`` object to communicate between</span>
 <span class="sd">                                processes.  (default: None)</span>
 <span class="sd">            num_bootstrap (int): How many bootstrap samples to use for the &#39;bootstrap&#39; and</span>
 <span class="sd">                                &#39;marked_bootstrap&#39; var_methods.  (default: 500; this value</span>
@@ -1616,6 +1649,7 @@
         <span class="k">return</span> <span class="n">build_multi_cov_design_matrix</span><span class="p">([</span><span class="bp">self</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">all_func</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span>
                                              <span class="n">num_bootstrap</span><span class="o">=</span><span class="n">num_bootstrap</span><span class="p">,</span>
                                              <span class="n">cross_patch_weight</span><span class="o">=</span><span class="n">cross_patch_weight</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">_set_num_threads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">num_threads</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1703,7 +1737,9 @@
             <span class="c1"># (And for the max_size, always split 10 levels for the top-level cells.)</span>
             <span class="k">return</span> <span class="mf">0.</span><span class="p">,</span> <span class="mf">0.</span>
 
-<div class="viewcode-block" id="Corr2.sample_pairs"><a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.sample_pairs">[docs]</a>    <span class="k">def</span> <span class="nf">sample_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_sep</span><span class="p">,</span> <span class="n">max_sep</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Corr2.sample_pairs">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.sample_pairs">[docs]</a>
+    <span class="k">def</span> <span class="nf">sample_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_sep</span><span class="p">,</span> <span class="n">max_sep</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a random sample of n pairs whose separations fall between min_sep and max_sep.</span>
 
 <span class="sd">        This would typically be used to get some random subset of the indices of pairs that</span>
@@ -1752,9 +1788,9 @@
 <span class="sd">        Returns:</span>
 <span class="sd">            Tuple containing</span>
 
-<span class="sd">                - i1 (array): indices of objects from cat1</span>
-<span class="sd">                - i2 (array): indices of objects from cat2</span>
-<span class="sd">                - sep (array): separations of the pairs of objects (i1,i2)</span>
+<span class="sd">                - i1 (:class:`numpy.ndarray`): indices of objects from cat1</span>
+<span class="sd">                - i2 (:class:`numpy.ndarray`): indices of objects from cat2</span>
+<span class="sd">                - sep (:class:`numpy.ndarray`): separations of the pairs of objects (i1,i2)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">metric</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">metric</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;metric&#39;</span><span class="p">,</span> <span class="s1">&#39;Euclidean&#39;</span><span class="p">)</span>
@@ -1805,6 +1841,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Sampled </span><span class="si">%d</span><span class="s2"> pairs out of a total of </span><span class="si">%d</span><span class="s2">.&quot;</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">ntot</span><span class="p">)</span>
 
         <span class="k">return</span> <span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">,</span> <span class="n">sep</span></div>
+
 
     <span class="c1"># Some helper functions that are relevant for doing the covariance stuff below.</span>
     <span class="c1"># Note: the word &quot;pairs&quot; in many of these is appropriate for 2pt, but in the 3pt case</span>
@@ -2128,7 +2165,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;npatch1&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;npatch2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Corr2.read"><a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Corr2.read">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.read">[docs]</a>
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read in values from a file.</span>
 
 <span class="sd">        This should be a file that was written by TreeCorr, preferably a FITS or HDF5 file, so</span>
@@ -2151,7 +2190,10 @@
         <span class="k">with</span> <span class="n">make_reader</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Corr2.from_file"><a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.from_file">[docs]</a>    <span class="nd">@classmethod</span>
+
+<div class="viewcode-block" id="Corr2.from_file">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.Corr2.from_file">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new instance from an output file.</span>
 
@@ -2170,9 +2212,11 @@
 <span class="sd">            file_name (str):    The name of the file to read in.</span>
 <span class="sd">            file_type (str):    The type of file (&#39;ASCII&#39;, &#39;FITS&#39;, or &#39;HDF&#39;).  (default: determine</span>
 <span class="sd">                                the type automatically from the extension of file_name.)</span>
-<span class="sd">            logger (Logger):    If desired, a logger object to use for logging. (default: None)</span>
-<span class="sd">            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap</span>
-<span class="sd">                                random number generation. (default: None)</span>
+<span class="sd">            logger (:class:`logging.Logger`):</span>
+<span class="sd">                                If desired, a ``Logger`` object to use for logging. (default: None)</span>
+<span class="sd">            rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                                If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                                bootstrap random number generation. (default: None)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A Correlation object, constructed from the information in the file.</span>
@@ -2202,14 +2246,18 @@
             <span class="n">corr</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
             <span class="n">corr</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Reading </span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="n">_letters</span><span class="si">}</span><span class="s1"> correlations from %s&#39;</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
             <span class="n">corr</span><span class="o">.</span><span class="n">_read</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">corr</span></div></div>
+        <span class="k">return</span> <span class="n">corr</span></div>
+</div>
 
 
-<div class="viewcode-block" id="estimate_multi_cov"><a class="viewcode-back" href="../../correlation2.html#treecorr.estimate_multi_cov">[docs]</a><span class="k">def</span> <span class="nf">estimate_multi_cov</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="estimate_multi_cov">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.estimate_multi_cov">[docs]</a>
+<span class="k">def</span> <span class="nf">estimate_multi_cov</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                        <span class="n">cross_patch_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Estimate the covariance matrix of multiple statistics.</span>
 
-<span class="sd">    This is like the method `Corr2.estimate_cov`, except that it will acoommodate</span>
+<span class="sd">    This is like the method `Corr2.estimate_cov`, except that it will accommodate</span>
 <span class="sd">    multiple statistics from a list ``corrs`` of `Corr2` objects.</span>
 
 <span class="sd">    Options for ``method`` include:</span>
@@ -2257,11 +2305,11 @@
 <span class="sd">          leads to a different weight for pairs that cross between two selected patches.</span>
 <span class="sd">          This option is only valid for bootstrap.</span>
 <span class="sd">        - &#39;match&#39; = Use the &quot;optimal&quot; weight that matches the effect of auto- and cross-pairs</span>
-<span class="sd">          in the estimate of the jackknife covariance. MP22 calculate this for the to</span>
+<span class="sd">          in the estimate of the jackknife covariance. MP22 calculate this to</span>
 <span class="sd">          be w = 1 - n_patch / (2 + sqrt(2) (n_patch-1)).</span>
 <span class="sd">          This option is only valid for jackknife.</span>
 
-<span class="sd">    For example, to find the combined covariance matrix for an NG tangential shear statistc,</span>
+<span class="sd">    For example, to find the combined covariance matrix for an NG tangential shear statistic,</span>
 <span class="sd">    along with the GG xi+ and xi- from the same area, using jackknife covariance estimation,</span>
 <span class="sd">    you would write::</span>
 
@@ -2303,7 +2351,8 @@
 <span class="sd">        func (function):    A unary function that takes the list ``corrs`` and returns the</span>
 <span class="sd">                            desired full data vector. (default: None, which is equivalent to</span>
 <span class="sd">                            ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)</span>
-<span class="sd">        comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between</span>
+<span class="sd">        comm (:class:`mpi4py.MPI.Comm`):</span>
+<span class="sd">                            If using MPI, a ``Comm`` object to communicate between</span>
 <span class="sd">                            processes.  (default: None)</span>
 <span class="sd">        num_bootstrap (int): How many bootstrap samples to use for the &#39;bootstrap&#39; and</span>
 <span class="sd">                            &#39;marked_bootstrap&#39; var_methods.  (default: 500)</span>
@@ -2333,7 +2382,10 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid method: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">method</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="build_multi_cov_design_matrix"><a class="viewcode-back" href="../../correlation2.html#treecorr.build_multi_cov_design_matrix">[docs]</a><span class="k">def</span> <span class="nf">build_multi_cov_design_matrix</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="build_multi_cov_design_matrix">
+<a class="viewcode-back" href="../../correlation2.html#treecorr.build_multi_cov_design_matrix">[docs]</a>
+<span class="k">def</span> <span class="nf">build_multi_cov_design_matrix</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                   <span class="n">cross_patch_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Build the design matrix that is used for estimating the covariance matrix.</span>
 
@@ -2341,7 +2393,7 @@
 <span class="sd">    corresponds to a different estimate of the data vector, :math:`\\xi_i` (or</span>
 <span class="sd">    :math:`f(\\xi_i)` if using the optional ``func`` parameter).</span>
 
-<span class="sd">    The different of rows in the matrix for each valid ``method`` are:</span>
+<span class="sd">    The different rows in the matrix for each valid ``method`` are:</span>
 
 <span class="sd">        - &#39;shot&#39;: This method is not valid here.</span>
 <span class="sd">        - &#39;jackknife&#39;: The data vector when excluding a single patch.</span>
@@ -2365,7 +2417,8 @@
 <span class="sd">        func (function):    A unary function that takes the list ``corrs`` and returns the</span>
 <span class="sd">                            desired full data vector. (default: None, which is equivalent to</span>
 <span class="sd">                            ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)</span>
-<span class="sd">        comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between</span>
+<span class="sd">        comm (:class:`mpi4py.MPI.Comm`):</span>
+<span class="sd">                            If using MPI, a ``Comm`` object to communicate between</span>
 <span class="sd">                            processes.  (default: None)</span>
 <span class="sd">        num_bootstrap (int): How many bootstrap samples to use for the &#39;bootstrap&#39; and</span>
 <span class="sd">                            &#39;marked_bootstrap&#39; var_methods.  (default: 500)</span>
@@ -2393,6 +2446,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid method: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">method</span><span class="p">)</span></div>
 
+
 <span class="k">def</span> <span class="nf">_make_cov_design_matrix_core</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">plist</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="c1"># plist has the pairs to use for each row in the design matrix for each correlation fn.</span>
     <span class="c1"># It is a list by row, each element is a list by corr fn of tuples (i,j), being the indices</span>
@@ -2400,7 +2454,7 @@
     <span class="c1"># We aggregate and finalize each correlation function based on those pairs, and then call</span>
     <span class="c1"># the function func on that list of correlation objects.  This is the data vector for</span>
     <span class="c1"># each row in the design matrix.</span>
-    <span class="c1"># We also make a parallel array of the total weight in each row in case the calling routing</span>
+    <span class="c1"># We also make a parallel array of the total weight in each row in case the calling routine</span>
     <span class="c1"># needs it. So far, only sample uses the returned w, but it&#39;s very little overhead to compute</span>
     <span class="c1"># it, and only a small memory overhead to build that array and return it.</span>
 

@@ -1,21 +1,21 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Previous History &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2c218288"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -33,9 +33,6 @@
           <a href="index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -46,6 +43,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
@@ -57,9 +55,20 @@
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 5.0 to 5.1</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Previous History</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Previous History</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-5-0-to-5-1">Changes from version 5.0 to 5.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-3-to-5-0">Changes from version 4.3 to 5.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-2-to-4-3">Changes from version 4.2 to 4.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-1-to-4-2">Changes from version 4.1 to 4.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-4-0-to-4-1">Changes from version 4.0 to 4.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-3-3-to-4-0">Changes from version 3.3 to 4.0</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-3-2-to-3-3">Changes from version 3.2 to 3.3</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-3-1-to-3-2">Changes from version 3.1 to 3.2</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-3-0-to-3-1">Changes from version 3.0 to 3.1</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#changes-from-version-2-6-to-3-0">Changes from version 2.6 to 3.0</a></li>
+</ul>
+</li>
 </ul>
 
         </div>
@@ -87,16 +96,120 @@
            <div itemprop="articleBody">
              
   <section id="previous-history">
-<h1>Previous History<a class="headerlink" href="#previous-history" title="Permalink to this heading"></a></h1>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/5.0/CHANGELOG.rst">Changes from version 4.3 to 5.0</a></p>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/4.3/CHANGELOG.rst">Changes from version 4.2 to 4.3</a></p>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/4.2/CHANGELOG.rst">Changes from version 4.1 to 4.2</a></p>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/4.1/CHANGELOG.rst">Changes from version 4.0 to 4.1</a></p>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/4.0/CHANGELOG.rst">Changes from version 3.3 to 4.0</a></p>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/3.3/CHANGELOG.rst">Changes from version 3.2 to 3.3</a></p>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/3.2/CHANGELOG.rst">Changes from version 3.1 to 3.2</a></p>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/3.1/CHANGELOG.rst">Changes from version 3.0 to 3.1</a></p>
-<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/3.0/CHANGELOG.md">Changes from version 2.6 to 3.0</a></p>
+<h1>Previous History<a class="headerlink" href="#previous-history" title="Link to this heading"></a></h1>
+<section id="changes-from-version-5-0-to-5-1">
+<h2>Changes from version 5.0 to 5.1<a class="headerlink" href="#changes-from-version-5-0-to-5-1" title="Link to this heading"></a></h2>
+<p>User-impact highlights:</p>
+<ul class="simple">
+<li><p>Expanded three-point support to include mixed field-type classes
+(e.g. NNG, NKK, KGG and permutations).</p></li>
+<li><p>Added three-point support for <code class="docutils literal notranslate"><span class="pre">Rlens</span></code>/<code class="docutils literal notranslate"><span class="pre">Rperp</span></code> and <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code>/<code class="docutils literal notranslate"><span class="pre">max_rpar</span></code>.</p></li>
+<li><p>Added improved covariance weighting options via <code class="docutils literal notranslate"><span class="pre">cross_patch_weight</span></code>; <code class="docutils literal notranslate"><span class="pre">'match'</span></code>
+(jackknife) and <code class="docutils literal notranslate"><span class="pre">'geom'</span></code> (bootstrap) are now recommended, with <code class="docutils literal notranslate"><span class="pre">'simple'</span></code> retained
+for backward compatibility.</p></li>
+</ul>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/5.1/CHANGELOG.rst">Full changelog</a></p>
+</section>
+<section id="changes-from-version-4-3-to-5-0">
+<h2>Changes from version 4.3 to 5.0<a class="headerlink" href="#changes-from-version-4-3-to-5-0" title="Link to this heading"></a></h2>
+<p>User-impact highlights:</p>
+<ul class="simple">
+<li><p>Major three-point workflow update: default <code class="docutils literal notranslate"><span class="pre">bin_type='LogSAS'</span></code> and
+<code class="docutils literal notranslate"><span class="pre">algo='multipole'</span></code> for large speed gains.</p></li>
+<li><p>Redesigned three-point cross-correlation handling around <code class="docutils literal notranslate"><span class="pre">ordered</span></code> in <code class="docutils literal notranslate"><span class="pre">Corr3.process</span></code>,
+replacing older CrossCorrelation classes.</p></li>
+<li><p>Added new two-point spin-field families (Z, V, T, Q).</p></li>
+<li><p>Switched C++ bindings from cffi to pybind11 and removed accumulated 4.x deprecations.</p></li>
+</ul>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/5.0/CHANGELOG.rst">Full changelog</a></p>
+</section>
+<section id="changes-from-version-4-2-to-4-3">
+<h2>Changes from version 4.2 to 4.3<a class="headerlink" href="#changes-from-version-4-2-to-4-3" title="Link to this heading"></a></h2>
+<p>User-impact highlights:</p>
+<ul class="simple">
+<li><p>Added covariance design-matrix helpers and improved patch-result I/O.</p></li>
+<li><p>Began transition of many function parameters to keyword-only usage
+(positional forms still worked but were deprecated).</p></li>
+</ul>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/4.3/CHANGELOG.rst">Full changelog</a></p>
+</section>
+<section id="changes-from-version-4-1-to-4-2">
+<h2>Changes from version 4.1 to 4.2<a class="headerlink" href="#changes-from-version-4-1-to-4-2" title="Link to this heading"></a></h2>
+<p>User-impact highlights:</p>
+<ul class="simple">
+<li><p>Extended patch-based workflows to three-point correlations.</p></li>
+<li><p>Improved three-point cross-correlation behavior for NNN/KKK/GGG.</p></li>
+<li><p>Added covariance estimation of arbitrary derived data vectors via the <code class="docutils literal notranslate"><span class="pre">func</span></code> argument.</p></li>
+<li><p>Added additional catalog I/O options, including HDF5 and Parquet.</p></li>
+</ul>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/4.2/CHANGELOG.rst">Full changelog</a></p>
+</section>
+<section id="changes-from-version-4-0-to-4-1">
+<h2>Changes from version 4.0 to 4.1<a class="headerlink" href="#changes-from-version-4-0-to-4-1" title="Link to this heading"></a></h2>
+<p>User-impact highlights:</p>
+<ul class="simple">
+<li><p>Introduced modern patch-based covariance estimation
+(jackknife/sample/bootstrap/marked bootstrap).</p></li>
+<li><p>Added practical patch tooling: k-means patching, patch-center files, and <code class="docutils literal notranslate"><span class="pre">patch_col</span></code>.</p></li>
+<li><p>Added large-scale workflow features including <code class="docutils literal notranslate"><span class="pre">low_mem</span></code>, <code class="docutils literal notranslate"><span class="pre">save_patch_dir</span></code>, and MPI.</p></li>
+</ul>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/4.1/CHANGELOG.rst">Full changelog</a></p>
+</section>
+<section id="changes-from-version-3-3-to-4-0">
+<h2>Changes from version 3.3 to 4.0<a class="headerlink" href="#changes-from-version-3-3-to-4-0" title="Link to this heading"></a></h2>
+<p>User-impact highlights:</p>
+<ul class="simple">
+<li><p>Major API shift with new linear and TwoD binning options.</p></li>
+<li><p>Added/updated metrics (including Periodic and Fisher-style <code class="docutils literal notranslate"><span class="pre">Rperp</span></code> behavior).</p></li>
+<li><p>Improved performance in difficult <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> regimes.</p></li>
+<li><p>Updated output naming conventions and variance attributes, and moved coordinate internals
+to LSSTDESC.Coord.</p></li>
+</ul>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/4.0/CHANGELOG.rst">Full changelog</a></p>
+</section>
+<section id="changes-from-version-3-2-to-3-3">
+<h2>Changes from version 3.2 to 3.3<a class="headerlink" href="#changes-from-version-3-2-to-3-3" title="Link to this heading"></a></h2>
+<p>User-impact highlights:</p>
+<ul class="simple">
+<li><p>Added YAML/JSON config support and new Arc/Rlens metric options.</p></li>
+<li><p>Updated separation-unit behavior to be less confusing in outputs.</p></li>
+<li><p>Changed C++ wrapping from ctypes to cffi and updated FITS I/O expectations around fitsio.</p></li>
+</ul>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/3.3/CHANGELOG.rst">Full changelog</a></p>
+</section>
+<section id="changes-from-version-3-1-to-3-2">
+<h2>Changes from version 3.1 to 3.2<a class="headerlink" href="#changes-from-version-3-1-to-3-2" title="Link to this heading"></a></h2>
+<p>User-impact highlights:</p>
+<ul class="simple">
+<li><p>Introduced three-point correlations (NNN/KKK/GGG).</p></li>
+<li><p>Added <code class="docutils literal notranslate"><span class="pre">Rperp</span></code> support.</p></li>
+<li><p>Added FITS I/O support for correlation objects.</p></li>
+<li><p>Improved split-and-accumulate workflows by allowing objects to be read, written, and combined.</p></li>
+</ul>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/3.2/CHANGELOG.rst">Full changelog</a></p>
+</section>
+<section id="changes-from-version-3-0-to-3-1">
+<h2>Changes from version 3.0 to 3.1<a class="headerlink" href="#changes-from-version-3-0-to-3-1" title="Link to this heading"></a></h2>
+<p>User-impact highlights:</p>
+<ul class="simple">
+<li><p>Renamed G2/NN/K2-style class and config names to GG/NN/KK naming.</p></li>
+<li><p>Transitioned documentation to Sphinx-hosted docs.</p></li>
+<li><p>Added stability fixes around file lists, logging verbosity, and compiler/OpenMP detection.</p></li>
+</ul>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/3.1/CHANGELOG.rst">Full changelog</a></p>
+</section>
+<section id="changes-from-version-2-6-to-3-0">
+<h2>Changes from version 2.6 to 3.0<a class="headerlink" href="#changes-from-version-2-6-to-3-0" title="Link to this heading"></a></h2>
+<p>User-impact highlights:</p>
+<ul class="simple">
+<li><p>Major architectural overhaul that introduced a first-class Python-module interface.</p></li>
+<li><p>Enabled direct Catalog construction from arrays and in-memory access to computed vectors.</p></li>
+<li><p>Enabled more flexible custom workflows than executable-only usage.</p></li>
+<li><p>Simplified legacy corr2 options and clarified <code class="docutils literal notranslate"><span class="pre">file_name</span></code>/<code class="docutils literal notranslate"><span class="pre">file_name2</span></code> cross-correlation
+semantics.</p></li>
+</ul>
+<p><a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/releases/3.0/CHANGELOG.md">Full changelog</a></p>
+</section>
 </section>
 
 

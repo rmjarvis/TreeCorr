@@ -1,22 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Binning for three-point correlations &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2c218288"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -35,9 +35,6 @@
           <a href="index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -48,6 +45,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
@@ -65,7 +63,6 @@
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
@@ -95,10 +92,10 @@
            <div itemprop="articleBody">
              
   <section id="binning-for-three-point-correlations">
-<h1>Binning for three-point correlations<a class="headerlink" href="#binning-for-three-point-correlations" title="Permalink to this heading"></a></h1>
+<h1>Binning for three-point correlations<a class="headerlink" href="#binning-for-three-point-correlations" title="Link to this heading"></a></h1>
 <p>The binning in the three-point case is somewhat more complicated than for
 two-point functions, since we need to characterize the geometry of triangles.
-There are currently three different binnings available, which
+There are currently three different binning schemes available, which
 may be specified using the <code class="docutils literal notranslate"><span class="pre">bin_type</span></code> parameter in <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a>.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
@@ -110,16 +107,16 @@ For mixed-type correlations (e.g. NNG, KNK, etc.) we only keep the triangle if
 this definition of vertices has the right field in the corresponding vertex.
 E.g. NNG only keeps triangles that have the G field in vertex 3.  For triangles
 with the G field in vertex 1 or 2, you would need to use GNN and NGN respectively.
-To fully characterize the full set of 3-point correlation information of the
-three fields with mixed type, you need all three of these.</p>
+To fully characterize the 3-point correlation information for three mixed-type fields,
+you need all three of these.</p>
 </div>
 <p>See also <a class="reference internal" href="binning.html#other-options-for-binning"><span class="std std-ref">Other options for binning</span></a> for additional parameters that are relevant to
 the binning. These all work the same way for three-point functions as for
-two-point function.</p>
+two-point functions.</p>
 <section id="logruv">
-<h2>“LogRUV”<a class="headerlink" href="#logruv" title="Permalink to this heading"></a></h2>
+<h2>“LogRUV”<a class="headerlink" href="#logruv" title="Link to this heading"></a></h2>
 <p>This binning option uses a Side-Side-Side (SSS) characterization of the triangle.
-Thre three side lengths of the triangle are measured (using whatever <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metric</span></a>
+The three side lengths of the triangle are measured (using whatever <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metric</span></a>
 is being used).  Then we sort their lengths so that <span class="math notranslate nohighlight">\(d_1 \ge d_2 \ge d_3\)</span>.</p>
 <p>If we just binned directly in these three side lengths, then the range of valid
 values for each of these will depend on the values of the other two.  This would
@@ -131,11 +128,11 @@ u &amp;\equiv \frac{d_3}{d_2} \\
 v &amp;\equiv \frac{d_1 - d_2}{d_3}\end{split}\]</div>
 <p>With this reparametrization, <span class="math notranslate nohighlight">\(u\)</span> and <span class="math notranslate nohighlight">\(v\)</span> are each limited to the range
 <span class="math notranslate nohighlight">\([0,1]\)</span>, independent of the values of the other parameters.  The <span class="math notranslate nohighlight">\(r\)</span>
-parameter defines the overall size of the triangle, and that can range of whatever
-set of values the user wants.</p>
+parameter defines the overall size of the triangle, and that can range over
+whatever set of values the user wants.</p>
 <p>This provides a unique definition for any triangle, except for a mirror reflection.
-Two congruent triangles (that are not isoceles or equilateral) are not necessarily
-equivalent for 3-point correlations.  The orienation of the sides matters, at least
+Two congruent triangles (that are not isosceles or equilateral) are not necessarily
+equivalent for 3-point correlations.  The orientation of the sides matters, at least
 in many use cases.  So we need to keep track of that.  We choose to do so in the
 sign of <span class="math notranslate nohighlight">\(v\)</span>, where positive values mean that the sides <span class="math notranslate nohighlight">\(d_1\)</span>,
 <span class="math notranslate nohighlight">\(d_2\)</span> and <span class="math notranslate nohighlight">\(d_3\)</span> are oriented in counter-clockwise order.
@@ -144,11 +141,11 @@ Negative values of <span class="math notranslate nohighlight">\(v\)</span> mean 
 <p class="admonition-title">Warning</p>
 <p>This binning can only use the ‘triangle’ algorithm, which is generally much
 slower than the ‘multipole’ algorithm.  For most purposes, we recommend using
-<a class="reference internal" href="#logsas"><span class="std std-ref">“LogSAS”</span></a> instead, which can use the ‘multpole’ algorithm to calculate the
+<a class="reference internal" href="#logsas"><span class="std std-ref">“LogSAS”</span></a> instead, which can use the ‘multipole’ algorithm to calculate the
 correlation function.  See <a class="reference internal" href="#three-point-algorithm"><span class="std std-ref">Three-point Algorithm</span></a> below for more discussion
 about this.</p>
 </div>
-<p>The binning of <span class="math notranslate nohighlight">\(r\)</span> works the same was as <a class="reference internal" href="binning.html#log"><span class="std std-ref">“Log”</span></a> for two-point correlations.
+<p>The binning of <span class="math notranslate nohighlight">\(r\)</span> works the same way as <a class="reference internal" href="binning.html#log"><span class="std std-ref">“Log”</span></a> for two-point correlations.
 That is, the binning is specified using any 3 of the following 4 parameters:</p>
 <blockquote>
 <div><ul class="simple">
@@ -178,7 +175,7 @@ The <span class="math notranslate nohighlight">\(u\)</span> and <span class="mat
 </div></blockquote>
 </section>
 <section id="logsas">
-<h2>“LogSAS”<a class="headerlink" href="#logsas" title="Permalink to this heading"></a></h2>
+<h2>“LogSAS”<a class="headerlink" href="#logsas" title="Link to this heading"></a></h2>
 <p>This binning option uses a Side-Angle-Side (SAS) characterization of the triangles.
 The two sides extending from vertex 1 of a triangle are measured using whatever
 <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metric</span></a> is being used.  In addition, we measure the angle between
@@ -186,7 +183,7 @@ these two sides.  Since vertex 1 is where the angle is, the two side lengths
 being used for the binning are called <span class="math notranslate nohighlight">\(d_2\)</span> and <span class="math notranslate nohighlight">\(d_3\)</span>.  The angle
 between these two sides is called <span class="math notranslate nohighlight">\(\phi\)</span>, and the side opposite it
 (not used for binning) is <span class="math notranslate nohighlight">\(d_1\)</span>.</p>
-<p>The two sides, <span class="math notranslate nohighlight">\(d_2\)</span> and <span class="math notranslate nohighlight">\(d_3\)</span> are each binned the same was as
+<p>The two sides, <span class="math notranslate nohighlight">\(d_2\)</span> and <span class="math notranslate nohighlight">\(d_3\)</span> are each binned the same way as
 <a class="reference internal" href="binning.html#log"><span class="std std-ref">“Log”</span></a> binning for two-point correlations.
 That is, the binning is specified using any 3 of the following 4 parameters:</p>
 <blockquote>
@@ -209,7 +206,7 @@ That is, the binning is specified using any 3 of the following 4 parameters:</p>
 </div></blockquote>
 </section>
 <section id="logmultipole">
-<h2>“LogMultipole”<a class="headerlink" href="#logmultipole" title="Permalink to this heading"></a></h2>
+<h2>“LogMultipole”<a class="headerlink" href="#logmultipole" title="Link to this heading"></a></h2>
 <p>This binning option uses a multipole expansion of the <a class="reference internal" href="#logsas"><span class="std std-ref">“LogSAS”</span></a> characterization.
 This idea was initially developed by
 <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2005ApJ...635..743C/abstract">Chen &amp; Szapudi (2005, ApJ, 635, 743)</a>
@@ -250,7 +247,7 @@ a single parameter:</p>
 <p>The multipole values range from <span class="math notranslate nohighlight">\(-n_{\rm max}\)</span> to <span class="math notranslate nohighlight">\(+n_{\rm max}\)</span> inclusive.</p>
 </section>
 <section id="three-point-algorithm">
-<h2>Three-point Algorithm<a class="headerlink" href="#three-point-algorithm" title="Permalink to this heading"></a></h2>
+<h2>Three-point Algorithm<a class="headerlink" href="#three-point-algorithm" title="Link to this heading"></a></h2>
 <p>An important consideration related to the choice of binning for three-point correlations is
 the algorithm used to compute the correlations.  The original algorithm used by TreeCorr
 prior to version 5.0 is now called the ‘triangle’ algorithm.  This was described in
@@ -258,7 +255,7 @@ prior to version 5.0 is now called the ‘triangle’ algorithm.  This was descr
 section 4.2. (We no longer implement the algorithm described in section 4.3 due to memory
 considerations.)  This algorithm is much faster than a brute-force calculation, but it is
 still quite slow compared to the new multipole algorithm.</p>
-<p>Starting in version 5.0, we now also implement the algorthm developed by
+<p>Starting in version 5.0, we now also implement the algorithm developed by
 <a class="reference external" href="https://ui.adsabs.harvard.edu/abs/2024A%26A...689A.227P/abstract">Porth et al (2024, A&amp;A, 689, 224)</a>,
 called ‘multipole’ in TreeCorr, which is much faster for typical data sets.
 This algorithm is directly used for

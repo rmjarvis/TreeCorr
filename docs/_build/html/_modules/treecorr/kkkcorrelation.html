@@ -1,20 +1,20 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>treecorr.kkkcorrelation &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2c218288"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -31,9 +31,6 @@
           <a href="../../index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,6 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
@@ -55,7 +53,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
@@ -99,7 +96,7 @@
 <span class="c1">#    and/or other materials provided with the distribution.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">.. module:: nnncorrelation</span>
+<span class="sd">.. module:: kkkcorrelation</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -109,7 +106,9 @@
 <span class="kn">from</span> <span class="nn">.corr3base</span> <span class="kn">import</span> <span class="n">Corr3</span>
 
 
-<div class="viewcode-block" id="KKKCorrelation"><a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation">[docs]</a><span class="k">class</span> <span class="nc">KKKCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
+<div class="viewcode-block" id="KKKCorrelation">
+<a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation">[docs]</a>
+<span class="k">class</span> <span class="nc">KKKCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 3-point scalar-scalar-scalar correlation</span>
 <span class="sd">    function.</span>
 
@@ -120,7 +119,7 @@
 <span class="sd">        correlations of the CMB temperature fluctuations, where &quot;kappa&quot; would really be</span>
 <span class="sd">        :math:`\Delta T`.</span>
 
-<span class="sd">    See the doc string of `Corr3` for a description of how the triangles are binned along</span>
+<span class="sd">    See the docstring of `Corr3` for a description of how the triangles are binned along</span>
 <span class="sd">    with the attributes related to the different binning options.</span>
 
 <span class="sd">    In addition to the attributes common to all `Corr3` subclasses, objects of this class</span>
@@ -128,23 +127,25 @@
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        zeta:       The correlation function, :math:`\zeta`.</span>
-<span class="sd">        varzeta:    The variance of :math:`\zeta`, only including the shot noise propagated into</span>
-<span class="sd">                    the final correlation.  This does not include sample variance, so it is always</span>
-<span class="sd">                    an underestimate of the actual variance.</span>
+<span class="sd">        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
 
 <span class="sd">    The typical usage pattern is as follows:</span>
 
 <span class="sd">        &gt;&gt;&gt; kkk = treecorr.KKKCorrelation(config)</span>
-<span class="sd">        &gt;&gt;&gt; kkk.process(cat)              # Compute auto-correlation.</span>
-<span class="sd">        &gt;&gt;&gt; kkk.process(cat1, cat2, cat3) # Compute cross-correlation.</span>
-<span class="sd">        &gt;&gt;&gt; kkk.write(file_name)          # Write out to a file.</span>
-<span class="sd">        &gt;&gt;&gt; zeta = kkk.zeta               # Access zeta directly.</span>
+<span class="sd">        &gt;&gt;&gt; kkk.process(cat)                # Compute the auto-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; # kkk.process(cat1, cat2, cat3) # ... or the cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; kkk.write(file_name)            # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; zeta = kkk.zeta                 # Access zeta directly.</span>
+
+<span class="sd">    See also: `KKGCorrelation`, `NKKCorrelation`, `KKCorrelation`.</span>
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
-<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
+<span class="sd">                        This dict is allowed to have additional entries besides those listed</span>
 <span class="sd">                        in `Corr3`, which are ignored here. (default: None)</span>
-<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                        If desired, a ``Logger`` object for logging. (default: None, in which case</span>
 <span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
 
 <span class="sd">    Keyword Arguments:</span>
@@ -165,7 +166,9 @@
     <span class="n">_sig3</span> <span class="o">=</span> <span class="s1">&#39;sig_k&#39;</span>
     <span class="n">_default_angle_slop</span> <span class="o">=</span> <span class="mi">1</span>
 
-<div class="viewcode-block" id="KKKCorrelation.__init__"><a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="KKKCorrelation.__init__">
+<a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span>
@@ -174,6 +177,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building KKKCorr&#39;</span><span class="p">)</span></div>
 
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">zeta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
@@ -181,7 +185,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-<div class="viewcode-block" id="KKKCorrelation.finalize"><a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark1</span><span class="p">,</span> <span class="n">vark2</span><span class="p">,</span> <span class="n">vark3</span><span class="p">):</span>
+<div class="viewcode-block" id="KKKCorrelation.finalize">
+<a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation.finalize">[docs]</a>
+    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark1</span><span class="p">,</span> <span class="n">vark2</span><span class="p">,</span> <span class="n">vark3</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
 
 <span class="sd">        Parameters:</span>
@@ -198,16 +204,20 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;LogSAS&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">*=</span> <span class="mi">2</span></div>
 
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">varzeta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_varzeta</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-<div class="viewcode-block" id="KKKCorrelation.write"><a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="KKKCorrelation.write">
+<a class="viewcode-back" href="../../kkk.html#treecorr.KKKCorrelation.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
               <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
                       <span class="n">write_patch_results</span><span class="o">=</span><span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="o">=</span><span class="n">write_cov</span><span class="p">)</span></div>
+
 
     <span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">Corr3</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -240,6 +250,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;zeta&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="o">=</span> <span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_zeta&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span><span class="p">]</span></div>
+
 </pre></div>
 
            </div>

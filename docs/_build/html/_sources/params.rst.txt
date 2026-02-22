@@ -69,8 +69,9 @@ Parameters about the input file(s)
     and ``file_name`` (or any of the other corresponding pairs).
 
 :file_type: (ASCII, FITS, HDF5, or Parquet) The file type of the input files.
-:delimiter: (str, default = '\0') The delimeter between input values in an ASCII catalog.
-:comment_marker: (str, default = '#') The first (non-whitespace) character of comment lines in an input ASCII catalog.
+:delimiter: (str, default = '\0') The delimiter between input values in an ASCII catalog.
+:comment_marker: (str, default = '#') The first (non-whitespace) character of comment lines in an
+    input ASCII catalog.
 
     The default file type is normally ASCII.  However, if the file name
     includes ".fit" in it, then a fits binary table is assumed.
@@ -81,9 +82,10 @@ Parameters about the input file(s)
     comment lines usually begin with '#', but you may specify something
     different if necessary.
 
-:ext: (int/str, default=1 for FITS or root for HDF5) The extension (fits) or group (hdf) to read from
+:ext: (int/str, default=1 for FITS or root for HDF5) The extension (fits) or group (hdf) to read
+    from
 
-    Normally if you are using a fits file, the binary fits table is
+    Normally if you are using a FITS file, the binary FITS table is
     taken from the first extension, HDU 1.  If you want to read from a
     different HDU, you can specify which one to use here. For HDF files,
     the default is to read from the root of the file, but you can also
@@ -96,7 +98,7 @@ Parameters about the input file(s)
     You can optionally not use all the rows in the input file.
     You may specify ``first_row``, ``last_row``, or both to limit the rows being used.
     The rows are numbered starting with 1.  If ``last_row`` is not positive, it
-    means to use to the end of the file.  If ``every_nth`` is set, it will skip
+    means to read through the end of the file.  If ``every_nth`` is set, it will skip
     rows, selecting only 1 out of every n rows.
 
 :npatch: (int, default=1)
@@ -122,6 +124,12 @@ Parameters about the input file(s)
     Alternative to setting patch by hand or using kmeans, you
     may instead give patch_centers either as a file name or an array
     from which the patches will be determined.
+
+    For cross-correlations where both catalogs use patches, this is often the
+    preferred way to ensure consistent patch geometry between the two catalogs.
+    Running separate ``npatch`` calculations for each catalog is incorrect for
+    patch-based covariance estimation, since it produces inconsistent patch
+    definitions between the catalogs.
 
 :x_col: (int/str) Which column to use for x.
 :y_col: (int/str) Which column to use for y.
@@ -177,8 +185,8 @@ Parameters about the input file(s)
     If you are doing one of the shear correlation functions (i.e. NG, KG, GG),
     then you need to specify the shear estimates of the corresponding galaxies.
     The g1,g2 values are taken to be reduced shear values.  They should be
-    unbiases estimators of g1,g2, so they are allowed to exceed :math:`|g| = 1`.
-    (This is required for some methods to produce unbiased estimates.
+    unbiased estimators of g1,g2, so they are allowed to exceed :math:`|g| = 1`.
+    (This is required for some methods to produce unbiased estimates.)
 
 :v1_col: (int/str) Which column to use for v1 (the real component of the vectors).
 :v2_col: (int/str) Which column to use for v2 (the imaginary component of the vectors).
@@ -263,7 +271,7 @@ Parameters about the input file(s)
       set any of the above items from ``file_type`` to ``flip_g2`` as a two element
       list (i.e. two values separated by a space).  In this case, the first
       item refers to the file(s) in ``file_name``, and the second item refers
-      to the file(s) in files_name2.
+      to the file(s) in ``file_name2``.
 
     - You may not mix (x,y) columns with (ra,dec) columns, since its meaning
       would be ambiguous.
@@ -273,7 +281,7 @@ Parameters about the input file(s)
       any format of input catalog.
 
     - Also, if the given column only applies to one of the two input files
-      (e.g. k_col for an count-scalar cross-correlation) then you may specify just
+      (e.g. k_col for a count-scalar cross-correlation) then you may specify just
       the column name or number for the file to which it does apply.
 
 
@@ -297,6 +305,13 @@ Parameters about the binned correlation function to be calculated
     See `Binning` for details about how these parameters are used for the
     different choice of ``bin_type``.
 
+:max_n: (int) The maximum multipole index to store for three-point multipole calculations.
+
+    This parameter is required when ``bin_type='LogMultipole'``.
+    It may also be provided with ``bin_type='LogSAS'`` when using the multipole
+    algorithm path, in which case it controls the internal multipole expansion
+    before conversion back to SAS bins.
+
 :sep_units: (str, default=None) The units to use for ``min_sep`` and ``max_sep``.
 
     ``sep_units`` is also the units of R in the output file.  For ra, dec values,
@@ -307,7 +322,8 @@ Parameters about the binned correlation function to be calculated
 
     See `sep_units` for more discussion about this parameter.
 
-:bin_slop: (float, default=1) The fraction of a bin width by which it is ok to let the pairs miss the correct bin.
+:bin_slop: (float, default=1) The fraction of a bin width by which it is ok to let the pairs miss
+    the correct bin.
 
     The code normally determines when to stop traversing the tree when all of the
     distance pairs for the two nodes have a spread in distance that is less than the
@@ -378,13 +394,16 @@ about the output columns.
     - ``sigma_xi`` = The 1-sigma error bar for xi.
     - ``DD``, ``RR`` = The raw numbers of pairs for the data and randoms
     - ``DR`` (if ``nn_statistic=compensated``) = The cross terms between data and random.
-    - ``RD`` (if ``nn_statistic=compensated`` cross-correlation) = The cross term between random and data, which for a cross-correlation is not equivalent to ``DR``.
+    - ``RD`` (if ``nn_statistic=compensated`` cross-correlation) = The cross term between random
+      and data, which for a cross-correlation is not equivalent to ``DR``.
 
-:nn_statistic: (str, default='compensated') Which statistic to use for estimator of the NN correlation function.
+:nn_statistic: (str, default='compensated') Which statistic to use for estimator of the NN
+    correlation function.
 
     Options are (D = data catalog, R = random catalog)
 
-    - 'compensated' is the now-normal Landy-Szalay statistic:  xi = (DD-2DR+RR)/RR, or for cross-correlations, xi = (DD-DR-RD+RR)/RR
+    - 'compensated' is the now-normal Landy-Szalay statistic:  xi = (DD-2DR+RR)/RR, or for
+      cross-correlations, xi = (DD-DR-RD+RR)/RR
     - 'simple' is the older version: xi = (DD/RR - 1)
 
 :nk_file_name: (str) The output filename for count-scalar correlation function.
@@ -402,7 +421,8 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:nk_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the estimator of the NK correlation function.
+:nk_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which
+    statistic to use for the estimator of the NK correlation function.
 
     Options are:
 
@@ -410,7 +430,8 @@ about the output columns.
       Define:
 
       - NK = Sum(kappa around data points)
-      - RK = Sum(kappa around random points), scaled to be equivalent in effective number as the number of pairs in NK.
+      - RK = Sum(kappa around random points), scaled to be equivalent in effective number as the
+        number of pairs in NK.
       - npairs = number of pairs in NK.
 
       Then this statistic is ``<kappa>`` = (NK-RK)/npairs
@@ -441,7 +462,8 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:nz_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the estimator of the NZ correlation function.
+:nz_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which
+    statistic to use for the estimator of the NZ correlation function.
 
     Options are:
 
@@ -449,7 +471,8 @@ about the output columns.
       Define:
 
       - NZ = Sum(z around data points)
-      - RZ = Sum(z around random points), scaled to be equivalent in effective number as the number of pairs in NZ.
+      - RZ = Sum(z around random points), scaled to be equivalent in effective number as the number
+        of pairs in NZ.
       - npairs = number of pairs in NZ.
 
       Then this statistic is <z> = (NZ-RZ)/npairs
@@ -503,7 +526,8 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:nv_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the estimator of the NV correlation function.
+:nv_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which
+    statistic to use for the estimator of the NV correlation function.
 
     Options are:
 
@@ -511,7 +535,8 @@ about the output columns.
       Define:
 
       - NV = Sum(v around data points)
-      - RV = Sum(v around random points), scaled to be equivalent in effective number as the number of pairs in NG.
+      - RV = Sum(v around random points), scaled to be equivalent in effective number as the number
+        of pairs in NG.
       - npairs = number of pairs in NV.
 
       Then this statistic is vR = (NV-RV)/npairs
@@ -537,8 +562,10 @@ about the output columns.
     - ``R_nom`` = The center of the bin
     - ``meanR`` = The mean separation of the points that went into the bin.
     - ``meanlogR`` = The mean log(R) of the points that went into the bin.
-    - ``xip`` = <v1 v1 + v2 v2> where v1 and v2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.
-    - ``xim`` = <v1 v1 - v2 v2> where v1 and v2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.
+    - ``xip`` = <v1 v1 + v2 v2> where v1 and v2 are measured with respect to the line joining the
+      two points, where p1 is on the left and p2 is on the right.
+    - ``xim`` = <v1 v1 - v2 v2> where v1 and v2 are measured with respect to the line joining the
+      two points, where p1 is on the left and p2 is on the right.
     - ``xip_im`` = <v2 v1 - v1 v2>.
 
         In the formulation of xi+ using complex numbers, this is the imaginary component.
@@ -573,7 +600,8 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:ng_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the estimator of the NG correlation function.
+:ng_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which
+    statistic to use for the estimator of the NG correlation function.
 
     Options are:
 
@@ -581,7 +609,8 @@ about the output columns.
       Define:
 
       - NG = Sum(gamma around data points)
-      - RG = Sum(gamma around random points), scaled to be equivalent in effective number as the number of pairs in NG.
+      - RG = Sum(gamma around random points), scaled to be equivalent in effective number as the
+        number of pairs in NG.
       - npairs = number of pairs in NG.
 
       Then this statistic is gamT = (NG-RG)/npairs
@@ -613,8 +642,10 @@ about the output columns.
     - ``R_nom`` = The center of the bin
     - ``meanR`` = The mean separation of the points that went into the bin.
     - ``meanlogR`` = The mean log(R) of the points that went into the bin.
-    - ``xip`` = <g1 g1 + g2 g2> where g1 and g2 are measured with respect to the line joining the two galaxies.
-    - ``xim`` = <g1 g1 - g2 g2> where g1 and g2 are measured with respect to the line joining the two galaxies.
+    - ``xip`` = <g1 g1 + g2 g2> where g1 and g2 are measured with respect to the line joining the
+      two galaxies.
+    - ``xim`` = <g1 g1 - g2 g2> where g1 and g2 are measured with respect to the line joining the
+      two galaxies.
     - ``xip_im`` = <g2 g1 - g1 g2>.
 
         In the formulation of xi+ using complex numbers, this is the imaginary component.
@@ -646,7 +677,8 @@ about the output columns.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:nt_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the estimator of the NT correlation function.
+:nt_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which
+    statistic to use for the estimator of the NT correlation function.
 
     Options are:
 
@@ -654,7 +686,8 @@ about the output columns.
       Define:
 
       - NT = Sum(t around data points)
-      - RT = Sum(t around random points), scaled to be equivalent in effective number as the number of pairs in NG.
+      - RT = Sum(t around random points), scaled to be equivalent in effective number as the number
+        of pairs in NG.
       - npairs = number of pairs in NT.
 
       Then this statistic is tR = (NT-RT)/npairs
@@ -680,8 +713,10 @@ about the output columns.
     - ``R_nom`` = The center of the bin
     - ``meanR`` = The mean separation of the points that went into the bin.
     - ``meanlogR`` = The mean log(R) of the points that went into the bin.
-    - ``xip`` = <t1 t1 + t2 t2> where t1 and t2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.
-    - ``xim`` = <t1 t1 - t2 t2> where t1 and t2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.
+    - ``xip`` = <t1 t1 + t2 t2> where t1 and t2 are measured with respect to the line joining the
+      two points, where p1 is on the left and p2 is on the right.
+    - ``xim`` = <t1 t1 - t2 t2> where t1 and t2 are measured with respect to the line joining the
+      two points, where p1 is on the left and p2 is on the right.
     - ``xip_im`` = <t2 t1 - t1 t2>.
 
         In the formulation of xi+ using complex numbers, this is the imaginary component.
@@ -708,12 +743,14 @@ about the output columns.
     - ``meanR`` = The mean separation of the points that went into the bin.
     - ``meanlogR`` = The mean log(R) of the points that went into the bin.
     - ``qR`` = The mean real component of the quatrefoil field relative to the center points.
-    - ``qR_im`` = The mean imaginary component of the quatrefoil field relative to the center points.
+    - ``qR_im`` = The mean imaginary component of the quatrefoil field relative to the center
+      points.
     - ``sigma`` = The 1-sigma error bar for ``qR`` and ``qR_im``.
     - ``weight`` = The total weight of the pairs in each bin.
     - ``npairs`` = The total number of pairs in each bin.
 
-:nq_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which statistic to use for the estimator of the NQ correlation function.
+:nq_statistic: (str, default='compensated' if ``rand_files`` is given, otherwise 'simple') Which
+    statistic to use for the estimator of the NQ correlation function.
 
     Options are:
 
@@ -721,7 +758,8 @@ about the output columns.
       Define:
 
       - NQ = Sum(q around data points)
-      - RQ = Sum(q around random points), scaled to be equivalent in effective number as the number of pairs in NG.
+      - RQ = Sum(q around random points), scaled to be equivalent in effective number as the number
+        of pairs in NG.
       - npairs = number of pairs in NQ.
 
       Then this statistic is qR = (NQ-RQ)/npairs
@@ -747,8 +785,10 @@ about the output columns.
     - ``R_nom`` = The center of the bin
     - ``meanR`` = The mean separation of the points that went into the bin.
     - ``meanlogR`` = The mean log(R) of the points that went into the bin.
-    - ``xip`` = <q1 q1 + q2 q2> where q1 and q2 are measured with respect to the line joining the two points.
-    - ``xim`` = <q1 q1 - q2 q2> where q1 and q2 are measured with respect to the line joining the two points.
+    - ``xip`` = <q1 q1 + q2 q2> where q1 and q2 are measured with respect to the line joining the
+      two points.
+    - ``xim`` = <q1 q1 - q2 q2> where q1 and q2 are measured with respect to the line joining the
+      two points.
     - ``xip_im`` = <q2 q1 - q1 q2>.
 
         In the formulation of xi+ using complex numbers, this is the imaginary component.
@@ -785,9 +825,11 @@ about the output columns.
     - ``zeta`` = The correlation function.
     - ``sigma_zeta`` = The 1-sigma error bar for zeta.
     - ``DDD``, ``RRR`` = The raw numbers of triangles for the data and randoms
-    - ``DDR``, ``DRD``, ``RDD``, ``DRR``, ``RDR``, ``RRD`` (if ``nn_statistic=compensated``) = The cross terms between data and random.
+    - ``DDR``, ``DRD``, ``RDD``, ``DRR``, ``RDR``, ``RRD`` (if ``nnn_statistic=compensated``) = The
+      cross terms between data and random.
 
-:nnn_statistic: (str, default='compensated') Which statistic to use for the estimator of the NNN correlation function.
+:nnn_statistic: (str, default='compensated') Which statistic to use for the estimator of the NNN
+    correlation function.
 
     Options are:
 
@@ -795,6 +837,9 @@ about the output columns.
       zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR
     - 'simple' is the older version: zeta = (DDD/RRR - 1), although this is not actually
       an estimator of zeta.  Rather, it estimates zeta(d1,d2,d3) + xi(d1) + xi(d2) + xi(d3).
+
+    For most science analyses, ``'compensated'`` is recommended when random
+    catalogs are available.
 
 :ggg_file_name: (str) The output filename for shear-shear-shear correlation function.
 
@@ -867,12 +912,15 @@ functions.
 
     The output columns are:
 
-    - ``R`` = The radius of the aperture.  (Spaced the same way as  ``R_nom`` is in the correlation function output files.
+    - ``R`` = The radius of the aperture.  (Spaced the same way as  ``R_nom`` is in the correlation
+      function output files.
     - ``Mapsq`` = The E-mode aperture mass variance for each radius R.
     - ``Mxsq`` = The B-mode aperture mass variance.
-    - ``MMxa``, ``MMxb`` = Two semi-independent estimate for the E-B cross term.  (Both should be consistent with zero for parity invariance shear fields.)
+    - ``MMxa``, ``MMxb`` = Two semi-independent estimate for the E-B cross term.  (Both should be
+      consistent with zero for parity invariance shear fields.)
     - ``sig_map`` = The 1-sigma error bar for these values.
-    - ``Gamsq`` = The variance of the top-hat weighted mean shear in apertures of the given radius R.
+    - ``Gamsq`` = The variance of the top-hat weighted mean shear in apertures of the given radius
+      R.
     - ``sig_gam`` = The 1-sigma error bar for ``Gamsq``.
 
 :m2_uform: (str, default='Crittenden') The function form of the aperture
@@ -903,8 +951,10 @@ functions.
 
     The output columns are:
 
-    - ``R`` = The radius of the aperture.  (Spaced the same way as  ``R_nom`` is in the correlation function output files.
-    - ``NMap`` = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.
+    - ``R`` = The radius of the aperture.  (Spaced the same way as  ``R_nom`` is in the correlation
+      function output files.
+    - ``NMap`` = The E-mode aperture mass correlated with the density smoothed with the same
+      aperture profile as the aperture mass statistic uses.
     - ``NMx`` = The corresponding B-mode statistic.
     - ``sig_nmap`` = The 1-sigma error bar for these values.
 
@@ -915,8 +965,10 @@ functions.
 
     The output columns are:
 
-    - ``R`` = The radius of the aperture.  (Spaced the same way as  ``R_nom`` is in the correlation function output files.
-    - ``NMap`` = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.
+    - ``R`` = The radius of the aperture.  (Spaced the same way as  ``R_nom`` is in the correlation
+      function output files.
+    - ``NMap`` = The E-mode aperture mass correlated with the density smoothed with the same
+      aperture profile as the aperture mass statistic uses.
     - ``NMx`` = The corresponding B-mode statistic.
     - ``sig_nmap`` = The 1-sigma error bar for these values.
     - ``Napsq`` = The variance of the aperture-weighted galaxy density.
@@ -979,4 +1031,5 @@ Miscellaneous parameters
 
     The default is to try to determine the number of cpu cores your system has
     and use that many threads.
-
+    For reproducibility and predictable resource usage on shared systems, it is
+    often better to set this explicitly.

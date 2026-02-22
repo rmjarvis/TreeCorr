@@ -1,22 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>VVCorrelation: Vector-vector correlations &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2c218288"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -35,9 +35,6 @@
           <a href="index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -48,6 +45,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="nn.html">NNCorrelation: Count-count correlations</a></li>
@@ -91,7 +89,6 @@
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
@@ -122,14 +119,14 @@
            <div itemprop="articleBody">
              
   <section id="vvcorrelation-vector-vector-correlations">
-<h1>VVCorrelation: Vector-vector correlations<a class="headerlink" href="#vvcorrelation-vector-vector-correlations" title="Permalink to this heading"></a></h1>
+<h1>VVCorrelation: Vector-vector correlations<a class="headerlink" href="#vvcorrelation-vector-vector-correlations" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="treecorr.VVCorrelation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">VVCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/vvcorrelation.html#VVCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.VVCorrelation" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">VVCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/vvcorrelation.html#VVCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.VVCorrelation" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="zz.html#treecorr.BaseZZCorrelation" title="treecorr.zzcorrelation.BaseZZCorrelation"><code class="xref py py-class docutils literal notranslate"><span class="pre">BaseZZCorrelation</span></code></a></p>
 <p>This class handles the calculation and storage of a 2-point vector-vector correlation
 function.</p>
-<p>See the doc string of <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for a description of how the triangles are binned along
+<p>See the docstring of <a class="reference internal" href="correlation2.html#treecorr.Corr2" title="treecorr.Corr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr2</span></code></a> for a description of how the pairs are binned along
 with the attributes related to the different binning options.</p>
 <p>In addition to the attributes common to all <a class="reference internal" href="correlation2.html#treecorr.Corr2" title="treecorr.Corr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr2</span></code></a> subclasses, objects of this class
 hold the following attributes:</p>
@@ -158,19 +155,20 @@ cf. <a class="reference internal" href="cov.html#covariance-estimates"><span cla
 </div>
 <p>The typical usage pattern is as follows:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">vv</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">VVCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vv</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>         <span class="c1"># For auto-correlation.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vv</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span><span class="n">cat2</span><span class="p">)</span>   <span class="c1"># For cross-correlation.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">vv</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>     <span class="c1"># Write out to a file.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">xip</span> <span class="o">=</span> <span class="n">vv</span><span class="o">.</span><span class="n">xip</span>            <span class="c1"># Or access the correlation function directly.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vv</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>                <span class="c1"># Compute the auto-correlation.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># vv.process(cat1, cat2)       # ... or the cross-correlation.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vv</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>            <span class="c1"># Write out to a file.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xip</span><span class="p">,</span> <span class="n">xim</span> <span class="o">=</span> <span class="n">vv</span><span class="o">.</span><span class="n">xip</span><span class="p">,</span> <span class="n">vv</span><span class="o">.</span><span class="n">xim</span>      <span class="c1"># Or access the correlation functions directly.</span>
 </pre></div>
 </div>
+<p>See also: <a class="reference internal" href="nv.html#treecorr.NVCorrelation" title="treecorr.NVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NVCorrelation</span></code></a>, <a class="reference internal" href="kv.html#treecorr.KVCorrelation" title="treecorr.KVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KVCorrelation</span></code></a>, <a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
-This dict is allowed to have addition entries besides those listed
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – A configuration dict that can be used to pass in kwargs if desired.
+This dict is allowed to have additional entries besides those listed
 in <a class="reference internal" href="correlation2.html#treecorr.Corr2" title="treecorr.Corr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr2</span></code></a>, which are ignored here. (default: None)</p></li>
-<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Logger</span></code></a>) – If desired, a <code class="docutils literal notranslate"><span class="pre">Logger</span></code> object for logging. (default: None, in which case
 one will be built according to the config dict’s verbose level.)</p></li>
 </ul>
 </dd>
@@ -181,7 +179,7 @@ arguments, which may be passed either directly or in the config dict.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.VVCorrelation.finalize">
-<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">varv1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varv2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/vvcorrelation.html#VVCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.VVCorrelation.finalize" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">varv1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">varv2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/vvcorrelation.html#VVCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.VVCorrelation.finalize" title="Link to this definition"></a></dt>
 <dd><p>Finalize the calculation of the correlation function.</p>
 <p>The <a class="reference internal" href="correlation2.html#treecorr.Corr2.process_auto" title="treecorr.Corr2.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr2.process_auto</span></code></a> and <a class="reference internal" href="correlation2.html#treecorr.Corr2.process_cross" title="treecorr.Corr2.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr2.process_cross</span></code></a> commands accumulate values
 in each bin, so they can be called multiple times if appropriate.  Afterwards, this command
@@ -189,8 +187,8 @@ finishes the calculation by dividing each column by the total weight.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>varv1</strong> (<em>float</em>) – The variance per component of the first vector field.</p></li>
-<li><p><strong>varv2</strong> (<em>float</em>) – The variance per component of the second vector field.</p></li>
+<li><p><strong>varv1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The variance per component of the first vector field.</p></li>
+<li><p><strong>varv2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The variance per component of the second vector field.</p></li>
 </ul>
 </dd>
 </dl>

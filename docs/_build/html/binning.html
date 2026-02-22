@@ -1,22 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Binning &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2c218288"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -35,9 +35,6 @@
           <a href="index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -48,6 +45,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
@@ -72,7 +70,6 @@
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
@@ -102,13 +99,13 @@
            <div itemprop="articleBody">
              
   <section id="binning">
-<h1>Binning<a class="headerlink" href="#binning" title="Permalink to this heading"></a></h1>
+<h1>Binning<a class="headerlink" href="#binning" title="Link to this heading"></a></h1>
 <p>To be useful, the measured correlations need to be binned in some way to
 find the average correlation among many pairs of nearly the same separation.
 The different ways to bin the results may be specified using the <code class="docutils literal notranslate"><span class="pre">bin_type</span></code>
 parameter in <a class="reference internal" href="correlation2.html#treecorr.Corr2" title="treecorr.Corr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr2</span></code></a>.</p>
 <section id="log">
-<h2>“Log”<a class="headerlink" href="#log" title="Permalink to this heading"></a></h2>
+<h2>“Log”<a class="headerlink" href="#log" title="Link to this heading"></a></h2>
 <p>The default way to bin the results in TreeCorr is uniformly in log(r),
 where r is defined according to the specified metric
 (cf. <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a>).  This corresponds to <code class="docutils literal notranslate"><span class="pre">bin_type</span> <span class="pre">=</span> <span class="pre">&quot;Log&quot;</span></code>, although
@@ -134,7 +131,7 @@ slightly to accommodate an integer number of bins with the given <code class="do
 </div>
 </section>
 <section id="linear">
-<h2>“Linear”<a class="headerlink" href="#linear" title="Permalink to this heading"></a></h2>
+<h2>“Linear”<a class="headerlink" href="#linear" title="Link to this heading"></a></h2>
 <p>For use cases where the scales of interest span only a relatively small range of distances,
 it may be more convenient to use linear binning rather than logarithmic.  A notable
 example of this is BAO investigations, where the interesting region is near the BAO peak.
@@ -157,7 +154,7 @@ slightly to accommodate an integer number of bins with the given <code class="do
 </div>
 </section>
 <section id="twod">
-<h2>“TwoD”<a class="headerlink" href="#twod" title="Permalink to this heading"></a></h2>
+<h2>“TwoD”<a class="headerlink" href="#twod" title="Link to this heading"></a></h2>
 <p>To bin the correlation in two dimensions, (x,y), you can use <code class="docutils literal notranslate"><span class="pre">bin_type</span> <span class="pre">=</span> <span class="pre">&quot;TwoD&quot;</span></code>.
 This will keep track of not only the distance between two points, but also the
 direction.  The results are then binned linearly in both the delta x and delta y values.</p>
@@ -181,7 +178,7 @@ and the metric is “Euclidean”.  If you have a use case for other combination
 open an issue with your specific case, and we can try to figure out how it should be implemented.</p>
 </section>
 <section id="output-quantities">
-<h2>Output quantities<a class="headerlink" href="#output-quantities" title="Permalink to this heading"></a></h2>
+<h2>Output quantities<a class="headerlink" href="#output-quantities" title="Link to this heading"></a></h2>
 <p>For all of the different binning options, the Correlation object will have the following attributes
 related to the locations of the bins:</p>
 <blockquote>
@@ -228,11 +225,11 @@ effects of this choice, you would be well-advised to investigate the different o
 simulations to see exactly what impact the choice has on your science.</p>
 </section>
 <section id="other-options-for-binning">
-<h2>Other options for binning<a class="headerlink" href="#other-options-for-binning" title="Permalink to this heading"></a></h2>
+<h2>Other options for binning<a class="headerlink" href="#other-options-for-binning" title="Link to this heading"></a></h2>
 <p>There are a few other options that affect the binning, which can be set when constructing
 any of the <a class="reference internal" href="correlation2.html#treecorr.Corr2" title="treecorr.Corr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr2</span></code></a> or <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> classes.</p>
 <section id="sep-units">
-<h3>sep_units<a class="headerlink" href="#sep-units" title="Permalink to this heading"></a></h3>
+<h3>sep_units<a class="headerlink" href="#sep-units" title="Link to this heading"></a></h3>
 <p>The optional parameter <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> lets you specify what units you want for
 the binned separations if the separations are angles.</p>
 <p>Valid options are “arcsec”, “arcmin”, “degrees”, “hours”, or “radians”.  The default if
@@ -248,7 +245,7 @@ units of the r values.  Or if positions are given as x, y (and maybe z), then th
 units will be whatever the units are for these values.</p>
 </section>
 <section id="bin-slop">
-<h3>bin_slop<a class="headerlink" href="#bin-slop" title="Permalink to this heading"></a></h3>
+<h3>bin_slop<a class="headerlink" href="#bin-slop" title="Link to this heading"></a></h3>
 <p>One of the main reasons that TreeCorr is able to compute correlation functions
 so quickly is that it allows the bin edges to be a little bit fuzzy. A pairs whose
 separation is very close to a dividing line between two bins might be placed
@@ -308,10 +305,10 @@ number of pairs within the specified range is always correct, since each pair is
 in some bin.</p>
 </section>
 <section id="angle-slop">
-<h3>angle_slop<a class="headerlink" href="#angle-slop" title="Permalink to this heading"></a></h3>
+<h3>angle_slop<a class="headerlink" href="#angle-slop" title="Link to this heading"></a></h3>
 <p>For some calculations, the angular orientation of the line between two points is relevant
 to the correlation.  For most complex quantities (e.g. shear), the value used in the correlation
-has to be projected onto the the line between the two points (for two-point correlations) or
+has to be projected onto the line between the two points (for two-point correlations) or
 the centroid of the triangle (for three-point correlations).  Even for scalar quantities,
 three-point correlations using the multipole method also use the angular direction of the
 lines between points.</p>
@@ -327,7 +324,7 @@ will have large projection errors because the range of separations for a pair of
 fit precisely into a single bin.</p>
 </section>
 <section id="brute">
-<h3>brute<a class="headerlink" href="#brute" title="Permalink to this heading"></a></h3>
+<h3>brute<a class="headerlink" href="#brute" title="Link to this heading"></a></h3>
 <p>Sometimes, it can be useful to force the code to do the full brute force calculation,
 skipping all of the approximations that are inherent to the tree traversal algorithm.
 This of course is much slower, but this option can be useful for testing purposes especially.

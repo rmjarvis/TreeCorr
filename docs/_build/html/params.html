@@ -1,26 +1,26 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Configuration Parameters &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2c218288"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Getting Started Guide" href="guide.html" />
+    <link rel="next" title="Changes from version 5.0 to 5.1" href="changes.html" />
     <link rel="prev" title="Using configuration files" href="scripts.html" /> 
 </head>
 
@@ -35,9 +35,6 @@
           <a href="index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -48,6 +45,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
@@ -70,14 +68,14 @@
 </li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr2-function-from-python">The corr2 function from python</a></li>
-<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr3-function-from-python">The corr3 function from python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#python-api-and-corr2-corr3-parity">Python API and corr2/corr3 parity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr2-function-from-python">The corr2 function from Python</a></li>
+<li class="toctree-l2"><a class="reference internal" href="scripts.html#the-corr3-function-from-python">The corr3 function from Python</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scripts.html#other-utilities-related-to-corr2-and-corr3">Other utilities related to corr2 and corr3</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scripts.html#module-treecorr.config">Utilities related to the configuration dict</a></li>
 <li class="toctree-l2"><a class="reference internal" href="scripts.html#file-writers">File Writers</a></li>
 </ul>
 </li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
@@ -108,11 +106,11 @@
            <div itemprop="articleBody">
              
   <section id="configuration-parameters">
-<h1>Configuration Parameters<a class="headerlink" href="#configuration-parameters" title="Permalink to this heading"></a></h1>
+<h1>Configuration Parameters<a class="headerlink" href="#configuration-parameters" title="Link to this heading"></a></h1>
 <p>This section describes the various configuration parameters for controlling
 what the <a class="reference internal" href="scripts.html#treecorr.corr2" title="treecorr.corr2"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr2</span></code></a> and <a class="reference internal" href="scripts.html#treecorr.corr3" title="treecorr.corr3"><code class="xref any py py-func docutils literal notranslate"><span class="pre">corr3</span></code></a> scripts (or functions) do:</p>
 <section id="parameters-about-the-input-file-s">
-<h2>Parameters about the input file(s)<a class="headerlink" href="#parameters-about-the-input-file-s" title="Permalink to this heading"></a></h2>
+<h2>Parameters about the input file(s)<a class="headerlink" href="#parameters-about-the-input-file-s" title="Link to this heading"></a></h2>
 <dl class="field-list">
 <dt class="field-odd">file_name<span class="colon">:</span></dt>
 <dd class="field-odd"><p>(str or list)
@@ -192,10 +190,11 @@ and <code class="docutils literal notranslate"><span class="pre">file_name</span
 <dd class="field-odd"><p>(ASCII, FITS, HDF5, or Parquet) The file type of the input files.</p>
 </dd>
 <dt class="field-even">delimiter<span class="colon">:</span></dt>
-<dd class="field-even"><p>(str, default = ‘0’) The delimeter between input values in an ASCII catalog.</p>
+<dd class="field-even"><p>(str, default = ‘0’) The delimiter between input values in an ASCII catalog.</p>
 </dd>
 <dt class="field-odd">comment_marker<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(str, default = ‘#’) The first (non-whitespace) character of comment lines in an input ASCII catalog.</p>
+<dd class="field-odd"><p>(str, default = ‘#’) The first (non-whitespace) character of comment lines in an
+input ASCII catalog.</p>
 <p>The default file type is normally ASCII.  However, if the file name
 includes “.fit” in it, then a fits binary table is assumed.
 You can override this behavior using <code class="docutils literal notranslate"><span class="pre">file_type</span></code>.</p>
@@ -205,8 +204,9 @@ comment lines usually begin with ‘#’, but you may specify something
 different if necessary.</p>
 </dd>
 <dt class="field-even">ext<span class="colon">:</span></dt>
-<dd class="field-even"><p>(int/str, default=1 for FITS or root for HDF5) The extension (fits) or group (hdf) to read from</p>
-<p>Normally if you are using a fits file, the binary fits table is
+<dd class="field-even"><p>(int/str, default=1 for FITS or root for HDF5) The extension (fits) or group (hdf) to read
+from</p>
+<p>Normally if you are using a FITS file, the binary FITS table is
 taken from the first extension, HDU 1.  If you want to read from a
 different HDU, you can specify which one to use here. For HDF files,
 the default is to read from the root of the file, but you can also
@@ -223,7 +223,7 @@ specify group names like “/data/cat1”</p>
 <p>You can optionally not use all the rows in the input file.
 You may specify <code class="docutils literal notranslate"><span class="pre">first_row</span></code>, <code class="docutils literal notranslate"><span class="pre">last_row</span></code>, or both to limit the rows being used.
 The rows are numbered starting with 1.  If <code class="docutils literal notranslate"><span class="pre">last_row</span></code> is not positive, it
-means to use to the end of the file.  If <code class="docutils literal notranslate"><span class="pre">every_nth</span></code> is set, it will skip
+means to read through the end of the file.  If <code class="docutils literal notranslate"><span class="pre">every_nth</span></code> is set, it will skip
 rows, selecting only 1 out of every n rows.</p>
 </dd>
 <dt class="field-even">npatch<span class="colon">:</span></dt>
@@ -251,6 +251,11 @@ cf. <a class="reference internal" href="field.html#treecorr.Field.run_kmeans" ti
 <p>Alternative to setting patch by hand or using kmeans, you
 may instead give patch_centers either as a file name or an array
 from which the patches will be determined.</p>
+<p>For cross-correlations where both catalogs use patches, this is often the
+preferred way to ensure consistent patch geometry between the two catalogs.
+Running separate <code class="docutils literal notranslate"><span class="pre">npatch</span></code> calculations for each catalog is incorrect for
+patch-based covariance estimation, since it produces inconsistent patch
+definitions between the catalogs.</p>
 </dd>
 <dt class="field-even">x_col<span class="colon">:</span></dt>
 <dd class="field-even"><p>(int/str) Which column to use for x.</p>
@@ -317,8 +322,8 @@ like temperature, size, etc.</p>
 <p>If you are doing one of the shear correlation functions (i.e. NG, KG, GG),
 then you need to specify the shear estimates of the corresponding galaxies.
 The g1,g2 values are taken to be reduced shear values.  They should be
-unbiases estimators of g1,g2, so they are allowed to exceed <span class="math notranslate nohighlight">\(|g| = 1\)</span>.
-(This is required for some methods to produce unbiased estimates.</p>
+unbiased estimators of g1,g2, so they are allowed to exceed <span class="math notranslate nohighlight">\(|g| = 1\)</span>.
+(This is required for some methods to produce unbiased estimates.)</p>
 </dd>
 <dt class="field-odd">v1_col<span class="colon">:</span></dt>
 <dd class="field-odd"><p>(int/str) Which column to use for v1 (the real component of the vectors).</p>
@@ -465,20 +470,20 @@ weight of pairs.</p>
 set any of the above items from <code class="docutils literal notranslate"><span class="pre">file_type</span></code> to <code class="docutils literal notranslate"><span class="pre">flip_g2</span></code> as a two element
 list (i.e. two values separated by a space).  In this case, the first
 item refers to the file(s) in <code class="docutils literal notranslate"><span class="pre">file_name</span></code>, and the second item refers
-to the file(s) in files_name2.</p></li>
+to the file(s) in <code class="docutils literal notranslate"><span class="pre">file_name2</span></code>.</p></li>
 <li><p>You may not mix (x,y) columns with (ra,dec) columns, since its meaning
 would be ambiguous.</p></li>
 <li><p>If you don’t need a particular column for one of the files, you may
 use 0 to indicate not to read that column.  This is true for
 any format of input catalog.</p></li>
 <li><p>Also, if the given column only applies to one of the two input files
-(e.g. k_col for an count-scalar cross-correlation) then you may specify just
+(e.g. k_col for a count-scalar cross-correlation) then you may specify just
 the column name or number for the file to which it does apply.</p></li>
 </ul>
 </div>
 </section>
 <section id="parameters-about-the-binned-correlation-function-to-be-calculated">
-<h2>Parameters about the binned correlation function to be calculated<a class="headerlink" href="#parameters-about-the-binned-correlation-function-to-be-calculated" title="Permalink to this heading"></a></h2>
+<h2>Parameters about the binned correlation function to be calculated<a class="headerlink" href="#parameters-about-the-binned-correlation-function-to-be-calculated" title="Link to this heading"></a></h2>
 <dl class="field-list">
 <dt class="field-odd">bin_type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>(str, default=’Log’) Which type of binning should be used.</p>
@@ -501,8 +506,15 @@ of the other three.</p>
 <p>See <a class="reference internal" href="binning.html#binning"><span class="std std-ref">Binning</span></a> for details about how these parameters are used for the
 different choice of <code class="docutils literal notranslate"><span class="pre">bin_type</span></code>.</p>
 </dd>
-<dt class="field-even">sep_units<span class="colon">:</span></dt>
-<dd class="field-even"><p>(str, default=None) The units to use for <code class="docutils literal notranslate"><span class="pre">min_sep</span></code> and <code class="docutils literal notranslate"><span class="pre">max_sep</span></code>.</p>
+<dt class="field-even">max_n<span class="colon">:</span></dt>
+<dd class="field-even"><p>(int) The maximum multipole index to store for three-point multipole calculations.</p>
+<p>This parameter is required when <code class="docutils literal notranslate"><span class="pre">bin_type='LogMultipole'</span></code>.
+It may also be provided with <code class="docutils literal notranslate"><span class="pre">bin_type='LogSAS'</span></code> when using the multipole
+algorithm path, in which case it controls the internal multipole expansion
+before conversion back to SAS bins.</p>
+</dd>
+<dt class="field-odd">sep_units<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(str, default=None) The units to use for <code class="docutils literal notranslate"><span class="pre">min_sep</span></code> and <code class="docutils literal notranslate"><span class="pre">max_sep</span></code>.</p>
 <p><code class="docutils literal notranslate"><span class="pre">sep_units</span></code> is also the units of R in the output file.  For ra, dec values,
 you should always specify <code class="docutils literal notranslate"><span class="pre">sep_units</span></code> explicitly to indicate what angular
 units you want to use for the separations.  But if your catalogs use x,y,
@@ -510,8 +522,9 @@ or if you specify 3-d correlations with r, then the output separations are
 in the same units as the input positions.</p>
 <p>See <a class="reference internal" href="binning.html#sep-units"><span class="std std-ref">sep_units</span></a> for more discussion about this parameter.</p>
 </dd>
-<dt class="field-odd">bin_slop<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(float, default=1) The fraction of a bin width by which it is ok to let the pairs miss the correct bin.</p>
+<dt class="field-even">bin_slop<span class="colon">:</span></dt>
+<dd class="field-even"><p>(float, default=1) The fraction of a bin width by which it is ok to let the pairs miss
+the correct bin.</p>
 <p>The code normally determines when to stop traversing the tree when all of the
 distance pairs for the two nodes have a spread in distance that is less than the
 bin size.  i.e. the error in the tree traversal is less than the uncertainty
@@ -523,67 +536,67 @@ from using the tree nodes will be less than the error in the histogram binning.
 decreasing the <code class="docutils literal notranslate"><span class="pre">bin_size</span></code> instead and leaving <code class="docutils literal notranslate"><span class="pre">bin_slop=1</span></code>.)</p>
 <p>See <a class="reference internal" href="binning.html#bin-slop"><span class="std std-ref">bin_slop</span></a> for more discussion about this parameter.</p>
 </dd>
-<dt class="field-even">brute<span class="colon">:</span></dt>
-<dd class="field-even"><p>(bool/int, default=False) Whether to do the “brute force” algorithm, where the
+<dt class="field-odd">brute<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(bool/int, default=False) Whether to do the “brute force” algorithm, where the
 tree traversal always goes to the leaf cells.</p>
 <p>In addition to True or False, whose meanings are obvious, you may also set
 <code class="docutils literal notranslate"><span class="pre">brute</span></code> to 1 or 2, which means to go to the leaves for cat1 or cat2, respectively,
 but stop traversing the other catalog according to the normal <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code> criterion.</p>
 <p>See <a class="reference internal" href="binning.html#brute"><span class="std std-ref">brute</span></a> for more discussion about this parameter.</p>
 </dd>
-<dt class="field-odd">min_u<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(float) The minimum u=d3/d2 to include for three-point functions.</p>
+<dt class="field-even">min_u<span class="colon">:</span></dt>
+<dd class="field-even"><p>(float) The minimum u=d3/d2 to include for three-point functions.</p>
 </dd>
-<dt class="field-even">max_u<span class="colon">:</span></dt>
-<dd class="field-even"><p>(float) The maximum u=d3/d2 to include for three-point functions.</p>
+<dt class="field-odd">max_u<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(float) The maximum u=d3/d2 to include for three-point functions.</p>
 </dd>
-<dt class="field-odd">nubins<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(int) The number of output bins to use for u.</p>
+<dt class="field-even">nubins<span class="colon">:</span></dt>
+<dd class="field-even"><p>(int) The number of output bins to use for u.</p>
 </dd>
-<dt class="field-even">ubin_size<span class="colon">:</span></dt>
-<dd class="field-even"><p>(float) The size of the output bins for u.</p>
+<dt class="field-odd">ubin_size<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(float) The size of the output bins for u.</p>
 </dd>
-<dt class="field-odd">min_v<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(float) The minimum positive v=(d1-d2)/d3 to include for three-point functions.</p>
+<dt class="field-even">min_v<span class="colon">:</span></dt>
+<dd class="field-even"><p>(float) The minimum positive v=(d1-d2)/d3 to include for three-point functions.</p>
 </dd>
-<dt class="field-even">max_v<span class="colon">:</span></dt>
-<dd class="field-even"><p>(float) The maximum positive v=(d1-d2)/d3 to include for three-point functions.</p>
+<dt class="field-odd">max_v<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(float) The maximum positive v=(d1-d2)/d3 to include for three-point functions.</p>
 </dd>
-<dt class="field-odd">nvbins<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(int) The number of output bins to use for positive v.
+<dt class="field-even">nvbins<span class="colon">:</span></dt>
+<dd class="field-even"><p>(int) The number of output bins to use for positive v.
 The total number of bins in the v direction will be twice this number.</p>
 </dd>
-<dt class="field-even">vbin_size<span class="colon">:</span></dt>
-<dd class="field-even"><p>(float) The size of the output bins for v.</p>
+<dt class="field-odd">vbin_size<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(float) The size of the output bins for v.</p>
 </dd>
-<dt class="field-odd">metric<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(str, default=’Euclidean’) Which metric to use for distance measurements.</p>
+<dt class="field-even">metric<span class="colon">:</span></dt>
+<dd class="field-even"><p>(str, default=’Euclidean’) Which metric to use for distance measurements.</p>
 <p>See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.</p>
 </dd>
-<dt class="field-even">min_rpar<span class="colon">:</span></dt>
-<dd class="field-even"><p>(float) If the metric supports it, the minimum Rparallel to allow for pairs
+<dt class="field-odd">min_rpar<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(float) If the metric supports it, the minimum Rparallel to allow for pairs
 to be included in the correlation function.</p>
 </dd>
-<dt class="field-odd">max_rpar<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(float) If the metric supports it, the maximum Rparallel to allow for pairs
+<dt class="field-even">max_rpar<span class="colon">:</span></dt>
+<dd class="field-even"><p>(float) If the metric supports it, the maximum Rparallel to allow for pairs
 to be included in the correlation function.</p>
 </dd>
-<dt class="field-even">period<span class="colon">:</span></dt>
-<dd class="field-even"><p>(float) For the ‘Periodic’ metric, the period to use in all directions.</p>
+<dt class="field-odd">period<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(float) For the ‘Periodic’ metric, the period to use in all directions.</p>
 </dd>
-<dt class="field-odd">xperiod<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(float) For the ‘Periodic’ metric, the period to use in the x directions.</p>
+<dt class="field-even">xperiod<span class="colon">:</span></dt>
+<dd class="field-even"><p>(float) For the ‘Periodic’ metric, the period to use in the x directions.</p>
 </dd>
-<dt class="field-even">yperiod<span class="colon">:</span></dt>
-<dd class="field-even"><p>(float) For the ‘Periodic’ metric, the period to use in the y directions.</p>
+<dt class="field-odd">yperiod<span class="colon">:</span></dt>
+<dd class="field-odd"><p>(float) For the ‘Periodic’ metric, the period to use in the y directions.</p>
 </dd>
-<dt class="field-odd">zperiod<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(float) For the ‘Periodic’ metric, the period to use in the z directions.</p>
+<dt class="field-even">zperiod<span class="colon">:</span></dt>
+<dd class="field-even"><p>(float) For the ‘Periodic’ metric, the period to use in the z directions.</p>
 </dd>
 </dl>
 </section>
 <section id="parameters-about-the-output-file-s">
-<h2>Parameters about the output file(s)<a class="headerlink" href="#parameters-about-the-output-file-s" title="Permalink to this heading"></a></h2>
+<h2>Parameters about the output file(s)<a class="headerlink" href="#parameters-about-the-output-file-s" title="Link to this heading"></a></h2>
 <p>The kind of correlation function that the code will calculate is based on
 which output file(s) you specify.  It will do the calculation(s) relevant for
 each output file you set.  For each output file, the first line of the output
@@ -602,14 +615,17 @@ about the output columns.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">sigma_xi</span></code> = The 1-sigma error bar for xi.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">DD</span></code>, <code class="docutils literal notranslate"><span class="pre">RR</span></code> = The raw numbers of pairs for the data and randoms</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">DR</span></code> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code>) = The cross terms between data and random.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">RD</span></code> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code> cross-correlation) = The cross term between random and data, which for a cross-correlation is not equivalent to <code class="docutils literal notranslate"><span class="pre">DR</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">RD</span></code> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code> cross-correlation) = The cross term between random
+and data, which for a cross-correlation is not equivalent to <code class="docutils literal notranslate"><span class="pre">DR</span></code>.</p></li>
 </ul>
 </dd>
 <dt class="field-even">nn_statistic<span class="colon">:</span></dt>
-<dd class="field-even"><p>(str, default=’compensated’) Which statistic to use for estimator of the NN correlation function.</p>
+<dd class="field-even"><p>(str, default=’compensated’) Which statistic to use for estimator of the NN
+correlation function.</p>
 <p>Options are (D = data catalog, R = random catalog)</p>
 <ul class="simple">
-<li><p>‘compensated’ is the now-normal Landy-Szalay statistic:  xi = (DD-2DR+RR)/RR, or for cross-correlations, xi = (DD-DR-RD+RR)/RR</p></li>
+<li><p>‘compensated’ is the now-normal Landy-Szalay statistic:  xi = (DD-2DR+RR)/RR, or for
+cross-correlations, xi = (DD-DR-RD+RR)/RR</p></li>
 <li><p>‘simple’ is the older version: xi = (DD/RR - 1)</p></li>
 </ul>
 </dd>
@@ -629,14 +645,16 @@ really any scalar quantity, so it can be used for temperature, size, etc.</p>
 </ul>
 </dd>
 <dt class="field-even">nk_statistic<span class="colon">:</span></dt>
-<dd class="field-even"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which statistic to use for the estimator of the NK correlation function.</p>
+<dd class="field-even"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which
+statistic to use for the estimator of the NK correlation function.</p>
 <p>Options are:</p>
 <ul>
 <li><p>‘compensated’ is simiar to the Landy-Szalay statistic:
 Define:</p>
 <ul class="simple">
 <li><p>NK = Sum(kappa around data points)</p></li>
-<li><p>RK = Sum(kappa around random points), scaled to be equivalent in effective number as the number of pairs in NK.</p></li>
+<li><p>RK = Sum(kappa around random points), scaled to be equivalent in effective number as the
+number of pairs in NK.</p></li>
 <li><p>npairs = number of pairs in NK.</p></li>
 </ul>
 <p>Then this statistic is <code class="docutils literal notranslate"><span class="pre">&lt;kappa&gt;</span></code> = (NK-RK)/npairs</p>
@@ -672,14 +690,16 @@ Define:</p>
 </ul>
 </dd>
 <dt class="field-odd">nz_statistic<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which statistic to use for the estimator of the NZ correlation function.</p>
+<dd class="field-odd"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which
+statistic to use for the estimator of the NZ correlation function.</p>
 <p>Options are:</p>
 <ul>
 <li><p>‘compensated’ is simiar to the Landy-Szalay statistic:
 Define:</p>
 <ul class="simple">
 <li><p>NZ = Sum(z around data points)</p></li>
-<li><p>RZ = Sum(z around random points), scaled to be equivalent in effective number as the number of pairs in NZ.</p></li>
+<li><p>RZ = Sum(z around random points), scaled to be equivalent in effective number as the number
+of pairs in NZ.</p></li>
 <li><p>npairs = number of pairs in NZ.</p></li>
 </ul>
 <p>Then this statistic is &lt;z&gt; = (NZ-RZ)/npairs</p>
@@ -740,14 +760,16 @@ exactly zero.</p>
 </ul>
 </dd>
 <dt class="field-odd">nv_statistic<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which statistic to use for the estimator of the NV correlation function.</p>
+<dd class="field-odd"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which
+statistic to use for the estimator of the NV correlation function.</p>
 <p>Options are:</p>
 <ul>
 <li><p>‘compensated’ is simiar to the Landy-Szalay statistic:
 Define:</p>
 <ul class="simple">
 <li><p>NV = Sum(v around data points)</p></li>
-<li><p>RV = Sum(v around random points), scaled to be equivalent in effective number as the number of pairs in NG.</p></li>
+<li><p>RV = Sum(v around random points), scaled to be equivalent in effective number as the number
+of pairs in NG.</p></li>
 <li><p>npairs = number of pairs in NV.</p></li>
 </ul>
 <p>Then this statistic is vR = (NV-RV)/npairs</p>
@@ -776,8 +798,10 @@ Define:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">R_nom</span></code> = The center of the bin</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">meanR</span></code> = The mean separation of the points that went into the bin.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">meanlogR</span></code> = The mean log(R) of the points that went into the bin.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">xip</span></code> = &lt;v1 v1 + v2 v2&gt; where v1 and v2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">xim</span></code> = &lt;v1 v1 - v2 v2&gt; where v1 and v2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xip</span></code> = &lt;v1 v1 + v2 v2&gt; where v1 and v2 are measured with respect to the line joining the
+two points, where p1 is on the left and p2 is on the right.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xim</span></code> = &lt;v1 v1 - v2 v2&gt; where v1 and v2 are measured with respect to the line joining the
+two points, where p1 is on the left and p2 is on the right.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">xip_im</span></code> = &lt;v2 v1 - v1 v2&gt;.</p>
 <blockquote>
 <div><p>In the formulation of xi+ using complex numbers, this is the imaginary component.
@@ -816,14 +840,16 @@ lensing.</p>
 </ul>
 </dd>
 <dt class="field-odd">ng_statistic<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which statistic to use for the estimator of the NG correlation function.</p>
+<dd class="field-odd"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which
+statistic to use for the estimator of the NG correlation function.</p>
 <p>Options are:</p>
 <ul>
 <li><p>‘compensated’ is simiar to the Landy-Szalay statistic:
 Define:</p>
 <ul class="simple">
 <li><p>NG = Sum(gamma around data points)</p></li>
-<li><p>RG = Sum(gamma around random points), scaled to be equivalent in effective number as the number of pairs in NG.</p></li>
+<li><p>RG = Sum(gamma around random points), scaled to be equivalent in effective number as the
+number of pairs in NG.</p></li>
 <li><p>npairs = number of pairs in NG.</p></li>
 </ul>
 <p>Then this statistic is gamT = (NG-RG)/npairs</p>
@@ -856,8 +882,10 @@ kappa values.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">R_nom</span></code> = The center of the bin</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">meanR</span></code> = The mean separation of the points that went into the bin.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">meanlogR</span></code> = The mean log(R) of the points that went into the bin.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">xip</span></code> = &lt;g1 g1 + g2 g2&gt; where g1 and g2 are measured with respect to the line joining the two galaxies.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">xim</span></code> = &lt;g1 g1 - g2 g2&gt; where g1 and g2 are measured with respect to the line joining the two galaxies.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xip</span></code> = &lt;g1 g1 + g2 g2&gt; where g1 and g2 are measured with respect to the line joining the
+two galaxies.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xim</span></code> = &lt;g1 g1 - g2 g2&gt; where g1 and g2 are measured with respect to the line joining the
+two galaxies.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">xip_im</span></code> = &lt;g2 g1 - g1 g2&gt;.</p>
 <blockquote>
 <div><p>In the formulation of xi+ using complex numbers, this is the imaginary component.
@@ -894,14 +922,16 @@ It should be consistent with zero for parity invariant shear fields.</p>
 </ul>
 </dd>
 <dt class="field-odd">nt_statistic<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which statistic to use for the estimator of the NT correlation function.</p>
+<dd class="field-odd"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which
+statistic to use for the estimator of the NT correlation function.</p>
 <p>Options are:</p>
 <ul>
 <li><p>‘compensated’ is simiar to the Landy-Szalay statistic:
 Define:</p>
 <ul class="simple">
 <li><p>NT = Sum(t around data points)</p></li>
-<li><p>RT = Sum(t around random points), scaled to be equivalent in effective number as the number of pairs in NG.</p></li>
+<li><p>RT = Sum(t around random points), scaled to be equivalent in effective number as the number
+of pairs in NG.</p></li>
 <li><p>npairs = number of pairs in NT.</p></li>
 </ul>
 <p>Then this statistic is tR = (NT-RT)/npairs</p>
@@ -930,8 +960,10 @@ Define:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">R_nom</span></code> = The center of the bin</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">meanR</span></code> = The mean separation of the points that went into the bin.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">meanlogR</span></code> = The mean log(R) of the points that went into the bin.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">xip</span></code> = &lt;t1 t1 + t2 t2&gt; where t1 and t2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">xim</span></code> = &lt;t1 t1 - t2 t2&gt; where t1 and t2 are measured with respect to the line joining the two points, where p1 is on the left and p2 is on the right.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xip</span></code> = &lt;t1 t1 + t2 t2&gt; where t1 and t2 are measured with respect to the line joining the
+two points, where p1 is on the left and p2 is on the right.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xim</span></code> = &lt;t1 t1 - t2 t2&gt; where t1 and t2 are measured with respect to the line joining the
+two points, where p1 is on the left and p2 is on the right.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">xip_im</span></code> = &lt;t2 t1 - t1 t2&gt;.</p>
 <blockquote>
 <div><p>In the formulation of xi+ using complex numbers, this is the imaginary component.
@@ -961,21 +993,24 @@ It should be consistent with zero for parity invariant fields.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">meanR</span></code> = The mean separation of the points that went into the bin.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">meanlogR</span></code> = The mean log(R) of the points that went into the bin.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">qR</span></code> = The mean real component of the quatrefoil field relative to the center points.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">qR_im</span></code> = The mean imaginary component of the quatrefoil field relative to the center points.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">qR_im</span></code> = The mean imaginary component of the quatrefoil field relative to the center
+points.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sigma</span></code> = The 1-sigma error bar for <code class="docutils literal notranslate"><span class="pre">qR</span></code> and <code class="docutils literal notranslate"><span class="pre">qR_im</span></code>.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">weight</span></code> = The total weight of the pairs in each bin.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">npairs</span></code> = The total number of pairs in each bin.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">nq_statistic<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which statistic to use for the estimator of the NQ correlation function.</p>
+<dd class="field-odd"><p>(str, default=’compensated’ if <code class="docutils literal notranslate"><span class="pre">rand_files</span></code> is given, otherwise ‘simple’) Which
+statistic to use for the estimator of the NQ correlation function.</p>
 <p>Options are:</p>
 <ul>
 <li><p>‘compensated’ is simiar to the Landy-Szalay statistic:
 Define:</p>
 <ul class="simple">
 <li><p>NQ = Sum(q around data points)</p></li>
-<li><p>RQ = Sum(q around random points), scaled to be equivalent in effective number as the number of pairs in NG.</p></li>
+<li><p>RQ = Sum(q around random points), scaled to be equivalent in effective number as the number
+of pairs in NG.</p></li>
 <li><p>npairs = number of pairs in NQ.</p></li>
 </ul>
 <p>Then this statistic is qR = (NQ-RQ)/npairs</p>
@@ -1004,8 +1039,10 @@ Define:</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">R_nom</span></code> = The center of the bin</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">meanR</span></code> = The mean separation of the points that went into the bin.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">meanlogR</span></code> = The mean log(R) of the points that went into the bin.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">xip</span></code> = &lt;q1 q1 + q2 q2&gt; where q1 and q2 are measured with respect to the line joining the two points.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">xim</span></code> = &lt;q1 q1 - q2 q2&gt; where q1 and q2 are measured with respect to the line joining the two points.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xip</span></code> = &lt;q1 q1 + q2 q2&gt; where q1 and q2 are measured with respect to the line joining the
+two points.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">xim</span></code> = &lt;q1 q1 - q2 q2&gt; where q1 and q2 are measured with respect to the line joining the
+two points.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">xip_im</span></code> = &lt;q2 q1 - q1 q2&gt;.</p>
 <blockquote>
 <div><p>In the formulation of xi+ using complex numbers, this is the imaginary component.
@@ -1044,11 +1081,13 @@ It should be consistent with zero for parity invariant fields.</p>
 <li><p><code class="docutils literal notranslate"><span class="pre">zeta</span></code> = The correlation function.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sigma_zeta</span></code> = The 1-sigma error bar for zeta.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">DDD</span></code>, <code class="docutils literal notranslate"><span class="pre">RRR</span></code> = The raw numbers of triangles for the data and randoms</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">DDR</span></code>, <code class="docutils literal notranslate"><span class="pre">DRD</span></code>, <code class="docutils literal notranslate"><span class="pre">RDD</span></code>, <code class="docutils literal notranslate"><span class="pre">DRR</span></code>, <code class="docutils literal notranslate"><span class="pre">RDR</span></code>, <code class="docutils literal notranslate"><span class="pre">RRD</span></code> (if <code class="docutils literal notranslate"><span class="pre">nn_statistic=compensated</span></code>) = The cross terms between data and random.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">DDR</span></code>, <code class="docutils literal notranslate"><span class="pre">DRD</span></code>, <code class="docutils literal notranslate"><span class="pre">RDD</span></code>, <code class="docutils literal notranslate"><span class="pre">DRR</span></code>, <code class="docutils literal notranslate"><span class="pre">RDR</span></code>, <code class="docutils literal notranslate"><span class="pre">RRD</span></code> (if <code class="docutils literal notranslate"><span class="pre">nnn_statistic=compensated</span></code>) = The
+cross terms between data and random.</p></li>
 </ul>
 </dd>
 <dt class="field-odd">nnn_statistic<span class="colon">:</span></dt>
-<dd class="field-odd"><p>(str, default=’compensated’) Which statistic to use for the estimator of the NNN correlation function.</p>
+<dd class="field-odd"><p>(str, default=’compensated’) Which statistic to use for the estimator of the NNN
+correlation function.</p>
 <p>Options are:</p>
 <ul class="simple">
 <li><p>‘compensated’ is the Szapudi &amp; Szalay (1998) estimator:
@@ -1056,6 +1095,8 @@ zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/RRR</p></li>
 <li><p>‘simple’ is the older version: zeta = (DDD/RRR - 1), although this is not actually
 an estimator of zeta.  Rather, it estimates zeta(d1,d2,d3) + xi(d1) + xi(d2) + xi(d3).</p></li>
 </ul>
+<p>For most science analyses, <code class="docutils literal notranslate"><span class="pre">'compensated'</span></code> is recommended when random
+catalogs are available.</p>
 </dd>
 <dt class="field-even">ggg_file_name<span class="colon">:</span></dt>
 <dd class="field-even"><p>(str) The output filename for shear-shear-shear correlation function.</p>
@@ -1117,7 +1158,7 @@ else.</p>
 </dl>
 </section>
 <section id="derived-output-quantities">
-<h2>Derived output quantities<a class="headerlink" href="#derived-output-quantities" title="Permalink to this heading"></a></h2>
+<h2>Derived output quantities<a class="headerlink" href="#derived-output-quantities" title="Link to this heading"></a></h2>
 <p>The rest of these output files are calculated based on one or more correlation
 functions.</p>
 <dl class="field-list">
@@ -1127,12 +1168,15 @@ functions.</p>
 derived from the shear-shear correlation function.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">R</span></code> = The radius of the aperture.  (Spaced the same way as  <code class="docutils literal notranslate"><span class="pre">R_nom</span></code> is in the correlation function output files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R</span></code> = The radius of the aperture.  (Spaced the same way as  <code class="docutils literal notranslate"><span class="pre">R_nom</span></code> is in the correlation
+function output files.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Mapsq</span></code> = The E-mode aperture mass variance for each radius R.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Mxsq</span></code> = The B-mode aperture mass variance.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">MMxa</span></code>, <code class="docutils literal notranslate"><span class="pre">MMxb</span></code> = Two semi-independent estimate for the E-B cross term.  (Both should be consistent with zero for parity invariance shear fields.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MMxa</span></code>, <code class="docutils literal notranslate"><span class="pre">MMxb</span></code> = Two semi-independent estimate for the E-B cross term.  (Both should be
+consistent with zero for parity invariance shear fields.)</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sig_map</span></code> = The 1-sigma error bar for these values.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">Gamsq</span></code> = The variance of the top-hat weighted mean shear in apertures of the given radius R.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Gamsq</span></code> = The variance of the top-hat weighted mean shear in apertures of the given radius
+R.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sig_gam</span></code> = The 1-sigma error bar for <code class="docutils literal notranslate"><span class="pre">Gamsq</span></code>.</p></li>
 </ul>
 </dd>
@@ -1162,8 +1206,10 @@ aperture-smoothed density field, derived from the count-shear correlation
 function.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">R</span></code> = The radius of the aperture.  (Spaced the same way as  <code class="docutils literal notranslate"><span class="pre">R_nom</span></code> is in the correlation function output files.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">NMap</span></code> = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R</span></code> = The radius of the aperture.  (Spaced the same way as  <code class="docutils literal notranslate"><span class="pre">R_nom</span></code> is in the correlation
+function output files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NMap</span></code> = The E-mode aperture mass correlated with the density smoothed with the same
+aperture profile as the aperture mass statistic uses.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">NMx</span></code> = The corresponding B-mode statistic.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sig_nmap</span></code> = The 1-sigma error bar for these values.</p></li>
 </ul>
@@ -1174,8 +1220,10 @@ function.</p>
 provides an estimate of the correlation coefficient, r.</p>
 <p>The output columns are:</p>
 <ul class="simple">
-<li><p><code class="docutils literal notranslate"><span class="pre">R</span></code> = The radius of the aperture.  (Spaced the same way as  <code class="docutils literal notranslate"><span class="pre">R_nom</span></code> is in the correlation function output files.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">NMap</span></code> = The E-mode aperture mass correlated with the density smoothed with the same aperture profile as the aperture mass statistic uses.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">R</span></code> = The radius of the aperture.  (Spaced the same way as  <code class="docutils literal notranslate"><span class="pre">R_nom</span></code> is in the correlation
+function output files.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NMap</span></code> = The E-mode aperture mass correlated with the density smoothed with the same
+aperture profile as the aperture mass statistic uses.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">NMx</span></code> = The corresponding B-mode statistic.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">sig_nmap</span></code> = The 1-sigma error bar for these values.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Napsq</span></code> = The variance of the aperture-weighted galaxy density.</p></li>
@@ -1191,7 +1239,7 @@ provides an estimate of the correlation coefficient, r.</p>
 </dl>
 </section>
 <section id="miscellaneous-parameters">
-<h2>Miscellaneous parameters<a class="headerlink" href="#miscellaneous-parameters" title="Permalink to this heading"></a></h2>
+<h2>Miscellaneous parameters<a class="headerlink" href="#miscellaneous-parameters" title="Link to this heading"></a></h2>
 <dl class="field-list">
 <dt class="field-odd">verbose<span class="colon">:</span></dt>
 <dd class="field-odd"><p>(int, default=1) How verbose the code should be during processing.</p>
@@ -1240,7 +1288,9 @@ typically be of order 2^max_top top-level cells.</p>
 <dt class="field-odd">num_threads<span class="colon">:</span></dt>
 <dd class="field-odd"><p>(int, default=0) How many (OpenMP) threads should be used.</p>
 <p>The default is to try to determine the number of cpu cores your system has
-and use that many threads.</p>
+and use that many threads.
+For reproducibility and predictable resource usage on shared systems, it is
+often better to set this explicitly.</p>
 </dd>
 </dl>
 </section>
@@ -1251,7 +1301,7 @@ and use that many threads.</p>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
         <a href="scripts.html" class="btn btn-neutral float-left" title="Using configuration files" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="guide.html" class="btn btn-neutral float-right" title="Getting Started Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="changes.html" class="btn btn-neutral float-right" title="Changes from version 5.0 to 5.1" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

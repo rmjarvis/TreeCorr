@@ -1,26 +1,26 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Changes from version 5.0 to 5.1 &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2c218288"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
     <link rel="next" title="Previous History" href="history.html" />
-    <link rel="prev" title="Getting Started Guide" href="guide.html" /> 
+    <link rel="prev" title="Configuration Parameters" href="params.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -34,9 +34,6 @@
           <a href="index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -47,6 +44,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
@@ -58,7 +56,6 @@
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Changes from version 5.0 to 5.1</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#api-changes">API Changes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#performance-improvements">Performance improvements</a></li>
@@ -95,12 +92,12 @@
            <div itemprop="articleBody">
              
   <section id="changes-from-version-5-0-to-5-1">
-<h1>Changes from version 5.0 to 5.1<a class="headerlink" href="#changes-from-version-5-0-to-5-1" title="Permalink to this heading"></a></h1>
+<h1>Changes from version 5.0 to 5.1<a class="headerlink" href="#changes-from-version-5-0-to-5-1" title="Link to this heading"></a></h1>
 <p>A complete list of all new features and changes is given below.
 <a class="reference external" href="https://github.com/rmjarvis/TreeCorr/issues?q=milestone%3A%22Version+5.1%22+is%3Aclosed">Relevant PRs and Issues,</a>
 whose issue numbers are listed below for the relevant items.</p>
 <section id="api-changes">
-<h2>API Changes<a class="headerlink" href="#api-changes" title="Permalink to this heading"></a></h2>
+<h2>API Changes<a class="headerlink" href="#api-changes" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>This isn’t quite an API change, but it’s worth highlighting.  We left the default behavior
 of the cross_patch_weight to match the behavior of previous versions of TreeCorr.
@@ -113,7 +110,7 @@ improved weighting, you should update your script to the appropriate value. (#18
 </ul>
 </section>
 <section id="performance-improvements">
-<h2>Performance improvements<a class="headerlink" href="#performance-improvements" title="Permalink to this heading"></a></h2>
+<h2>Performance improvements<a class="headerlink" href="#performance-improvements" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Added an option to the process commands, <code class="docutils literal notranslate"><span class="pre">corr_only=True</span></code>, which will skip the computations
 of ancillary quantities like <code class="docutils literal notranslate"><span class="pre">meanlogr</span></code>, <code class="docutils literal notranslate"><span class="pre">meanphi</span></code>, and <code class="docutils literal notranslate"><span class="pre">npairs</span></code>, which are not
@@ -122,7 +119,7 @@ for most classes, but for <a class="reference internal" href="nn.html#treecorr.N
 </ul>
 </section>
 <section id="new-features">
-<h2>New features<a class="headerlink" href="#new-features" title="Permalink to this heading"></a></h2>
+<h2>New features<a class="headerlink" href="#new-features" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Added many new classes for three-point functions with mixed field types in the different
 vertices, such as NNG, NKK, KGK, etc.  See <a class="reference internal" href="correlation3.html#three-point-correlation-functions"><span class="std std-ref">Three-point Correlation Functions</span></a> for
@@ -140,13 +137,13 @@ appropriate value to take advantage of the more optimal weighting. (#180, #183)<
 </ul>
 </section>
 <section id="changes-from-version-5-1-0-to-5-1-1">
-<h2>Changes from version 5.1.0 to 5.1.1<a class="headerlink" href="#changes-from-version-5-1-0-to-5-1-1" title="Permalink to this heading"></a></h2>
+<h2>Changes from version 5.1.0 to 5.1.1<a class="headerlink" href="#changes-from-version-5-1-0-to-5-1-1" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Fixed an error in the manifest, which omitted a file from the source distribution on pypi.</p></li>
 </ul>
 </section>
 <section id="changes-from-version-5-1-1-to-5-1-2">
-<h2>Changes from version 5.1.1 to 5.1.2<a class="headerlink" href="#changes-from-version-5-1-1-to-5-1-2" title="Permalink to this heading"></a></h2>
+<h2>Changes from version 5.1.1 to 5.1.2<a class="headerlink" href="#changes-from-version-5-1-1-to-5-1-2" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>Limit pybind11 to &lt;3 until they fix their template depth issue (cf. their PR #5751).</p></li>
 </ul>
@@ -157,7 +154,7 @@ appropriate value to take advantage of the more optimal weighting. (#180, #183)<
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="guide.html" class="btn btn-neutral float-left" title="Getting Started Guide" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="params.html" class="btn btn-neutral float-left" title="Configuration Parameters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="history.html" class="btn btn-neutral float-right" title="Previous History" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

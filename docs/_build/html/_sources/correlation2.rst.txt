@@ -31,8 +31,8 @@ to represent each kind of field as follows:
   Q is short for quatrefoil, a shape with spin-4 rotational properties.
 
 Not all possible pairings of two fields are currently implemented.  The following lists
-all the currently implemented classes for computing two-point correlations.  If you have need
-of a pairing not listed here, please file in issue asking for it.  It's not hard to add more,
+all the currently implemented classes for computing two-point correlations.  If you need
+a pairing not listed here, please file an issue asking for it.  It's not hard to add more,
 but I didn't want to implement a bunch of classes that no one will use.
 
 .. toctree::
@@ -57,7 +57,7 @@ but I didn't want to implement a bunch of classes that no one will use.
     kq
     qq
 
-Each of the above classes is a sub-class of the base class Corr2, so they have a number of
+Each of the above classes is a subclass of the base class Corr2, so they have a number of
 features in common about how they are constructed.  The common features are documented here.
 
 .. autoclass:: treecorr.Corr2

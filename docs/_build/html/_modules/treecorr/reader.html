@@ -1,20 +1,20 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>treecorr.reader &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2c218288"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -31,9 +31,6 @@
           <a href="../../index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,6 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
@@ -55,7 +53,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
@@ -99,23 +96,22 @@
 <span class="c1">#    and/or other materials provided with the distribution.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This is a set of helper classes that read data for treecorr.Catalog objects.</span>
-<span class="sd">They have a bit of a mixed bag of functions, not intended to be complete,</span>
-<span class="sd">just to cover the needs of that class.</span>
+<span class="sd">This module provides helper classes that read data for `treecorr.Catalog` objects.</span>
+<span class="sd">The interfaces are intentionally minimal and cover only what Catalog needs.</span>
 
-<span class="sd">HDF and FITS files differ in that the former can have different length columns</span>
-<span class="sd">in the same data group, unlike fits HDUs, which have columns of all the same length.</span>
-<span class="sd">Where possible we check for that here, and a user would have to be fairly determined to</span>
-<span class="sd">trigger this.</span>
+<span class="sd">HDF and FITS files differ in that HDF groups can have columns with different lengths,</span>
+<span class="sd">unlike FITS table HDUs, where all columns have the same length.</span>
+<span class="sd">Where possible, we check for this.</span>
 
-<span class="sd">The other difference is that fitsio reads a structured array, whereas h5py will</span>
-<span class="sd">read a dictionary of arrays. This does not cause problems here, since both are</span>
-<span class="sd">indexed by string, but may prevent usage elsewhere. If so we could convert them to</span>
-<span class="sd">both provide dicts.</span>
+<span class="sd">Another difference is that fitsio reads a structured array, whereas h5py reads</span>
+<span class="sd">a dictionary of arrays. This does not cause problems here, since both are</span>
+<span class="sd">indexed by string, but it may matter elsewhere.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
-<div class="viewcode-block" id="AsciiReader"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader">[docs]</a><span class="k">class</span> <span class="nc">AsciiReader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="AsciiReader">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader">[docs]</a>
+<span class="k">class</span> <span class="nc">AsciiReader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reader interface for ASCII files using numpy.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">default_ext</span> <span class="o">=</span> <span class="kc">None</span>
@@ -154,7 +150,9 @@
         <span class="c1"># None is the only valid &quot;extension&quot; for ASCII files</span>
         <span class="k">return</span> <span class="n">ext</span> <span class="ow">is</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="AsciiReader.check_valid_ext"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.check_valid_ext">[docs]</a>    <span class="k">def</span> <span class="nf">check_valid_ext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+<div class="viewcode-block" id="AsciiReader.check_valid_ext">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.check_valid_ext">[docs]</a>
+    <span class="k">def</span> <span class="nf">check_valid_ext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if an extension is valid for reading, and raise ValueError if not.</span>
 
 <span class="sd">        None is the only valid extension for ASCII files.</span>
@@ -166,7 +164,10 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid ext=</span><span class="si">{}</span><span class="s2"> for file </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">))</span></div>
 
 
-<div class="viewcode-block" id="AsciiReader.read"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="AsciiReader.read">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.read">[docs]</a>
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read a slice of a column or list of columns from a specified extension.</span>
 
 <span class="sd">        Parameters:</span>
@@ -226,7 +227,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{</span><span class="n">col</span> <span class="p">:</span> <span class="n">data</span><span class="p">[:,</span><span class="n">i</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cols</span><span class="p">)}</span></div>
 
-<div class="viewcode-block" id="AsciiReader.read_params"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.read_params">[docs]</a>    <span class="k">def</span> <span class="nf">read_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="AsciiReader.read_params">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.read_params">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read the params in the given extension, if any.</span>
 
 <span class="sd">        Parameters:</span>
@@ -255,7 +259,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ncols</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">col_names</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">params</span></div>
 
-<div class="viewcode-block" id="AsciiReader.read_data"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.read_data">[docs]</a>    <span class="k">def</span> <span class="nf">read_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="AsciiReader.read_data">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.read_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read all data in the file, and the parameters in the header, if any.</span>
 
 <span class="sd">        Parameters:</span>
@@ -268,7 +275,10 @@
         <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">genfromtxt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">,</span> <span class="n">names</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">col_names</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="n">max_rows</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="AsciiReader.read_array"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.read_array">[docs]</a>    <span class="k">def</span> <span class="nf">read_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="AsciiReader.read_array">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.read_array">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read an array from the file.</span>
 
 <span class="sd">        Parameters:</span>
@@ -282,7 +292,10 @@
         <span class="k">assert</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">shape</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="AsciiReader.row_count"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.row_count">[docs]</a>    <span class="k">def</span> <span class="nf">row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="AsciiReader.row_count">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.row_count">[docs]</a>
+    <span class="k">def</span> <span class="nf">row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Count the number of rows in the file.</span>
 
 <span class="sd">        Parameters:</span>
@@ -310,7 +323,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">nrows</span> <span class="o">=</span> <span class="n">lines</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">comment_rows</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">nrows</span></div>
 
-<div class="viewcode-block" id="AsciiReader.names"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.names">[docs]</a>    <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="AsciiReader.names">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.AsciiReader.names">[docs]</a>
+    <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a list of the names of all the columns in an extension</span>
 
 <span class="sd">        Parameters:</span>
@@ -323,6 +339,7 @@
 
         <span class="c1"># Include both int values as strings and any real names we know about.</span>
         <span class="k">return</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ncols</span><span class="p">)]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">col_names</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># See how many comment rows there are at the start</span>
@@ -359,7 +376,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="PandasReader"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.PandasReader">[docs]</a><span class="k">class</span> <span class="nc">PandasReader</span><span class="p">(</span><span class="n">AsciiReader</span><span class="p">):</span>
+
+<div class="viewcode-block" id="PandasReader">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.PandasReader">[docs]</a>
+<span class="k">class</span> <span class="nc">PandasReader</span><span class="p">(</span><span class="n">AsciiReader</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reader interface for ASCII files using pandas.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comment_marker</span><span class="o">=</span><span class="s1">&#39;#&#39;</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -382,7 +402,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">sep</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;\s+&#39;</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">delimiter</span>
 
 
-<div class="viewcode-block" id="PandasReader.read"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.PandasReader.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="PandasReader.read">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.PandasReader.read">[docs]</a>
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read a slice of a column or list of columns from a specified extension.</span>
 
 <span class="sd">        Parameters:</span>
@@ -441,9 +463,13 @@
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">cols</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">df</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="p">{</span><span class="n">col</span> <span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">icols</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cols</span><span class="p">)}</span></div></div>
+            <span class="k">return</span> <span class="p">{</span><span class="n">col</span> <span class="p">:</span> <span class="n">df</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span><span class="n">icols</span><span class="p">[</span><span class="n">i</span><span class="p">]]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">col</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">cols</span><span class="p">)}</span></div>
+</div>
 
-<div class="viewcode-block" id="ParquetReader"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.ParquetReader">[docs]</a><span class="k">class</span> <span class="nc">ParquetReader</span><span class="p">():</span>
+
+<div class="viewcode-block" id="ParquetReader">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.ParquetReader">[docs]</a>
+<span class="k">class</span> <span class="nc">ParquetReader</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reader interface for Parquet files using pandas.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">default_ext</span> <span class="o">=</span> <span class="kc">None</span>
@@ -452,9 +478,8 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Parameters:</span>
 <span class="sd">            file_name (str):        The file name.</span>
-<span class="sd">            delimiter (str):        What delimiter to use between values. (default: None,</span>
-<span class="sd">                                    which means any whitespace)</span>
-<span class="sd">            comment_marker (str):   What token indicates a comment line. (default: &#39;#&#39;)</span>
+<span class="sd">            delimiter (str):        Ignored for Parquet input.</span>
+<span class="sd">            comment_marker (str):   Ignored for Parquet input.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">import</span> <span class="nn">pandas</span>
@@ -486,10 +511,12 @@
         <span class="c1"># None is the only valid &quot;extension&quot; for Parquet files</span>
         <span class="k">return</span> <span class="n">ext</span> <span class="ow">is</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="ParquetReader.check_valid_ext"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.ParquetReader.check_valid_ext">[docs]</a>    <span class="k">def</span> <span class="nf">check_valid_ext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+<div class="viewcode-block" id="ParquetReader.check_valid_ext">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.ParquetReader.check_valid_ext">[docs]</a>
+    <span class="k">def</span> <span class="nf">check_valid_ext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if an extension is valid for reading, and raise ValueError if not.</span>
 
-<span class="sd">        None is the only valid extension for ASCII files.</span>
+<span class="sd">        None is the only valid extension for Parquet files.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            ext (str):  The extension to check.</span>
@@ -497,7 +524,10 @@
         <span class="k">if</span> <span class="n">ext</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid ext=</span><span class="si">{}</span><span class="s2"> for file </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ext</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="ParquetReader.read"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.ParquetReader.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ParquetReader.read">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.ParquetReader.read">[docs]</a>
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read a slice of a column or list of columns from a specified extension.</span>
 
 <span class="sd">        Parameters:</span>
@@ -513,10 +543,13 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">[</span><span class="n">cols</span><span class="p">][</span><span class="n">s</span><span class="p">]</span><span class="o">.</span><span class="n">to_records</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="ParquetReader.row_count"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.ParquetReader.row_count">[docs]</a>    <span class="k">def</span> <span class="nf">row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ParquetReader.row_count">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.ParquetReader.row_count">[docs]</a>
+    <span class="k">def</span> <span class="nf">row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Count the number of rows in the named extension and column</span>
 
-<span class="sd">        Unlike in FitsReader, col is required.</span>
+<span class="sd">        For Parquet input, this is just the number of rows in the DataFrame.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            col (str):  The column to use. (ignored)</span>
@@ -527,7 +560,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="ParquetReader.names"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.ParquetReader.names">[docs]</a>    <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ParquetReader.names">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.ParquetReader.names">[docs]</a>
+    <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a list of the names of all the columns in an extension</span>
 
 <span class="sd">        Parameters:</span>
@@ -537,6 +573,7 @@
 <span class="sd">            A list of string column names</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">df</span><span class="o">.</span><span class="n">columns</span></div>
+
 
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">pandas</span>
@@ -548,7 +585,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_df</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="FitsReader"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader">[docs]</a><span class="k">class</span> <span class="nc">FitsReader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="FitsReader">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader">[docs]</a>
+<span class="k">class</span> <span class="nc">FitsReader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reader interface for FITS files.</span>
 <span class="sd">    Uses fitsio to read columns, etc.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -569,7 +609,7 @@
 
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># There is a bug in earlier fitsio versions that prevents slicing.</span>
-            <span class="c1"># It you hit this assert, upgrade your fitsio version.</span>
+            <span class="c1"># If you hit this assert, upgrade your fitsio version.</span>
             <span class="k">assert</span> <span class="n">fitsio</span><span class="o">.</span><span class="n">__version__</span> <span class="o">&gt;</span> <span class="s1">&#39;1.0.6&#39;</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="kc">None</span>  <span class="c1"># Only works inside a with block.</span>
@@ -597,7 +637,9 @@
         <span class="n">ext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_ext</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ext</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span>
 
-<div class="viewcode-block" id="FitsReader.check_valid_ext"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.check_valid_ext">[docs]</a>    <span class="k">def</span> <span class="nf">check_valid_ext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+<div class="viewcode-block" id="FitsReader.check_valid_ext">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.check_valid_ext">[docs]</a>
+    <span class="k">def</span> <span class="nf">check_valid_ext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if an extension is valid for reading, and raise ValueError if not.</span>
 
 <span class="sd">        The ext must both exist and be a table (not an image)</span>
@@ -616,6 +658,7 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid ext=</span><span class="si">{}</span><span class="s2"> for file </span><span class="si">{}</span><span class="s2"> (Not a TableHDU)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                              <span class="n">ext</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">))</span></div>
 
+
     <span class="k">def</span> <span class="nf">_update_ext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
         <span class="c1"># FITS extensions can be indexed by number or</span>
         <span class="c1"># string.  Try converting to an integer if the current</span>
@@ -629,13 +672,15 @@
                 <span class="k">pass</span>
         <span class="k">return</span> <span class="n">ext</span>
 
-<div class="viewcode-block" id="FitsReader.read"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="FitsReader.read">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.read">[docs]</a>
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read a slice of a column or list of columns from a specified extension</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            cols (str/list):    The name(s) of column(s) to read.</span>
 <span class="sd">            s (slice/array):    A slice object or selection of integers to read. (default: all)</span>
-<span class="sd">            ext (str/int)):     The FITS extension to use. (default: 1)</span>
+<span class="sd">            ext (str/int):      The FITS extension to use. (default: 1)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            The data as a recarray or simple numpy array as appropriate</span>
@@ -643,7 +688,10 @@
         <span class="n">ext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_ext</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="n">ext</span><span class="p">][</span><span class="n">cols</span><span class="p">][</span><span class="n">s</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="FitsReader.read_params"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.read_params">[docs]</a>    <span class="k">def</span> <span class="nf">read_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="FitsReader.read_params">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.read_params">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read the params in the given extension, if any.</span>
 
 <span class="sd">        Parameters:</span>
@@ -657,7 +705,10 @@
         <span class="c1"># Convert to dict for convience downstream, and make all keys lowercase.</span>
         <span class="k">return</span> <span class="p">{</span> <span class="n">k</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="p">:</span> <span class="n">params</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">params</span> <span class="p">}</span></div>
 
-<div class="viewcode-block" id="FitsReader.read_data"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.read_data">[docs]</a>    <span class="k">def</span> <span class="nf">read_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="FitsReader.read_data">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.read_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read all data in the file, and the parameters in the header, if any.</span>
 
 <span class="sd">        Parameters:</span>
@@ -671,7 +722,10 @@
         <span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="n">ext</span><span class="p">]</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="FitsReader.read_array"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.read_array">[docs]</a>    <span class="k">def</span> <span class="nf">read_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="FitsReader.read_array">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.read_array">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read an array from the file.</span>
 
 <span class="sd">        Parameters:</span>
@@ -686,7 +740,10 @@
         <span class="k">assert</span> <span class="n">data</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">shape</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="FitsReader.row_count"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.row_count">[docs]</a>    <span class="k">def</span> <span class="nf">row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="FitsReader.row_count">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.row_count">[docs]</a>
+    <span class="k">def</span> <span class="nf">row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Count the number of rows in the named extension</span>
 
 <span class="sd">        For compatibility with the HDF interface, which can have columns</span>
@@ -703,7 +760,10 @@
         <span class="n">ext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_ext</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="n">ext</span><span class="p">]</span><span class="o">.</span><span class="n">get_nrows</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="FitsReader.names"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.names">[docs]</a>    <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="FitsReader.names">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.FitsReader.names">[docs]</a>
+    <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a list of the names of all the columns in an extension</span>
 
 <span class="sd">        Parameters:</span>
@@ -714,6 +774,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">ext</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_update_ext</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">file</span><span class="p">[</span><span class="n">ext</span><span class="p">]</span><span class="o">.</span><span class="n">get_colnames</span><span class="p">()</span></div>
+
 
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">fitsio</span>
@@ -727,7 +788,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="kc">None</span></div>
 
 
-<div class="viewcode-block" id="HdfReader"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader">[docs]</a><span class="k">class</span> <span class="nc">HdfReader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HdfReader">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader">[docs]</a>
+<span class="k">class</span> <span class="nc">HdfReader</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Reader interface for HDF5 files.</span>
 <span class="sd">    Uses h5py to read columns, etc.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
@@ -773,7 +837,9 @@
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">OSError</span><span class="p">(</span><span class="s2">&quot;Group name </span><span class="si">%s</span><span class="s2"> not found in HDF5 file.&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">ext</span><span class="p">))</span>
 
-<div class="viewcode-block" id="HdfReader.check_valid_ext"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.check_valid_ext">[docs]</a>    <span class="k">def</span> <span class="nf">check_valid_ext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
+<div class="viewcode-block" id="HdfReader.check_valid_ext">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.check_valid_ext">[docs]</a>
+    <span class="k">def</span> <span class="nf">check_valid_ext</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ext</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Check if an extension is valid for reading, and raise ValueError if not.</span>
 
 <span class="sd">        The ext must exist - there is no other requirement for HDF files.</span>
@@ -785,7 +851,10 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid ext=</span><span class="si">{}</span><span class="s2"> for file </span><span class="si">{}</span><span class="s2"> (does not exist)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
                              <span class="n">ext</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="HdfReader.read"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HdfReader.read">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.read">[docs]</a>
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cols</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="nb">slice</span><span class="p">(</span><span class="kc">None</span><span class="p">),</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read a slice of a column or list of columns from a specified extension.</span>
 
 <span class="sd">        Slices should always be used when reading HDF files - using a sequence of</span>
@@ -805,7 +874,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="p">{</span><span class="n">col</span> <span class="p">:</span> <span class="n">g</span><span class="p">[</span><span class="n">col</span><span class="p">][</span><span class="n">s</span><span class="p">]</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">cols</span><span class="p">}</span></div>
 
-<div class="viewcode-block" id="HdfReader.read_params"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.read_params">[docs]</a>    <span class="k">def</span> <span class="nf">read_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HdfReader.read_params">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.read_params">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_params</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read the params in the given extension, if any.</span>
 
 <span class="sd">        Parameters:</span>
@@ -819,7 +891,10 @@
 
         <span class="k">return</span> <span class="n">params</span></div>
 
-<div class="viewcode-block" id="HdfReader.read_data"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.read_data">[docs]</a>    <span class="k">def</span> <span class="nf">read_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HdfReader.read_data">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.read_data">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_rows</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read all data in the file, and the parameters in the attributes, if any.</span>
 
 <span class="sd">        Parameters:</span>
@@ -846,7 +921,10 @@
 
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="HdfReader.read_array"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.read_array">[docs]</a>    <span class="k">def</span> <span class="nf">read_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HdfReader.read_array">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.read_array">[docs]</a>
+    <span class="k">def</span> <span class="nf">read_array</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">shape</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read an array from the file.</span>
 
 <span class="sd">        Parameters:</span>
@@ -861,7 +939,10 @@
         <span class="n">data</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">g</span><span class="p">[</span><span class="s1">&#39;data&#39;</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">data</span></div>
 
-<div class="viewcode-block" id="HdfReader.row_count"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.row_count">[docs]</a>    <span class="k">def</span> <span class="nf">row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HdfReader.row_count">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.row_count">[docs]</a>
+    <span class="k">def</span> <span class="nf">row_count</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Count the number of rows in the named extension and column</span>
 
 <span class="sd">        Unlike in FitsReader, col is required.</span>
@@ -875,7 +956,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_group</span><span class="p">(</span><span class="n">ext</span><span class="p">)[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">size</span></div>
 
-<div class="viewcode-block" id="HdfReader.names"><a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.names">[docs]</a>    <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="HdfReader.names">
+<a class="viewcode-back" href="../../catalog.html#treecorr.reader.HdfReader.names">[docs]</a>
+    <span class="k">def</span> <span class="nf">names</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return a list of the names of all the columns in an extension</span>
 
 <span class="sd">        Parameters:</span>
@@ -886,6 +970,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_group</span><span class="p">(</span><span class="n">ext</span><span class="p">)</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span></div>
 
+
     <span class="k">def</span> <span class="fm">__enter__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="kn">import</span> <span class="nn">h5py</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="n">h5py</span><span class="o">.</span><span class="n">File</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">file_name</span><span class="p">,</span> <span class="s1">&#39;r&#39;</span><span class="p">)</span>
@@ -895,6 +980,7 @@
         <span class="c1"># closes file at end of &quot;with&quot; statement</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_file</span> <span class="o">=</span> <span class="kc">None</span></div>
+
 </pre></div>
 
            </div>

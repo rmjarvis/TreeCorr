@@ -1,20 +1,20 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>treecorr.kvcorrelation &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2c218288"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -31,9 +31,6 @@
           <a href="../../index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,6 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
@@ -55,7 +53,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
@@ -109,14 +106,16 @@
 <span class="kn">from</span> <span class="nn">.kzcorrelation</span> <span class="kn">import</span> <span class="n">BaseKZCorrelation</span>
 
 
-<div class="viewcode-block" id="KVCorrelation"><a class="viewcode-back" href="../../kv.html#treecorr.KVCorrelation">[docs]</a><span class="k">class</span> <span class="nc">KVCorrelation</span><span class="p">(</span><span class="n">BaseKZCorrelation</span><span class="p">):</span>
+<div class="viewcode-block" id="KVCorrelation">
+<a class="viewcode-back" href="../../kv.html#treecorr.KVCorrelation">[docs]</a>
+<span class="k">class</span> <span class="nc">KVCorrelation</span><span class="p">(</span><span class="n">BaseKZCorrelation</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 2-point scalar-vector correlation</span>
 <span class="sd">    function.</span>
 
-<span class="sd">    See the doc string of `Corr3` for a description of how the triangles are binned along</span>
+<span class="sd">    See the docstring of `Corr2` for a description of how the pairs are binned along</span>
 <span class="sd">    with the attributes related to the different binning options.</span>
 
-<span class="sd">    In addition to the attributes common to all `Corr3` subclasses, objects of this class</span>
+<span class="sd">    In addition to the attributes common to all `Corr2` subclasses, objects of this class</span>
 <span class="sd">    hold the following attributes:</span>
 
 <span class="sd">    Attributes:</span>
@@ -137,15 +136,18 @@
 <span class="sd">    The typical usage pattern is as follows:</span>
 
 <span class="sd">        &gt;&gt;&gt; kv = treecorr.KVCorrelation(config)</span>
-<span class="sd">        &gt;&gt;&gt; kv.process(cat1,cat2)   # Calculate the cross-correlation</span>
-<span class="sd">        &gt;&gt;&gt; kv.write(file_name)     # Write out to a file.</span>
-<span class="sd">        &gt;&gt;&gt; xi = kv.xi              # Or access the correlation function directly.</span>
+<span class="sd">        &gt;&gt;&gt; kv.process(cat1, cat2)         # Compute the cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; kv.write(file_name)            # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; xi, xi_im = kv.xi, kv.xi_im    # Or access the correlation function directly.</span>
+
+<span class="sd">    See also: `NVCorrelation`, `VVCorrelation`, `KZCorrelation`.</span>
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
-<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
+<span class="sd">                        This dict is allowed to have additional entries besides those listed</span>
 <span class="sd">                        in `Corr2`, which are ignored here. (default: None)</span>
-<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                        If desired, a ``Logger`` object for logging. (default: None, in which case</span>
 <span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
 
 <span class="sd">    Keyword Arguments:</span>
@@ -162,7 +164,9 @@
     <span class="n">_xireal</span> <span class="o">=</span> <span class="s1">&#39;xi&#39;</span>
     <span class="n">_xiimag</span> <span class="o">=</span> <span class="s1">&#39;xi_im&#39;</span>
 
-<div class="viewcode-block" id="KVCorrelation.finalize"><a class="viewcode-back" href="../../kv.html#treecorr.KVCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark</span><span class="p">,</span> <span class="n">varv</span><span class="p">):</span>
+<div class="viewcode-block" id="KVCorrelation.finalize">
+<a class="viewcode-back" href="../../kv.html#treecorr.KVCorrelation.finalize">[docs]</a>
+    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark</span><span class="p">,</span> <span class="n">varv</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
 
 <span class="sd">        The `Corr2.process_cross` command accumulates values in each bin, so it can be called</span>
@@ -175,7 +179,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">finalize</span><span class="p">(</span><span class="n">vark</span><span class="p">,</span> <span class="n">varv</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="KVCorrelation.write"><a class="viewcode-back" href="../../kv.html#treecorr.KVCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+
+<div class="viewcode-block" id="KVCorrelation.write">
+<a class="viewcode-back" href="../../kv.html#treecorr.KVCorrelation.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
               <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Write the correlation function to the file, file_name.</span>
 
@@ -205,13 +212,15 @@
 <span class="sd">            file_name (str):    The name of the file to write to.</span>
 <span class="sd">            file_type (str):    The type of file to write (&#39;ASCII&#39; or &#39;FITS&#39;).  (default: determine</span>
 <span class="sd">                                the type automatically from the extension of file_name.)</span>
-<span class="sd">            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;</span>
+<span class="sd">            precision (int):    For ASCII output files, the desired precision. (default: 4;</span>
 <span class="sd">                                this value can also be given in the constructor in the config dict.)</span>
 <span class="sd">            write_patch_results (bool): Whether to write the patch-based results as well.</span>
 <span class="sd">                                        (default: False)</span>
 <span class="sd">            write_cov (bool):   Whether to write the covariance matrix as well. (default: False)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="p">)</span></div></div>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="p">)</span></div>
+</div>
+
 </pre></div>
 
            </div>

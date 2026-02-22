@@ -1,27 +1,27 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Getting Started Guide &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2c218288"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="Changes from version 5.0 to 5.1" href="changes.html" />
-    <link rel="prev" title="Configuration Parameters" href="params.html" /> 
+    <link rel="next" title="Input Data" href="catalog.html" />
+    <link rel="prev" title="Overview" href="overview.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -35,9 +35,6 @@
           <a href="index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -48,6 +45,23 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started Guide</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#jupyter-tutorial">Jupyter Tutorial</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#choosing-a-two-point-correlation">Choosing a two-point correlation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#choosing-a-three-point-correlation">Choosing a three-point correlation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#when-random-catalogs-are-required">When random catalogs are required</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#shear-shear-auto-correlation">Shear-shear auto-correlation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#loading-a-catalog">Loading a Catalog</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#building-a-catalog-from-numpy-arrays">Building a Catalog from numpy arrays</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#defining-the-binning">Defining the binning</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#other-two-point-correlation-classes">Other Two-point Correlation Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#three-point-correlation-classes">Three-point Correlation Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#using-random-catalogs">Using random catalogs</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#performance-and-accuracy-tips">Performance and accuracy tips</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#common-pitfalls">Common pitfalls</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#manually-accumulating-the-correlation-function">Manually accumulating the correlation function</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
@@ -59,18 +73,6 @@
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">Getting Started Guide</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#jupyter-tutorial">Jupyter Tutorial</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#shear-shear-auto-correlation">Shear-shear auto-correlation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#other-two-point-correlation-classes">Other Two-point Correlation Classes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#loading-a-catalog">Loading a Catalog</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#building-a-catalog-from-numpy-arrays">Building a Catalog from numpy arrays</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#defining-the-binning">Defining the binning</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#three-point-correlation-classes">Three-point Correlation Classes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#using-random-catalogs">Using random catalogs</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#manually-accumulating-the-correlation-function">Manually accumulating the correlation function</a></li>
-</ul>
-</li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
@@ -100,20 +102,62 @@
            <div itemprop="articleBody">
              
   <section id="getting-started-guide">
-<h1>Getting Started Guide<a class="headerlink" href="#getting-started-guide" title="Permalink to this heading"></a></h1>
+<h1>Getting Started Guide<a class="headerlink" href="#getting-started-guide" title="Link to this heading"></a></h1>
 <section id="jupyter-tutorial">
-<h2>Jupyter Tutorial<a class="headerlink" href="#jupyter-tutorial" title="Permalink to this heading"></a></h2>
-<p>The below page covers many of the same points as the
+<h2>Jupyter Tutorial<a class="headerlink" href="#jupyter-tutorial" title="Link to this heading"></a></h2>
+<p>This page covers many of the same points as the
 <a class="reference external" href="https://github.com/rmjarvis/TreeCorr/blob/main/tests/Tutorial.ipynb">Jupyter notebook tutorial</a>
 available in the TreeCorr repo.
 You may find it useful to work through that as well as, or instead of, reading this guide.</p>
 </section>
+<section id="choosing-a-two-point-correlation">
+<h2>Choosing a two-point correlation<a class="headerlink" href="#choosing-a-two-point-correlation" title="Link to this heading"></a></h2>
+<p>Choose based on the field types:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">N</span></code> = counts (discrete objects)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">K</span></code> = real scalar field</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">G</span></code> = shear (spin-2 complex field)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Z</span></code> = complex spin-0 field</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">V</span></code> = vector (complex spin-1 field)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">T</span></code> = trefoil (complex spin-3 field)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Q</span></code> = quatrefoil (complex spin-4 field)</p></li>
+</ul>
+<p>Common cases:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">NN</span></code>: count-count clustering (<a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NG</span></code>: count-shear (galaxy-galaxy lensing) (<a class="reference internal" href="ng.html#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GG</span></code>: shear-shear (<a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a>)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NK</span></code> / <code class="docutils literal notranslate"><span class="pre">KK</span></code> / <code class="docutils literal notranslate"><span class="pre">KG</span></code>: scalar-based correlations</p></li>
+</ul>
+<p>See <a class="reference internal" href="correlation2.html"><span class="doc">Two-point Correlation Functions</span></a> for all supported two-point classes.</p>
+</section>
+<section id="choosing-a-three-point-correlation">
+<h2>Choosing a three-point correlation<a class="headerlink" href="#choosing-a-three-point-correlation" title="Link to this heading"></a></h2>
+<p>Three-point classes are available for:</p>
+<ul class="simple">
+<li><p>Auto-correlations: <code class="docutils literal notranslate"><span class="pre">NNN</span></code>, <code class="docutils literal notranslate"><span class="pre">KKK</span></code>, <code class="docutils literal notranslate"><span class="pre">GGG</span></code></p></li>
+<li><p>Mixed cross-correlations: <code class="docutils literal notranslate"><span class="pre">NNK</span></code>, <code class="docutils literal notranslate"><span class="pre">NNG</span></code>, <code class="docutils literal notranslate"><span class="pre">NKK</span></code>, <code class="docutils literal notranslate"><span class="pre">NGG</span></code>, <code class="docutils literal notranslate"><span class="pre">KKG</span></code>, <code class="docutils literal notranslate"><span class="pre">KGG</span></code></p></li>
+</ul>
+<p>Each mixed family also includes the corresponding permutations (e.g.
+<code class="docutils literal notranslate"><span class="pre">NNG</span></code>, <code class="docutils literal notranslate"><span class="pre">NGN</span></code>, <code class="docutils literal notranslate"><span class="pre">GNN</span></code>).</p>
+<p>See <a class="reference internal" href="correlation3.html"><span class="doc">Three-point Correlation Functions</span></a> for details and class-level docs.</p>
+</section>
+<section id="when-random-catalogs-are-required">
+<h2>When random catalogs are required<a class="headerlink" href="#when-random-catalogs-are-required" title="Link to this heading"></a></h2>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">NN</span></code> and <code class="docutils literal notranslate"><span class="pre">NNN</span></code> require random catalogs for unbiased estimators.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NG</span></code> and <code class="docutils literal notranslate"><span class="pre">NK</span></code> can also use random catalogs for compensated estimators.</p></li>
+</ul>
+<p>See <a class="reference internal" href="params.html"><span class="doc">Configuration Parameters</span></a> for the relevant random-catalog configuration parameters.</p>
+</section>
 <section id="shear-shear-auto-correlation">
-<h2>Shear-shear auto-correlation<a class="headerlink" href="#shear-shear-auto-correlation" title="Permalink to this heading"></a></h2>
-<p>Let’s start with how to calculate a shear-shear two-point auto-correlation.
+<h2>Shear-shear auto-correlation<a class="headerlink" href="#shear-shear-auto-correlation" title="Link to this heading"></a></h2>
+<p>Let’s start with how to calculate a shear-shear two-point auto-correlation as a
+typical concrete example.
 It’s not necessarily the simplest choice of correlation, but this specific
 calculation was the original reason I wrote TreeCorr, so it’s close to my heart.
-The basic pattern is as follows:</p>
+The usage pattern is similar for other combinations of fields.</p>
+<p>The basic pattern is as follows:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
 <span class="n">gg</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">GGCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 <span class="n">gg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat</span><span class="p">)</span>
@@ -130,7 +174,7 @@ out shortly.  Finally, <code class="docutils literal notranslate"><span class="p
 <span class="n">gg</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>If you would rather not write the results to an output file, but maybe plot them up or do some
+<p>If you would rather not write the results to an output file, but instead plot them or do some
 further calculation with them, you can access the resulting fields directly as numpy arrays:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">xip</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">xip</span>            <span class="c1"># The real part of xi+</span>
 <span class="n">xim</span> <span class="o">=</span> <span class="n">gg</span><span class="o">.</span><span class="n">xim</span>            <span class="c1"># The real part of xi-</span>
@@ -140,35 +184,12 @@ further calculation with them, you can access the resulting fields directly as n
                         <span class="c1"># taking into account shape noise only</span>
 </pre></div>
 </div>
-<p>See the doc string for <a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> for other available attributes.</p>
-</section>
-<section id="other-two-point-correlation-classes">
-<h2>Other Two-point Correlation Classes<a class="headerlink" href="#other-two-point-correlation-classes" title="Permalink to this heading"></a></h2>
-<p>The other kinds of correlations each have their own class:</p>
-<blockquote>
-<div><ul class="simple">
-<li><p><a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a> = count-count  (normal LSS correlation)</p></li>
-<li><p><a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a> = count-scalar (i.e. &lt;kappa&gt;(R), where kappa is any scalar field)</p></li>
-<li><p><a class="reference internal" href="kk.html#treecorr.KKCorrelation" title="treecorr.KKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKCorrelation</span></code></a> = scalar-scalar</p></li>
-<li><p><a class="reference internal" href="ng.html#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a> = count-shear  (i.e. &lt;gamma_t&gt;(R))</p></li>
-<li><p><a class="reference internal" href="kg.html#treecorr.KGCorrelation" title="treecorr.KGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGCorrelation</span></code></a> = scalar-shear</p></li>
-<li><p><a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> = shear-shear  (e.g. cosmic shear)</p></li>
-<li><p><a class="reference internal" href="nv.html#treecorr.NVCorrelation" title="treecorr.NVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NVCorrelation</span></code></a> = count-vector</p></li>
-<li><p><a class="reference internal" href="kv.html#treecorr.KVCorrelation" title="treecorr.KVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KVCorrelation</span></code></a> = scalar-vector</p></li>
-<li><p><a class="reference internal" href="vv.html#treecorr.VVCorrelation" title="treecorr.VVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">VVCorrelation</span></code></a> = vector-vector</p></li>
-</ul>
-</div></blockquote>
-<p>You should see their doc strings for details, but they all work similarly.
-For the cross-type classes (e.g. NK, KG, etc.), there is no auto-correlation option,
-of course, just the cross-correlation.</p>
-<p>The other main difference between these other correlation classes from GG is that there is only a
-single correlation function, so it is called <code class="docutils literal notranslate"><span class="pre">xi</span></code> rather than <code class="docutils literal notranslate"><span class="pre">xip</span></code> and <code class="docutils literal notranslate"><span class="pre">xim</span></code>.</p>
-<p>Also, NN does not have any kind of <code class="docutils literal notranslate"><span class="pre">xi</span></code> attribute.  You need to perform an additional
-calculation involving random catalogs for that.
-See <a class="reference internal" href="#using-random-catalogs"><span class="std std-ref">Using random catalogs</span></a> below for more details.</p>
+<p>See the docstring for <a class="reference internal" href="gg.html#treecorr.GGCorrelation" title="treecorr.GGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGCorrelation</span></code></a> for other available attributes.
+If you want to run this same workflow from a config file via <code class="docutils literal notranslate"><span class="pre">corr2</span></code>,
+or compare executable and Python interfaces, see <a class="reference internal" href="scripts.html"><span class="doc">Using configuration files</span></a>.</p>
 </section>
 <section id="loading-a-catalog">
-<h2>Loading a Catalog<a class="headerlink" href="#loading-a-catalog" title="Permalink to this heading"></a></h2>
+<h2>Loading a Catalog<a class="headerlink" href="#loading-a-catalog" title="Link to this heading"></a></h2>
 <p>OK, now let’s get into some of the details about how to load data into a <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>.</p>
 <p>To specify the names of the columns in the input file, as well as other details about
 how to interpret the columns, you can either use a <code class="docutils literal notranslate"><span class="pre">config</span></code> dict, as we did above,
@@ -187,7 +208,7 @@ in the FITS table.  For ASCII input files, you specify the column number instead
                        <span class="n">x_col</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span> <span class="n">y_col</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">g1_col</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">g2_col</span><span class="o">=</span><span class="mi">6</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>where the first column in numbered 1, not 0.</p>
+<p>where the first column is numbered 1, not 0.</p>
 <p>When the positions are given as right ascension and declination on the celestial
 sphere, rather than x and y on a flat projection (like an image), you also need
 to specify what units the angles use:</p>
@@ -196,8 +217,9 @@ to specify what units the angles use:</p>
                        <span class="n">ra_units</span><span class="o">=</span><span class="s1">&#39;hours&#39;</span><span class="p">,</span> <span class="n">dec_units</span><span class="o">=</span><span class="s1">&#39;degrees&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>For the catalog of the N part of a calculation, you can skip the <code class="docutils literal notranslate"><span class="pre">g1_col</span></code> and <code class="docutils literal notranslate"><span class="pre">g2_col</span></code>.
-Those only need positions. For a K correlation, you should specify <code class="docutils literal notranslate"><span class="pre">k_col</span></code> instead:</p>
+<p>For catalogs corresponding to the N part of a calculation, you can skip <code class="docutils literal notranslate"><span class="pre">g1_col</span></code> and
+<code class="docutils literal notranslate"><span class="pre">g2_col</span></code>; those catalogs only need positions.  For a K correlation, specify <code class="docutils literal notranslate"><span class="pre">k_col</span></code>
+instead:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">cat</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">file_name</span><span class="o">=</span><span class="s1">&#39;input_cat.fits&#39;</span><span class="p">,</span>
                        <span class="n">ra_col</span><span class="o">=</span><span class="s1">&#39;RA&#39;</span><span class="p">,</span> <span class="n">dec_col</span><span class="o">=</span><span class="s1">&#39;DEC&#39;</span><span class="p">,</span> <span class="n">k_col</span><span class="o">=</span><span class="s1">&#39;KAPPA&#39;</span><span class="p">,</span>
                        <span class="n">ra_units</span><span class="o">=</span><span class="s1">&#39;hours&#39;</span><span class="p">,</span> <span class="n">dec_units</span><span class="o">=</span><span class="s1">&#39;degrees&#39;</span><span class="p">)</span>
@@ -208,10 +230,10 @@ g1 or g2 (unfortunately not everyone follows the same conventions), use weights,
 skip objects with specific flags, and more.</p>
 </section>
 <section id="building-a-catalog-from-numpy-arrays">
-<h2>Building a Catalog from numpy arrays<a class="headerlink" href="#building-a-catalog-from-numpy-arrays" title="Permalink to this heading"></a></h2>
-<p>If the provided tools for reading in the data from an input file are insufficient, or if
-the data you want to use are being generated in Python natively, so there is no file
-to read, then you can instead build the <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a> directly from numpy arrays:</p>
+<h2>Building a Catalog from numpy arrays<a class="headerlink" href="#building-a-catalog-from-numpy-arrays" title="Link to this heading"></a></h2>
+<p>If the provided tools for reading data from an input file are insufficient, or if
+the data are generated directly in Python so there is no file to read, then you can
+instead build the <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a> directly from numpy arrays:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">x</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">x_values</span><span class="p">)</span>    <span class="c1"># These might be the output of</span>
 <span class="n">y</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">y_values</span><span class="p">)</span>    <span class="c1"># some calculation...</span>
 <span class="n">g1</span> <span class="o">=</span> <span class="n">numpy</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">g1_values</span><span class="p">)</span>
@@ -226,10 +248,10 @@ from the data.  For GG, you need <code class="docutils literal notranslate"><spa
 <code class="docutils literal notranslate"><span class="pre">k</span></code> instead.</p>
 <p>You can optionally provide a weight column as well with <code class="docutils literal notranslate"><span class="pre">w</span></code> if desired.
 This will then perform a weighted correlation using those weights.</p>
-<p>Again, see the doc string for <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a> for more information.</p>
+<p>Again, see the docstring for <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a> for more information.</p>
 </section>
 <section id="defining-the-binning">
-<h2>Defining the binning<a class="headerlink" href="#defining-the-binning" title="Permalink to this heading"></a></h2>
+<h2>Defining the binning<a class="headerlink" href="#defining-the-binning" title="Link to this heading"></a></h2>
 <p>For the default <a class="reference internal" href="binning.html#binning"><span class="std std-ref">bin_type</span></a>, <code class="docutils literal notranslate"><span class="pre">&quot;Log&quot;</span></code>, the correlation function is binned
 in equally spaced bins in <span class="math notranslate nohighlight">\(\log(r)\)</span>.  where <span class="math notranslate nohighlight">\(r\)</span> represents the separation
 between two points being correlated.</p>
@@ -258,45 +280,42 @@ as well as some other options related to binning.</p>
 However, TreeCorr implements a number of other metrics as well, which are useful
 in various situations.  See <a class="reference internal" href="metric.html#metrics"><span class="std std-ref">Metrics</span></a> for details.</p>
 </section>
-<section id="three-point-correlation-classes">
-<h2>Three-point Correlation Classes<a class="headerlink" href="#three-point-correlation-classes" title="Permalink to this heading"></a></h2>
-<p>TreeCorr can also do three-point correlations, to measure how the product of three fields
-depends on the size and shape of the triangle connecting three points.
-So far, we have implemented the following combination:</p>
+<section id="other-two-point-correlation-classes">
+<h2>Other Two-point Correlation Classes<a class="headerlink" href="#other-two-point-correlation-classes" title="Link to this heading"></a></h2>
+<p>The other kinds of correlations each have their own class.  For example:</p>
 <blockquote>
 <div><ul class="simple">
-<li><p><a class="reference internal" href="nnn.html#treecorr.NNNCorrelation" title="treecorr.NNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNNCorrelation</span></code></a>  # count-count-count</p></li>
-<li><p><a class="reference internal" href="kkk.html#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a>  # scalar-scalar-scalar</p></li>
-<li><p><a class="reference internal" href="ggg.html#treecorr.GGGCorrelation" title="treecorr.GGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGGCorrelation</span></code></a>  # shear-shear-shear</p></li>
-<li><p><a class="reference internal" href="nnk.html#treecorr.NNKCorrelation" title="treecorr.NNKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNKCorrelation</span></code></a>  # count-count-scalar</p></li>
-<li><p><a class="reference internal" href="nnk.html#treecorr.NKNCorrelation" title="treecorr.NKNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKNCorrelation</span></code></a>  # count-scalar-count</p></li>
-<li><p><a class="reference internal" href="nnk.html#treecorr.KNNCorrelation" title="treecorr.KNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KNNCorrelation</span></code></a>  # scalar-count-count</p></li>
-<li><p><a class="reference internal" href="nng.html#treecorr.NNGCorrelation" title="treecorr.NNGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNGCorrelation</span></code></a>  # count-count-shear</p></li>
-<li><p><a class="reference internal" href="nng.html#treecorr.NGNCorrelation" title="treecorr.NGNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGNCorrelation</span></code></a>  # count-shear-count</p></li>
-<li><p><a class="reference internal" href="nng.html#treecorr.GNNCorrelation" title="treecorr.GNNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GNNCorrelation</span></code></a>  # shear-count-count</p></li>
-<li><p><a class="reference internal" href="nkk.html#treecorr.NKKCorrelation" title="treecorr.NKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKKCorrelation</span></code></a>  # count-scalar-scalar</p></li>
-<li><p><a class="reference internal" href="nkk.html#treecorr.KNKCorrelation" title="treecorr.KNKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KNKCorrelation</span></code></a>  # scalar-count-scalar</p></li>
-<li><p><a class="reference internal" href="nkk.html#treecorr.KKNCorrelation" title="treecorr.KKNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKNCorrelation</span></code></a>  # scalar-scalar-count</p></li>
-<li><p><a class="reference internal" href="ngg.html#treecorr.NGGCorrelation" title="treecorr.NGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGGCorrelation</span></code></a>  # count-shear-shear</p></li>
-<li><p><a class="reference internal" href="ngg.html#treecorr.GNGCorrelation" title="treecorr.GNGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GNGCorrelation</span></code></a>  # shear-count-shear</p></li>
-<li><p><a class="reference internal" href="ngg.html#treecorr.GGNCorrelation" title="treecorr.GGNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGNCorrelation</span></code></a>  # shear-shear-count</p></li>
-<li><p><a class="reference internal" href="kkg.html#treecorr.KKGCorrelation" title="treecorr.KKGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKGCorrelation</span></code></a>  # scalar-scalar-shear</p></li>
-<li><p><a class="reference internal" href="kkg.html#treecorr.KGKCorrelation" title="treecorr.KGKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGKCorrelation</span></code></a>  # scalar-shear-scalar</p></li>
-<li><p><a class="reference internal" href="kkg.html#treecorr.GKKCorrelation" title="treecorr.GKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GKKCorrelation</span></code></a>  # shear-scalar-scalar</p></li>
-<li><p><a class="reference internal" href="kgg.html#treecorr.KGGCorrelation" title="treecorr.KGGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KGGCorrelation</span></code></a>  # scalar-shear-shear</p></li>
-<li><p><a class="reference internal" href="kgg.html#treecorr.GKGCorrelation" title="treecorr.GKGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GKGCorrelation</span></code></a>  # shear-scalar-shear</p></li>
-<li><p><a class="reference internal" href="kgg.html#treecorr.GGKCorrelation" title="treecorr.GGKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">GGKCorrelation</span></code></a>  # shear-shear-scalar</p></li>
+<li><p><a class="reference internal" href="nn.html#treecorr.NNCorrelation" title="treecorr.NNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNCorrelation</span></code></a> = count-count  (normal LSS correlation)</p></li>
+<li><p><a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a> = count-scalar (i.e. &lt;kappa&gt;(R), where kappa is any scalar field)</p></li>
+<li><p><a class="reference internal" href="kk.html#treecorr.KKCorrelation" title="treecorr.KKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKCorrelation</span></code></a> = scalar-scalar</p></li>
+<li><p><a class="reference internal" href="ng.html#treecorr.NGCorrelation" title="treecorr.NGCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NGCorrelation</span></code></a> = count-shear  (i.e. &lt;gamma_t&gt;(R))</p></li>
+<li><p><a class="reference internal" href="nv.html#treecorr.NVCorrelation" title="treecorr.NVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NVCorrelation</span></code></a> = count-vector</p></li>
+<li><p><a class="reference internal" href="vv.html#treecorr.VVCorrelation" title="treecorr.VVCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">VVCorrelation</span></code></a> = vector-vector</p></li>
 </ul>
 </div></blockquote>
+<p>See <a class="reference internal" href="correlation2.html#two-point-correlation-functions"><span class="std std-ref">Two-point Correlation Functions</span></a> for the complete list including other spin varieties.</p>
+<p>You should see their docstrings for details, but they all work similarly.
+For the cross-type classes (e.g. NK, KG, etc.), there is no auto-correlation option,
+of course, just the cross-correlation.</p>
+<p>The other main difference between these other correlation classes from GG is that there is only a
+single correlation function, so it is called <code class="docutils literal notranslate"><span class="pre">xi</span></code> rather than <code class="docutils literal notranslate"><span class="pre">xip</span></code> and <code class="docutils literal notranslate"><span class="pre">xim</span></code>.</p>
+<p>Also, NN does not have any kind of <code class="docutils literal notranslate"><span class="pre">xi</span></code> attribute.  You need to perform an additional
+calculation involving random catalogs for that.
+See <a class="reference internal" href="#using-random-catalogs"><span class="std std-ref">Using random catalogs</span></a> below for more details.</p>
+</section>
+<section id="three-point-correlation-classes">
+<h2>Three-point Correlation Classes<a class="headerlink" href="#three-point-correlation-classes" title="Link to this heading"></a></h2>
+<p>TreeCorr can also do three-point correlations, to measure how the product of three fields
+depends on the size and shape of the triangle connecting three points.</p>
 <p>These classes are significantly more complicated than the two-point ones,
 since they have to deal with the geometry of the triangles being binned.
-See their doc strings for more details.</p>
+See <a class="reference internal" href="correlation3.html#three-point-correlation-functions"><span class="std std-ref">Three-point Correlation Functions</span></a> for details.</p>
 </section>
 <section id="using-random-catalogs">
-<h2>Using random catalogs<a class="headerlink" href="#using-random-catalogs" title="Permalink to this heading"></a></h2>
+<h2>Using random catalogs<a class="headerlink" href="#using-random-catalogs" title="Link to this heading"></a></h2>
 <p>For the NN and NNN correlations, the raw calculation is not sufficient to produce the real
 correlation function.  You also need to account for the survey geometry (edges, mask, etc.)
-by running the same calculation with a random catalog (or several) that have a uniform density,
+by running the same calculation with one or more random catalogs that have a uniform density,
 but the same geometry:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">data</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">data_file</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
 <span class="n">rand</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">rand_file</span><span class="p">,</span> <span class="n">config</span><span class="p">)</span>
@@ -306,7 +325,7 @@ but the same geometry:</p>
 <span class="n">dd</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
 <span class="n">dr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data</span><span class="p">,</span><span class="n">rand</span><span class="p">)</span>
 <span class="n">rr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand</span><span class="p">)</span>
-<span class="n">xi</span><span class="p">,</span> <span class="n">varxi</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">calculateXi</span><span class="p">(</span><span class="n">rr</span><span class="p">,</span><span class="n">dr</span><span class="p">)</span>
+<span class="n">xi</span><span class="p">,</span> <span class="n">varxi</span> <span class="o">=</span> <span class="n">dd</span><span class="o">.</span><span class="n">calculateXi</span><span class="p">(</span><span class="n">rr</span><span class="o">=</span><span class="n">rr</span><span class="p">,</span> <span class="n">dr</span><span class="o">=</span><span class="n">dr</span><span class="p">)</span>
 </pre></div>
 </div>
 <p>This calculates xi = (DD-2DR+RR)/RR for each bin.  This is the Landy-Szalay estimator,
@@ -325,7 +344,8 @@ of the correlation function if you are able to use a random catalog.</p>
 <p>Furthermore, the <a class="reference internal" href="correlation2.html#treecorr.Corr2.process" title="treecorr.Corr2.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> functions can take lists of Catalogs if desired,
 in which case it will
 do all the possible combinations.  This is especially relevant for doing randoms,
-since the statistics get better if you generate several randoms and do all the correlations to beat down the noise:</p>
+since the statistics get better if you generate several randoms and do all the correlations to
+beat down the noise:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">rand_list</span> <span class="o">=</span> <span class="p">[</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">Catalog</span><span class="p">(</span><span class="n">f</span><span class="p">,</span><span class="n">config</span><span class="p">)</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">rand_files</span> <span class="p">]</span>
 <span class="n">dr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">rand_list</span><span class="p">)</span>
 <span class="n">rr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand_list</span><span class="p">)</span>
@@ -336,13 +356,56 @@ combinations that need to be computed: zeta = (DDD-DDR-DRD-RDD+DRR+RDR+RRD-RRR)/
 Because of the triangle geometry, we don’t have DRR = DRD = RDD, so all 8 need to be computed.
 See the docstring for <a class="reference internal" href="nnn.html#treecorr.NNNCorrelation.calculateZeta" title="treecorr.NNNCorrelation.calculateZeta"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">calculateZeta</span></code></a> for more details.</p>
 </section>
+<section id="performance-and-accuracy-tips">
+<h2>Performance and accuracy tips<a class="headerlink" href="#performance-and-accuracy-tips" title="Link to this heading"></a></h2>
+<p>Some practical recommendations that are often useful in production analyses:</p>
+<ul>
+<li><p>Start with the default <code class="docutils literal notranslate"><span class="pre">bin_slop</span></code>.  If you need to verify numerical stability,
+reduce it (e.g. by a factor of 2) and check whether your science vector shifts.</p></li>
+<li><p>For three-point calculations, prefer <code class="docutils literal notranslate"><span class="pre">bin_type='LogSAS'</span></code> with the default
+multipole algorithm for speed, unless you specifically need <code class="docutils literal notranslate"><span class="pre">LogRUV</span></code>.</p></li>
+<li><p>Use patches early if you will need covariance estimates.  This avoids re-running
+the full correlation later to get jackknife/bootstrap covariances.</p></li>
+<li><p>For patch-based covariance, use jackknife with <code class="docutils literal notranslate"><span class="pre">cross_patch_weight='match'</span></code> for the
+best accuracy in most cases; use bootstrap/<code class="docutils literal notranslate"><span class="pre">'geom'</span></code> mainly as a cross-check.</p>
+<div class="admonition important">
+<p class="admonition-title">Important</p>
+<p>This is not currently the default.  To avoid backwards incompatibility,
+you must set <code class="docutils literal notranslate"><span class="pre">cross_patch_weight='match'</span></code> explicitly.  The default value,
+<code class="docutils literal notranslate"><span class="pre">'simple'</span></code>, is probably less accurate in most cases, but matches the behavior
+of TreeCorr prior to version 5.1.</p>
+</div>
+</li>
+<li><p>For large jobs, use <code class="docutils literal notranslate"><span class="pre">low_mem=True</span></code> in <code class="docutils literal notranslate"><span class="pre">process</span></code> calls and use patches
+to reduce peak memory usage.</p></li>
+<li><p>For OpenMP runs, set <code class="docutils literal notranslate"><span class="pre">num_threads</span></code> explicitly in configs when running on shared
+systems, so results are reproducible and resource usage is controlled.</p></li>
+</ul>
+<p>See <a class="reference internal" href="binning.html#binning"><span class="std std-ref">Binning</span></a>, <a class="reference internal" href="binning3pt.html#binning-for-three-point-correlations"><span class="std std-ref">Binning for three-point correlations</span></a>, <a class="reference internal" href="patches.html#patches"><span class="std std-ref">Patches</span></a>, and
+<a class="reference internal" href="cov.html#covariance-estimates"><span class="std std-ref">Covariance Estimates</span></a> for full details.</p>
+</section>
+<section id="common-pitfalls">
+<h2>Common pitfalls<a class="headerlink" href="#common-pitfalls" title="Link to this heading"></a></h2>
+<p>Some common issues that can silently cause errors in the correlations:</p>
+<ul class="simple">
+<li><p>Mixed coordinate conventions: ensure <code class="docutils literal notranslate"><span class="pre">ra_units</span></code>/<code class="docutils literal notranslate"><span class="pre">dec_units</span></code> are set correctly,
+and check sign conventions (<code class="docutils literal notranslate"><span class="pre">flip_g1</span></code>/<code class="docutils literal notranslate"><span class="pre">flip_g2</span></code> when needed).</p></li>
+<li><p>Missing or mismatched random catalogs for <code class="docutils literal notranslate"><span class="pre">NN</span></code>/<code class="docutils literal notranslate"><span class="pre">NNN</span></code>: random catalogs should
+follow the same survey geometry/masks as the corresponding data catalogs.</p></li>
+<li><p>Inconsistent patch definitions across cross-correlated catalogs: use shared
+<code class="docutils literal notranslate"><span class="pre">patch_centers</span></code> rather than separate <code class="docutils literal notranslate"><span class="pre">npatch</span></code> runs for each catalog.</p></li>
+<li><p>Interpreting <code class="docutils literal notranslate"><span class="pre">varxi</span></code> as total uncertainty by default: shot-noise-only variances
+can underestimate errors at large scales; prefer patch-based covariances when possible.</p></li>
+</ul>
+</section>
 <section id="manually-accumulating-the-correlation-function">
-<h2>Manually accumulating the correlation function<a class="headerlink" href="#manually-accumulating-the-correlation-function" title="Permalink to this heading"></a></h2>
+<h2>Manually accumulating the correlation function<a class="headerlink" href="#manually-accumulating-the-correlation-function" title="Link to this heading"></a></h2>
 <p>For even more control over the calculation, you can break up the steps in the
 <a class="reference internal" href="correlation2.html#treecorr.Corr2.process" title="treecorr.Corr2.process"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process</span></code></a> functions.  There are typically three steps:</p>
 <ol class="arabic simple">
 <li><p>Calculate the variance of the field as needed (i.e. for anything but NN correlations).</p></li>
-<li><p>Accumulate the correlations into the bins for each auto-correlation and cross-correlation desired.</p></li>
+<li><p>Accumulate the correlations into the bins for each auto-correlation and cross-correlation
+desired.</p></li>
 <li><p>Finalize the calculation.</p></li>
 </ol>
 <p>If you have several pairs of catalogs that you want to accumulate into a single correlation
@@ -359,7 +422,7 @@ function, you could write the following:</p>
 <p>In addition to <a class="reference internal" href="correlation2.html#treecorr.Corr2.process_cross" title="treecorr.Corr2.process_cross"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_cross</span></code></a>,
 classes that allow auto-correlations have a
 <a class="reference internal" href="correlation2.html#treecorr.Corr2.process_auto" title="treecorr.Corr2.process_auto"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">process_auto</span></code></a> method for manually processing
-auto-correlations.  See the doc strings for these methods for more information.</p>
+auto-correlations.  See the docstrings for these methods for more information.</p>
 <p>Breaking up the calculation manually like this is probably not often necessary anymore.
 It used to be useful for dividing a calculation among several machines, which would
 each save their results to disk.  These results could then be reassembled and
@@ -375,8 +438,8 @@ multiple machines using MPI.</p>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="params.html" class="btn btn-neutral float-left" title="Configuration Parameters" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
-        <a href="changes.html" class="btn btn-neutral float-right" title="Changes from version 5.0 to 5.1" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="overview.html" class="btn btn-neutral float-left" title="Overview" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="catalog.html" class="btn btn-neutral float-right" title="Input Data" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 
   <hr/>

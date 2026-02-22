@@ -1,20 +1,20 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>treecorr.field &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2c218288"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -31,9 +31,6 @@
           <a href="../../index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,6 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
@@ -55,7 +53,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
@@ -115,7 +112,9 @@
     <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">_treecorr</span><span class="o">.</span><span class="n">Random</span>  <span class="c1"># random</span>
 
 
-<div class="viewcode-block" id="Field"><a class="viewcode-back" href="../../field.html#treecorr.Field">[docs]</a><span class="k">class</span> <span class="nc">Field</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Field">
+<a class="viewcode-back" href="../../field.html#treecorr.Field">[docs]</a>
+<span class="k">class</span> <span class="nc">Field</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;A Field in TreeCorr is the object that stores the tree structure we use for efficient</span>
 <span class="sd">    calculation of the correlation functions.</span>
 
@@ -206,7 +205,9 @@
         <span class="c1"># _cat is a weakref.  This gets back to a Catalog object.</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cat</span><span class="p">()</span>
 
-<div class="viewcode-block" id="Field.count_near"><a class="viewcode-back" href="../../field.html#treecorr.Field.count_near">[docs]</a>    <span class="k">def</span> <span class="nf">count_near</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Field.count_near">
+<a class="viewcode-back" href="../../field.html#treecorr.Field.count_near">[docs]</a>
+    <span class="k">def</span> <span class="nf">count_near</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Count how many points are near a given coordinate.</span>
 
 <span class="sd">        Use the existing tree structure to count how many points are within some given separation</span>
@@ -233,10 +234,14 @@
 <span class="sd">        3. For spherical coordinates:</span>
 
 <span class="sd">        Parameters:</span>
-<span class="sd">            ra (float or Angle):    The right ascension of the target location</span>
-<span class="sd">            dec (float or Angle):   The declination of the target location</span>
-<span class="sd">            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)</span>
-<span class="sd">            sep (float or Angle):   The separation distance</span>
+<span class="sd">            ra (float or :class:`coord.Angle`):</span>
+<span class="sd">                                    The right ascension of the target location</span>
+<span class="sd">            dec (float or :class:`coord.Angle`):</span>
+<span class="sd">                                    The declination of the target location</span>
+<span class="sd">            c (:class:`coord.CelestialCoord`):</span>
+<span class="sd">                                    A ``CelestialCoord`` object in lieu of (ra, dec)</span>
+<span class="sd">            sep (float or :class:`coord.Angle`):</span>
+<span class="sd">                                    The separation distance</span>
 <span class="sd">            ra_units (str):         The units of ra if given as a float</span>
 <span class="sd">            dec_units (str):        The units of dec if given as a float</span>
 <span class="sd">            sep_units (str):        The units of sep if given as a float</span>
@@ -244,9 +249,12 @@
 <span class="sd">        4. For spherical coordinates with distances:</span>
 
 <span class="sd">        Parameters:</span>
-<span class="sd">            ra (float or Angle):    The right ascension of the target location</span>
-<span class="sd">            dec (float or Angle):   The declination of the target location</span>
-<span class="sd">            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)</span>
+<span class="sd">            ra (float or :class:`coord.Angle`):</span>
+<span class="sd">                                    The right ascension of the target location</span>
+<span class="sd">            dec (float or :class:`coord.Angle`):</span>
+<span class="sd">                                    The declination of the target location</span>
+<span class="sd">            c (:class:`coord.CelestialCoord`):</span>
+<span class="sd">                                    A ``CelestialCoord`` object in lieu of (ra, dec)</span>
 <span class="sd">            r (float):              The distance to the target location</span>
 <span class="sd">            sep (float):            The separation distance</span>
 <span class="sd">            ra_units (str):         The units of ra if given as a float</span>
@@ -257,7 +265,7 @@
 <span class="sd">        or sep_units respectively to specify which angular units are providing.</span>
 
 <span class="sd">        Finally, in cases where ra, dec are allowed, you may instead provide a</span>
-<span class="sd">        ``coord.CelestialCoord`` instance as the first argument to specify both RA and Dec.</span>
+<span class="sd">        :class:`coord.CelestialCoord` instance as the first argument to specify both RA and Dec.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="c1"># If min_size = 0, then regular method is already exact.</span>
@@ -269,12 +277,15 @@
             <span class="c1"># and take the len of the result.</span>
             <span class="k">return</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_near</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">))</span></div>
 
+
     <span class="k">def</span> <span class="nf">_count_near</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">):</span>
         <span class="c1"># If self.min_size &gt; 0, these results may be approximate, since the tree will have</span>
         <span class="c1"># grouped points within this separation together.</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">countNear</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Field.get_near"><a class="viewcode-back" href="../../field.html#treecorr.Field.get_near">[docs]</a>    <span class="k">def</span> <span class="nf">get_near</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Field.get_near">
+<a class="viewcode-back" href="../../field.html#treecorr.Field.get_near">[docs]</a>
+    <span class="k">def</span> <span class="nf">get_near</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Get the indices of points near a given coordinate.</span>
 
 <span class="sd">        Use the existing tree structure to find the points that are within some given separation</span>
@@ -301,10 +312,14 @@
 <span class="sd">        3. For spherical coordinates:</span>
 
 <span class="sd">        Parameters:</span>
-<span class="sd">            ra (float or Angle):    The right ascension of the target location</span>
-<span class="sd">            dec (float or Angle):   The declination of the target location</span>
-<span class="sd">            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)</span>
-<span class="sd">            sep (float or Angle):   The separation distance</span>
+<span class="sd">            ra (float or :class:`coord.Angle`):</span>
+<span class="sd">                                    The right ascension of the target location</span>
+<span class="sd">            dec (float or :class:`coord.Angle`):</span>
+<span class="sd">                                    The declination of the target location</span>
+<span class="sd">            c (:class:`coord.CelestialCoord`):</span>
+<span class="sd">                                    A ``CelestialCoord`` object in lieu of (ra, dec)</span>
+<span class="sd">            sep (float or :class:`coord.Angle`):</span>
+<span class="sd">                                    The separation distance</span>
 <span class="sd">            ra_units (str):         The units of ra if given as a float</span>
 <span class="sd">            dec_units (str):        The units of dec if given as a float</span>
 <span class="sd">            sep_units (str):        The units of sep if given as a float</span>
@@ -312,9 +327,12 @@
 <span class="sd">        4. For spherical coordinates with distances:</span>
 
 <span class="sd">        Parameters:</span>
-<span class="sd">            ra (float or Angle):    The right ascension of the target location</span>
-<span class="sd">            dec (float or Angle):   The declination of the target location</span>
-<span class="sd">            c (CelestialCorod):     A ``coord.CelestialCoord`` object in lieu of (ra, dec)</span>
+<span class="sd">            ra (float or :class:`coord.Angle`):</span>
+<span class="sd">                                    The right ascension of the target location</span>
+<span class="sd">            dec (float or :class:`coord.Angle`):</span>
+<span class="sd">                                    The declination of the target location</span>
+<span class="sd">            c (:class:`coord.CelestialCoord`):</span>
+<span class="sd">                                    A ``CelestialCoord`` object in lieu of (ra, dec)</span>
 <span class="sd">            r (float):              The distance to the target location</span>
 <span class="sd">            sep (float):            The separation distance</span>
 <span class="sd">            ra_units (str):         The units of ra if given as a float</span>
@@ -325,7 +343,7 @@
 <span class="sd">        or sep_units respectively to specify which angular units are providing.</span>
 
 <span class="sd">        Finally, in cases where ra, dec are allowed, you may instead provide a</span>
-<span class="sd">        ``coord.CelestialCoord`` instance as the first argument to specify both RA and Dec.</span>
+<span class="sd">        :class:`coord.CelestialCoord` instance as the first argument to specify both RA and Dec.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">x</span><span class="p">,</span><span class="n">y</span><span class="p">,</span><span class="n">z</span><span class="p">,</span><span class="n">sep</span> <span class="o">=</span> <span class="n">parse_xyzsep</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwargs</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coords</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_size</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
@@ -346,6 +364,7 @@
         <span class="c1"># It comes back unsorted, so sort it.  (Not really required, but nicer output.)</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">ind</span><span class="p">)</span></div>
 
+
     <span class="k">def</span> <span class="nf">_get_near</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">):</span>
         <span class="c1"># If self.min_size &gt; 0, these results may be approximate, since the tree will have</span>
         <span class="c1"># grouped points within this separation together.</span>
@@ -356,7 +375,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">getNear</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">z</span><span class="p">,</span> <span class="n">sep</span><span class="p">,</span> <span class="n">indices</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">indices</span>
 
-<div class="viewcode-block" id="Field.run_kmeans"><a class="viewcode-back" href="../../field.html#treecorr.Field.run_kmeans">[docs]</a>    <span class="k">def</span> <span class="nf">run_kmeans</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">npatch</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-5</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Field.run_kmeans">
+<a class="viewcode-back" href="../../field.html#treecorr.Field.run_kmeans">[docs]</a>
+    <span class="k">def</span> <span class="nf">run_kmeans</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">npatch</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-5</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Use k-means algorithm to set patch labels for a field.</span>
 
 <span class="sd">        The k-means algorithm (cf. https://en.wikipedia.org/wiki/K-means_clustering) identifies</span>
@@ -396,7 +417,7 @@
 <span class="sd">        can produce slightly better patches for the purpose of patch-based covariance estimation.</span>
 <span class="sd">        The ideal patch definition for such use would be to minimize the standard deviation (std)</span>
 <span class="sd">        of the inertia of each patch, not the total (or mean) inertia.  It turns out that it is</span>
-<span class="sd">        difficult to devise an algorithm that literally does this, since it has a tendancy to</span>
+<span class="sd">        difficult to devise an algorithm that literally does this, since it has a tendency to</span>
 <span class="sd">        become unstable and not converge.</span>
 
 <span class="sd">        However, adding a penalty term to the patch assignment step of the normal k-means</span>
@@ -447,22 +468,25 @@
 <span class="sd">                                      field, traversing down to a level where there are npatch</span>
 <span class="sd">                                      cells, and use the centroids of these cells as the initial</span>
 <span class="sd">                                      centers.  This is almost always the best choice.</span>
-<span class="sd">                                    - &#39;random&#39; =  Use npatch random points as the intial centers.</span>
+<span class="sd">                                    - &#39;random&#39; =  Use npatch random points as the initial centers.</span>
 <span class="sd">                                    - &#39;kmeans++&#39; =  Use the k-means++ algorithm.</span>
 <span class="sd">                                      cf. https://en.wikipedia.org/wiki/K-means%2B%2B</span>
 
 <span class="sd">            alt (bool):         Use the alternate assignment algorithm to minimize the standard</span>
 <span class="sd">                                deviation of the inertia rather than the total inertia (aka WCSS).</span>
 <span class="sd">                                (default: False)</span>
-<span class="sd">            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random</span>
-<span class="sd">                                number generation. (default: None)</span>
+<span class="sd">            rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                                If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                                random number generation. (default: None)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            Tuple containing</span>
 
-<span class="sd">                - patches (array): An array of patch labels, all integers from 0..npatch-1.</span>
+<span class="sd">                - patches (:class:`numpy.ndarray`): An array of patch labels,</span>
+<span class="sd">                  all integers from 0..npatch-1.</span>
 <span class="sd">                  Size is self.ntot.</span>
-<span class="sd">                - centers (array): An array of center coordinates used to make the patches.</span>
+<span class="sd">                - centers (:class:`numpy.ndarray`): An array of center coordinates</span>
+<span class="sd">                  used to make the patches.</span>
 <span class="sd">                  Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or</span>
 <span class="sd">                  spherical geometries.  In the latter case, the centers represent</span>
 <span class="sd">                  (x,y,z) coordinates on the unit sphere.</span>
@@ -472,7 +496,10 @@
         <span class="n">patches</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">kmeans_assign_patches</span><span class="p">(</span><span class="n">centers</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">patches</span><span class="p">,</span> <span class="n">centers</span></div>
 
-<div class="viewcode-block" id="Field.kmeans_initialize_centers"><a class="viewcode-back" href="../../field.html#treecorr.Field.kmeans_initialize_centers">[docs]</a>    <span class="k">def</span> <span class="nf">kmeans_initialize_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">npatch</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Field.kmeans_initialize_centers">
+<a class="viewcode-back" href="../../field.html#treecorr.Field.kmeans_initialize_centers">[docs]</a>
+    <span class="k">def</span> <span class="nf">kmeans_initialize_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">npatch</span><span class="p">,</span> <span class="n">init</span><span class="o">=</span><span class="s1">&#39;tree&#39;</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Use the field&#39;s tree structure to assign good initial centers for a K-Means run.</span>
 
 <span class="sd">        The classic K-Means algorithm involves starting with random points as the initial</span>
@@ -494,12 +521,13 @@
 <span class="sd">                                      field, traversing down to a level where there are npatch</span>
 <span class="sd">                                      cells, and use the centroids of these cells as the initial</span>
 <span class="sd">                                      centers.  This is almost always the best choice.</span>
-<span class="sd">                                    - &#39;random&#39; =  Use npatch random points as the intial centers.</span>
+<span class="sd">                                    - &#39;random&#39; =  Use npatch random points as the initial centers.</span>
 <span class="sd">                                    - &#39;kmeans++&#39; =  Use the k-means++ algorithm.</span>
 <span class="sd">                                      cf. https://en.wikipedia.org/wiki/K-means%2B%2B</span>
 
-<span class="sd">            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random</span>
-<span class="sd">                                number generation. (default: None)</span>
+<span class="sd">            rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                                If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                                random number generation. (default: None)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            An array of center coordinates.</span>
@@ -528,7 +556,10 @@
 
         <span class="k">return</span> <span class="n">centers</span></div>
 
-<div class="viewcode-block" id="Field.kmeans_refine_centers"><a class="viewcode-back" href="../../field.html#treecorr.Field.kmeans_refine_centers">[docs]</a>    <span class="k">def</span> <span class="nf">kmeans_refine_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">centers</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-5</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Field.kmeans_refine_centers">
+<a class="viewcode-back" href="../../field.html#treecorr.Field.kmeans_refine_centers">[docs]</a>
+    <span class="k">def</span> <span class="nf">kmeans_refine_centers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">centers</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">max_iter</span><span class="o">=</span><span class="mi">200</span><span class="p">,</span> <span class="n">tol</span><span class="o">=</span><span class="mf">1.e-5</span><span class="p">,</span> <span class="n">alt</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Fast implementation of the K-Means algorithm</span>
 
 <span class="sd">        The standard K-Means algorithm is as follows</span>
@@ -560,7 +591,8 @@
 <span class="sd">        the sizes at each step.</span>
 
 <span class="sd">        Parameters:</span>
-<span class="sd">            centers (array):    An array of center coordinates. (modified by this function)</span>
+<span class="sd">            centers (:class:`numpy.ndarray`):</span>
+<span class="sd">                                An array of center coordinates. (modified by this function)</span>
 <span class="sd">                                Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or</span>
 <span class="sd">                                spherical geometries.  In the latter case, the centers represent</span>
 <span class="sd">                                (x,y,z) coordinates on the unit sphere.</span>
@@ -574,14 +606,18 @@
         <span class="n">npatch</span> <span class="o">=</span> <span class="n">centers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">KMeansRun</span><span class="p">(</span><span class="n">centers</span><span class="p">,</span> <span class="n">npatch</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">max_iter</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">tol</span><span class="p">),</span> <span class="nb">bool</span><span class="p">(</span><span class="n">alt</span><span class="p">))</span></div>
 
-<div class="viewcode-block" id="Field.kmeans_assign_patches"><a class="viewcode-back" href="../../field.html#treecorr.Field.kmeans_assign_patches">[docs]</a>    <span class="k">def</span> <span class="nf">kmeans_assign_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">centers</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Field.kmeans_assign_patches">
+<a class="viewcode-back" href="../../field.html#treecorr.Field.kmeans_assign_patches">[docs]</a>
+    <span class="k">def</span> <span class="nf">kmeans_assign_patches</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">centers</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Assign patch numbers to each point according to the given centers.</span>
 
-<span class="sd">        This is final step in the full K-Means algorithm.  It assignes patch numbers to each</span>
+<span class="sd">        This is the final step in the full K-Means algorithm. It assigns patch numbers to each</span>
 <span class="sd">        point in the field according to which center is closest.</span>
 
 <span class="sd">        Parameters:</span>
-<span class="sd">            centers (array):    An array of center coordinates.</span>
+<span class="sd">            centers (:class:`numpy.ndarray`):</span>
+<span class="sd">                                An array of center coordinates.</span>
 <span class="sd">                                Shape is (npatch, 2) for flat geometries or (npatch, 3) for 3d or</span>
 <span class="sd">                                spherical geometries.  In the latter case, the centers represent</span>
 <span class="sd">                                (x,y,z) coordinates on the unit sphere.</span>
@@ -593,10 +629,14 @@
         <span class="n">npatch</span> <span class="o">=</span> <span class="n">centers</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="n">centers</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">centers</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="o">.</span><span class="n">KMeansAssign</span><span class="p">(</span><span class="n">centers</span><span class="p">,</span> <span class="n">npatch</span><span class="p">,</span> <span class="n">patches</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">patches</span></div></div>
+        <span class="k">return</span> <span class="n">patches</span></div>
+</div>
 
 
-<div class="viewcode-block" id="NField"><a class="viewcode-back" href="../../field.html#treecorr.NField">[docs]</a><span class="k">class</span> <span class="nc">NField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NField">
+<a class="viewcode-back" href="../../field.html#treecorr.NField">[docs]</a>
+<span class="k">class</span> <span class="nc">NField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class stores the positions and number of objects in a tree structure from which it is</span>
 <span class="sd">    efficient to compute correlation functions.</span>
 
@@ -617,9 +657,11 @@
 <span class="sd">        max_top (int):      The maximum number of top layers to use when setting up the field.</span>
 <span class="sd">                            (default: 10)</span>
 <span class="sd">        coords (str):       The kind of coordinate system to use. (default: cat.coords)</span>
-<span class="sd">        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random</span>
-<span class="sd">                            number generation. (default: None)</span>
-<span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
+<span class="sd">        rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                            If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                            random number generation. (default: None)</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                            A ``Logger`` object if desired. (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -659,7 +701,10 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building NField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="KField"><a class="viewcode-back" href="../../field.html#treecorr.KField">[docs]</a><span class="k">class</span> <span class="nc">KField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+
+<div class="viewcode-block" id="KField">
+<a class="viewcode-back" href="../../field.html#treecorr.KField">[docs]</a>
+<span class="k">class</span> <span class="nc">KField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class stores the values of a scalar field (e.g. kappa in the weak lensing context)</span>
 <span class="sd">    in a tree structure from which it is efficient to compute correlation functions.</span>
 
@@ -680,9 +725,11 @@
 <span class="sd">        max_top (int):      The maximum number of top layers to use when setting up the field.</span>
 <span class="sd">                            (default: 10)</span>
 <span class="sd">        coords (str):       The kind of coordinate system to use. (default: cat.coords)</span>
-<span class="sd">        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random</span>
-<span class="sd">                            number generation. (default: None)</span>
-<span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
+<span class="sd">        rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                            If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                            random number generation. (default: None)</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                            A ``Logger`` object if desired. (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -722,7 +769,10 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building KField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="ZField"><a class="viewcode-back" href="../../field.html#treecorr.ZField">[docs]</a><span class="k">class</span> <span class="nc">ZField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+
+<div class="viewcode-block" id="ZField">
+<a class="viewcode-back" href="../../field.html#treecorr.ZField">[docs]</a>
+<span class="k">class</span> <span class="nc">ZField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class stores the values of a complex scalar (spin-0) field in a tree structure</span>
 <span class="sd">    from which it is efficient to compute correlation functions.</span>
 
@@ -743,9 +793,11 @@
 <span class="sd">        max_top (int):      The maximum number of top layers to use when setting up the field.</span>
 <span class="sd">                            (default: 10)</span>
 <span class="sd">        coords (str):       The kind of coordinate system to use. (default: cat.coords)</span>
-<span class="sd">        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random</span>
-<span class="sd">                            number generation. (default: None)</span>
-<span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
+<span class="sd">        rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                            If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                            random number generation. (default: None)</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                            A ``Logger`` object if desired. (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -785,7 +837,10 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building ZField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="VField"><a class="viewcode-back" href="../../field.html#treecorr.VField">[docs]</a><span class="k">class</span> <span class="nc">VField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+
+<div class="viewcode-block" id="VField">
+<a class="viewcode-back" href="../../field.html#treecorr.VField">[docs]</a>
+<span class="k">class</span> <span class="nc">VField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class stores the values of a vector field in a tree structure from which it is</span>
 <span class="sd">    efficient to compute correlation functions.</span>
 
@@ -806,9 +861,11 @@
 <span class="sd">        max_top (int):      The maximum number of top layers to use when setting up the field.</span>
 <span class="sd">                            (default: 10)</span>
 <span class="sd">        coords (str):       The kind of coordinate system to use. (default: cat.coords)</span>
-<span class="sd">        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random</span>
-<span class="sd">                            number generation. (default: None)</span>
-<span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
+<span class="sd">        rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                            If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                            random number generation. (default: None)</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                            A ``Logger`` object if desired. (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -848,7 +905,10 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building VField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="GField"><a class="viewcode-back" href="../../field.html#treecorr.GField">[docs]</a><span class="k">class</span> <span class="nc">GField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+
+<div class="viewcode-block" id="GField">
+<a class="viewcode-back" href="../../field.html#treecorr.GField">[docs]</a>
+<span class="k">class</span> <span class="nc">GField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class stores the values of a shear field (gamma in the weak lensing context) in a</span>
 <span class="sd">    tree structure from which it is efficient to compute correlation functions.</span>
 
@@ -869,9 +929,11 @@
 <span class="sd">        max_top (int):      The maximum number of top layers to use when setting up the field.</span>
 <span class="sd">                            (default: 10)</span>
 <span class="sd">        coords (str):       The kind of coordinate system to use. (default: cat.coords)</span>
-<span class="sd">        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random</span>
-<span class="sd">                            number generation. (default: None)</span>
-<span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
+<span class="sd">        rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                            If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                            random number generation. (default: None)</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                            A ``Logger`` object if desired. (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -911,7 +973,10 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building GField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="TField"><a class="viewcode-back" href="../../field.html#treecorr.TField">[docs]</a><span class="k">class</span> <span class="nc">TField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+
+<div class="viewcode-block" id="TField">
+<a class="viewcode-back" href="../../field.html#treecorr.TField">[docs]</a>
+<span class="k">class</span> <span class="nc">TField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class stores the values of a trefoil (spin-3) field in a tree structure from which it</span>
 <span class="sd">    is efficient to compute correlation functions.</span>
 
@@ -932,9 +997,11 @@
 <span class="sd">        max_top (int):      The maximum number of top layers to use when setting up the field.</span>
 <span class="sd">                            (default: 10)</span>
 <span class="sd">        coords (str):       The kind of coordinate system to use. (default: cat.coords)</span>
-<span class="sd">        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random</span>
-<span class="sd">                            number generation. (default: None)</span>
-<span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
+<span class="sd">        rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                            If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                            random number generation. (default: None)</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                            A ``Logger`` object if desired. (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -973,7 +1040,10 @@
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building TField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="QField"><a class="viewcode-back" href="../../field.html#treecorr.QField">[docs]</a><span class="k">class</span> <span class="nc">QField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
+
+<div class="viewcode-block" id="QField">
+<a class="viewcode-back" href="../../field.html#treecorr.QField">[docs]</a>
+<span class="k">class</span> <span class="nc">QField</span><span class="p">(</span><span class="n">Field</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class stores the values of a quatrefoil (spin-4) field in a tree structure from which</span>
 <span class="sd">    it is efficient to compute correlation functions.</span>
 
@@ -994,9 +1064,11 @@
 <span class="sd">        max_top (int):      The maximum number of top layers to use when setting up the field.</span>
 <span class="sd">                            (default: 10)</span>
 <span class="sd">        coords (str):       The kind of coordinate system to use. (default: cat.coords)</span>
-<span class="sd">        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for random</span>
-<span class="sd">                            number generation. (default: None)</span>
-<span class="sd">        logger (Logger):    A logger file if desired. (default: None)</span>
+<span class="sd">        rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                            If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                            random number generation. (default: None)</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                            A ``Logger`` object if desired. (default: None)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">min_size</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">max_size</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">split_method</span><span class="o">=</span><span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="n">brute</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                  <span class="n">min_top</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_top</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -1034,6 +1106,7 @@
                                                <span class="bp">self</span><span class="o">.</span><span class="n">brute</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">min_top</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_top</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">logger</span><span class="p">:</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building QField (</span><span class="si">%s</span><span class="s1">)&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span></div>
+
 </pre></div>
 
            </div>

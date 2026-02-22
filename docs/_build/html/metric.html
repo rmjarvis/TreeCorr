@@ -1,22 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Metrics &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2c218288"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -35,9 +35,6 @@
           <a href="index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -48,6 +45,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
@@ -68,7 +66,6 @@
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
@@ -98,16 +95,16 @@
            <div itemprop="articleBody">
              
   <section id="metrics">
-<h1>Metrics<a class="headerlink" href="#metrics" title="Permalink to this heading"></a></h1>
+<h1>Metrics<a class="headerlink" href="#metrics" title="Link to this heading"></a></h1>
 <p>The correlation functions need to know how to calculate distances between the points,
 that is, the metric defining the space.</p>
-<p>In most cases, you will probably want to use the default Metric, called “Euclidean”,
-which just uses the normal Euclidean distance between two points.  However, there are a few
+<p>In most cases, you will probably want to use the default metric, called “Euclidean”,
+which uses the normal Euclidean distance between two points.  However, there are a few
 other options, which are useful for various applications.</p>
-<p>Both <a class="reference internal" href="correlation2.html#treecorr.Corr2" title="treecorr.Corr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr2</span></code></a> and <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> take an optional
-<code class="docutils literal notranslate"><span class="pre">metric</span></code> parameter, which should be one of the following string values:</p>
+<p>Both <a class="reference internal" href="correlation2.html#treecorr.Corr2" title="treecorr.Corr2"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr2</span></code></a> and <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> take an optional <code class="docutils literal notranslate"><span class="pre">metric</span></code> parameter, which should be one
+of the following string values:</p>
 <section id="euclidean">
-<h2>“Euclidean”<a class="headerlink" href="#euclidean" title="Permalink to this heading"></a></h2>
+<h2>“Euclidean”<a class="headerlink" href="#euclidean" title="Link to this heading"></a></h2>
 <p>This is the default metric, and is the only current option for 2-dimensional flat correlations,
 i.e. when the coordinates are given by (x,y), rather than either (x,y,z), (ra,dec), or (ra,dec,r).</p>
 <p>For 2-dimensional coordinate systems, the distance is defined as</p>
@@ -134,7 +131,7 @@ happens at the end, so the <code class="docutils literal notranslate"><span clas
 will have been done using the angles between the chords.</p>
 </section>
 <section id="arc">
-<h2>“Arc”<a class="headerlink" href="#arc" title="Permalink to this heading"></a></h2>
+<h2>“Arc”<a class="headerlink" href="#arc" title="Link to this heading"></a></h2>
 <p>This metric is only valid for spherical coordinates (ra,dec).</p>
 <p>The distance is defined as</p>
 <p><span class="math notranslate nohighlight">\(d_{\rm Arc} = 2 \arcsin(d_{\rm Euclidean} / 2)\)</span></p>
@@ -149,11 +146,11 @@ And for three-point correlation functions with <code class="docutils literal not
 will be the true spherical-geometric angles between the great circles.</p>
 </section>
 <section id="rperp-or-fisherrperp">
-<span id="rperp"></span><h2>“Rperp” or “FisherRperp”<a class="headerlink" href="#rperp-or-fisherrperp" title="Permalink to this heading"></a></h2>
+<span id="rperp"></span><h2>“Rperp” or “FisherRperp”<a class="headerlink" href="#rperp-or-fisherrperp" title="Link to this heading"></a></h2>
 <p>This metric is only valid for 3-dimensional coordinates (ra,dec,r) or (x,y,z).</p>
 <p>The distance in this metric is defined as</p>
 <p><span class="math notranslate nohighlight">\(d_{\rm Rperp} = \sqrt{d_{\rm Euclidean}^2 - r_\parallel^2}\)</span></p>
-<p>where <span class="math notranslate nohighlight">\(r_\parallel\)</span> follows the defintion in Fisher et al, 1994 (MNRAS, 267, 927).
+<p>where <span class="math notranslate nohighlight">\(r_\parallel\)</span> follows the definition in Fisher et al, 1994 (MNRAS, 267, 927).
 Namely, if <span class="math notranslate nohighlight">\(p_1\)</span> and <span class="math notranslate nohighlight">\(p_2\)</span> are the vector positions from Earth for the
 two points, and</p>
 <p><span class="math notranslate nohighlight">\(L \equiv \frac{p1 + p2}{2}\)</span></p>
@@ -173,20 +170,20 @@ In this limit, the formula for <span class="math notranslate nohighlight">\(d\)<
 <p class="admonition-title">Warning</p>
 <p>Prior to version 4.0, the “Rperp” name meant what is now called “OldRperp”.
 The difference can be significant for some use cases, so if consistency across
-versions is importatnt to you, you should either switch to using “OldRperp”
+versions is important to you, you should either switch to using “OldRperp”
 or investigate whether the change to “FisherRperp” is important for your
 particular science case.</p>
 </div>
 </section>
 <section id="oldrperp">
-<h2>“OldRperp”<a class="headerlink" href="#oldrperp" title="Permalink to this heading"></a></h2>
+<h2>“OldRperp”<a class="headerlink" href="#oldrperp" title="Link to this heading"></a></h2>
 <p>This metric is only valid for 3-dimensional coordinates (ra,dec,r) or (x,y,z).</p>
 <p>This is the version of the Rperp metric that TreeCorr used in versions 3.x.
 In version 4.0, we switched the definition of <span class="math notranslate nohighlight">\(r_\parallel\)</span> to the one
 used by Fisher et al, 1994 (MNRAS, 267, 927).  The difference turns out to be
 non-trivial in some realistic use cases, so we preserve the ability to use the
 old version with this metric.</p>
-<p>Specifically, if <span class="math notranslate nohighlight">\(r_1\)</span> and <span class="math notranslate nohighlight">\(r_2\)</span> are the two distance from Earth,
+<p>Specifically, if <span class="math notranslate nohighlight">\(r_1\)</span> and <span class="math notranslate nohighlight">\(r_2\)</span> are the two distances from Earth,
 then this metric uses <span class="math notranslate nohighlight">\(r_\parallel \equiv r_2-r_1\)</span>.</p>
 <p>The distance is then defined as</p>
 <p><span class="math notranslate nohighlight">\(d_{\rm OldRperp} = \sqrt{d_{\rm Euclidean}^2 - r_\parallel^2}\)</span></p>
@@ -199,7 +196,7 @@ In this limit, the formula for <span class="math notranslate nohighlight">\(d\)<
 <p><span class="math notranslate nohighlight">\(d_{\rm OldRperp} \approx \left(\sqrt{r_1 r_2}\right) \theta\)</span></p>
 </section>
 <section id="rlens">
-<h2>“Rlens”<a class="headerlink" href="#rlens" title="Permalink to this heading"></a></h2>
+<h2>“Rlens”<a class="headerlink" href="#rlens" title="Link to this heading"></a></h2>
 <p>This metric is only valid when the first catalog uses 3-dimensional coordinates
 (ra,dec,r) or (x,y,z).  The second catalog (and the third in the 3-point case)
 may take either 3-d coordinates or spherical coordinates (ra,dec).</p>
@@ -217,7 +214,7 @@ However, if you want to use the <code class="docutils literal notranslate"><span
 then the source coordinates need to include r.</p>
 </section>
 <section id="periodic">
-<h2>“Periodic”<a class="headerlink" href="#periodic" title="Permalink to this heading"></a></h2>
+<h2>“Periodic”<a class="headerlink" href="#periodic" title="Link to this heading"></a></h2>
 <p>This metric is equivalent to the Euclidean metric for either 2-d or 3-d coordinate systems,
 except that the space is given periodic boundaries, and the distance between two
 points is taken to be the <em>smallest</em> distance in the periodically repeating space.
@@ -234,11 +231,11 @@ dz &amp;= \min \left(|z_2 - z_1|, L_z - |z_2-z_1| \right)\end{split}\]</div>
 <div class="math notranslate nohighlight">
 \[d_{\rm Periodic} = \sqrt{dx^2 + dy^2 + dz^2}\]</div>
 <p>Of course, for 2-dimensional coordinate systems, <span class="math notranslate nohighlight">\(dz = 0\)</span>.</p>
-<p>This metric is particularly relevant for data generated from N-body simuluations, which
+<p>This metric is particularly relevant for data generated from N-body simulations, which
 often use periodic boundary conditions.</p>
 </section>
 <section id="restrictions-on-the-line-of-sight-separation">
-<h2>Restrictions on the Line of Sight Separation<a class="headerlink" href="#restrictions-on-the-line-of-sight-separation" title="Permalink to this heading"></a></h2>
+<h2>Restrictions on the Line of Sight Separation<a class="headerlink" href="#restrictions-on-the-line-of-sight-separation" title="Link to this heading"></a></h2>
 <p>There are two additional parameters that are tightly connected to the metric space:
 <code class="docutils literal notranslate"><span class="pre">min_rpar</span></code> and <code class="docutils literal notranslate"><span class="pre">max_rpar</span></code>.
 These set the minimum and maximum values of <span class="math notranslate nohighlight">\(r_\parallel\)</span> for pairs to be included in the

@@ -1,22 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Shear Conventions &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2c218288"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -35,9 +35,6 @@
           <a href="index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -48,6 +45,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a></li>
@@ -65,7 +63,6 @@
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
@@ -95,7 +92,7 @@
            <div itemprop="articleBody">
              
   <section id="shear-conventions">
-<h1>Shear Conventions<a class="headerlink" href="#shear-conventions" title="Permalink to this heading"></a></h1>
+<h1>Shear Conventions<a class="headerlink" href="#shear-conventions" title="Link to this heading"></a></h1>
 <p>A shear field (or in general an arbitrary spin-2 complex field) is described by two real numbers
 in the input <a class="reference internal" href="catalog.html#treecorr.Catalog" title="treecorr.Catalog"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Catalog</span></code></a>, called <span class="math notranslate nohighlight">\(g_1\)</span> and <span class="math notranslate nohighlight">\(g_2\)</span>.
 The complex-valued <span class="math notranslate nohighlight">\(g\)</span> is defined as:</p>
@@ -109,7 +106,7 @@ That is, they transform as an ellipse or a “headless” line segment (where ne
 unlike a vector). When the coordinates are rotated by 180 degrees, the ellipse or line segment
 is mapped back onto itself, and the shear value is unchanged.</p>
 <section id="flat-geometries">
-<h2>Flat Geometries<a class="headerlink" href="#flat-geometries" title="Permalink to this heading"></a></h2>
+<h2>Flat Geometries<a class="headerlink" href="#flat-geometries" title="Link to this heading"></a></h2>
 <p>For flat two-dimensional geometries, the definition of the shear phase
 is fairly non-controversial.
 The standard definition holds that <span class="math notranslate nohighlight">\(g\)</span> is positive real when the
@@ -121,7 +118,7 @@ And it is negative imaginary when parallel to the line <span class="math notrans
 x-axis.</p>
 </section>
 <section id="spherical-geometries">
-<h2>Spherical Geometries<a class="headerlink" href="#spherical-geometries" title="Permalink to this heading"></a></h2>
+<h2>Spherical Geometries<a class="headerlink" href="#spherical-geometries" title="Link to this heading"></a></h2>
 <p>For spherical or 3-d geometries, things get somewhat more complicated, because there is
 no consistent orientation that would work for all locations on the sphere.
 At the location of any particular galaxy, one can define a local rectilinear coordinate system
@@ -133,13 +130,13 @@ to the right.  The measurement of the ellipticity of a galaxy involves rotating 
 local coordinates in the neighborhood of the galaxy such that north is oriented
 vertically, and then measuring the ellipticity in the normal way.</p>
 <p>With this convention, <span class="math notranslate nohighlight">\(g\)</span> is positive real when the shear is oriented
-in the local E-W direction.  It is negative real when oritented in the N-S direction.
+in the local E-W direction.  It is negative real when oriented in the N-S direction.
 It is positive imaginary when oriented along NW-SE.  And it is negative imaginary
 when oriented along NE-SW.</p>
 <img alt="_images/nw_shear.png" src="_images/nw_shear.png" />
 </section>
 <section id="options-to-adjust-the-convention">
-<h2>Options to adjust the convention<a class="headerlink" href="#options-to-adjust-the-convention" title="Permalink to this heading"></a></h2>
+<h2>Options to adjust the convention<a class="headerlink" href="#options-to-adjust-the-convention" title="Link to this heading"></a></h2>
 <p>Not all surveys and simulations conform to the above convention, particularly related
 to the sign of the two components.  The most common alternative is to align the axes
 with north still up, but as seen from space looking along the path of the light bundle
@@ -153,7 +150,7 @@ Setting <code class="docutils literal notranslate"><span class="pre">flip_g1=Tru
 the g1 values.  Similarly, <code class="docutils literal notranslate"><span class="pre">flip_g2=True</span></code> will flip the sign of all the g2 values.</p>
 </section>
 <section id="vectors">
-<h2>Vectors<a class="headerlink" href="#vectors" title="Permalink to this heading"></a></h2>
+<h2>Vectors<a class="headerlink" href="#vectors" title="Link to this heading"></a></h2>
 <p>All of the above discussion applies equally to the fields that have rotational properties with
 other spin values.  For instance, a vector field is a spin-1 complex field:</p>
 <div class="math notranslate nohighlight">

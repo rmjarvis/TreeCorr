@@ -1,20 +1,20 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>treecorr.corr3base &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2c218288"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -31,9 +31,6 @@
           <a href="../../index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,6 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
@@ -55,7 +53,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
@@ -119,7 +116,9 @@
 <span class="k">class</span> <span class="nc">Namespace</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="k">pass</span>
 
-<div class="viewcode-block" id="Corr3"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3">[docs]</a><span class="k">class</span> <span class="nc">Corr3</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+<div class="viewcode-block" id="Corr3">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3">[docs]</a>
+<span class="k">class</span> <span class="nc">Corr3</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class stores the results of a 3-point correlation calculation, along with some</span>
 <span class="sd">    ancillary data.</span>
 
@@ -134,7 +133,7 @@
 <span class="sd">    Three-point correlations are a bit more complicated than two-point, since the data need</span>
 <span class="sd">    to be binned in triangles, not just the separation between two points.</span>
 
-<span class="sd">    There are currenlty three different ways to quantify the triangle shapes.</span>
+<span class="sd">    There are currently three different ways to quantify the triangle shapes.</span>
 
 <span class="sd">    1. The triangle can be defined by its three side lengths (i.e. SSS congruence).</span>
 <span class="sd">       In this case, we characterize the triangles according to the following three parameters</span>
@@ -228,7 +227,7 @@
 
 <span class="sd">    See `Metrics` for more information about these various metric options.</span>
 
-<span class="sd">    There are three allowed value for the ``bin_type`` for three-point correlations.</span>
+<span class="sd">    There are three allowed values for the ``bin_type`` for three-point correlations.</span>
 
 <span class="sd">        - &#39;LogRUV&#39; uses the SSS description given above converted to r,u,v. The bin steps will be</span>
 <span class="sd">          uniform in log(r) from log(min_sep) .. log(max_sep).  The u and v values are binned</span>
@@ -337,15 +336,16 @@
 <span class="sd">    .. note::</span>
 
 <span class="sd">        If you separate out the steps of the `process` command and use `process_auto`</span>
-<span class="sd">        and/or `process_cross`, then the units will not be applied to ``meanr`` or</span>
-<span class="sd">        ``meanlogr`` until the ``finalize`` function is called.</span>
+<span class="sd">        and/or `process_cross`, then the units will not be applied to the ``meand*`` and</span>
+<span class="sd">        ``meanlogd*`` attributes until the ``finalize`` function is called.</span>
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        config (dict):      A configuration dict that can be used to pass in the below kwargs if</span>
-<span class="sd">                            desired.  This dict is allowed to have addition entries in addition</span>
-<span class="sd">                            to those listed below, which are ignored here. (default: None)</span>
-<span class="sd">        logger:             If desired, a logger object for logging. (default: None, in which case</span>
-<span class="sd">                            one will be built according to the config dict&#39;s verbose level.)</span>
+<span class="sd">                            desired.  This dict is allowed to have additional entries beyond</span>
+<span class="sd">                            those listed below, which are ignored here. (default: None)</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                            If desired, a ``Logger`` object for logging. (default: None, in which</span>
+<span class="sd">                            case one will be built according to the config dict&#39;s verbose level.)</span>
 
 <span class="sd">    Keyword Arguments:</span>
 
@@ -373,10 +373,10 @@
 <span class="sd">                            3-d or flat 2-d positions, the default will just match the units of</span>
 <span class="sd">                            x,y[,z] coordinates)</span>
 <span class="sd">        bin_slop (float):   How much slop to allow in the placement of triangles in the bins.</span>
-<span class="sd">                            If bin_slop = 1, then the bin into which a particular pair is placed</span>
+<span class="sd">                            If bin_slop = 1, then the bin into which a particular triangle is placed</span>
 <span class="sd">                            may be incorrect by at most 1.0 bin widths.  (default: None, which</span>
 <span class="sd">                            means to use a bin_slop that gives a maximum error of 10% on any bin,</span>
-<span class="sd">                            which has been found to yield good results for most application.)</span>
+<span class="sd">                            which has been found to yield good results for most applications.)</span>
 <span class="sd">        angle_slop (float): How much slop to allow in the angular direction. This works very</span>
 <span class="sd">                            similarly to bin_slop, but applies to the projection angle of a pair</span>
 <span class="sd">                            of cells. The projection angle for any two objects in a pair of cells</span>
@@ -396,8 +396,8 @@
 
 <span class="sd">        nphi_bins (int):    Analogous to nbins for the phi values when bin_type=LogSAS.  (The</span>
 <span class="sd">                            default is to calculate from phi_bin_size = bin_size, min_phi = 0,</span>
-<span class="sd">                            max_u = np.pi, but this can be overridden by specifying up to 3 of</span>
-<span class="sd">                            these four parametes.)</span>
+<span class="sd">                            max_phi = np.pi, but this can be overridden by specifying up to 3 of</span>
+<span class="sd">                            these four parameters.)</span>
 <span class="sd">        phi_bin_size (float): Analogous to bin_size for the phi values. (default: bin_size)</span>
 <span class="sd">        min_phi (float):    Analogous to min_sep for the phi values. (default: 0)</span>
 <span class="sd">        max_phi (float):    Analogous to max_sep for the phi values. (default: np.pi)</span>
@@ -411,15 +411,15 @@
 
 <span class="sd">        nubins (int):       Analogous to nbins for the u values when bin_type=LogRUV.  (The default</span>
 <span class="sd">                            is to calculate from ubin_size = bin_size, min_u = 0, max_u = 1, but</span>
-<span class="sd">                            this can be overridden by specifying up to 3 of these four parametes.)</span>
+<span class="sd">                            this can be overridden by specifying up to 3 of these four parameters.)</span>
 <span class="sd">        ubin_size (float):  Analogous to bin_size for the u values. (default: bin_size)</span>
 <span class="sd">        min_u (float):      Analogous to min_sep for the u values. (default: 0)</span>
 <span class="sd">        max_u (float):      Analogous to max_sep for the u values. (default: 1)</span>
 
-<span class="sd">        nvbins (int):       Analogous to nbins for the positive v values when bin__type=LogRUV.</span>
+<span class="sd">        nvbins (int):       Analogous to nbins for the positive v values when bin_type=LogRUV.</span>
 <span class="sd">                            (The default is to calculate from vbin_size = bin_size, min_v = 0,</span>
 <span class="sd">                            max_v = 1, but this can be overridden by specifying up to 3 of these</span>
-<span class="sd">                            four parametes.)</span>
+<span class="sd">                            four parameters.)</span>
 <span class="sd">        vbin_size (float):  Analogous to bin_size for the v values. (default: bin_size)</span>
 <span class="sd">        min_v (float):      Analogous to min_sep for the positive v values. (default: 0)</span>
 <span class="sd">        max_v (float):      Analogous to max_sep for the positive v values. (default: 1)</span>
@@ -434,7 +434,7 @@
 
 <span class="sd">        log_file (str):     If no logger is provided, this will specify a file to write the logging</span>
 <span class="sd">                            output.  (default: None; i.e. output to standard output)</span>
-<span class="sd">        output_dots (bool): Whether to output progress dots during the calcualtion of the</span>
+<span class="sd">        output_dots (bool): Whether to output progress dots during the calculation of the</span>
 <span class="sd">                            correlation function. (default: False unless verbose is given and &gt;= 2,</span>
 <span class="sd">                            in which case True)</span>
 
@@ -480,11 +480,12 @@
 <span class="sd">                            (default: &#39;shot&#39;)</span>
 <span class="sd">        num_bootstrap (int): How many bootstrap samples to use for the &#39;bootstrap&#39; and</span>
 <span class="sd">                            &#39;marked_bootstrap&#39; var_methods.  (default: 500)</span>
-<span class="sd">        cross_patch_weight (str): How to weight pairs that cross between two patches when one patch</span>
-<span class="sd">                            is deselected (e.g. in a jackknife sense) and the other is selected.</span>
-<span class="sd">                            (default None)</span>
-<span class="sd">        rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap</span>
-<span class="sd">                            random number generation. (default: None)</span>
+<span class="sd">        cross_patch_weight (str): How to weight triangles that cross between two patches when</span>
+<span class="sd">                            one patch is deselected (e.g. in a jackknife sense) and the other</span>
+<span class="sd">                            is selected. (default None)</span>
+<span class="sd">        rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                            If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                            bootstrap random number generation. (default: None)</span>
 
 <span class="sd">        num_threads (int):  How many OpenMP threads to use during the calculation.</span>
 <span class="sd">                            (default: use the number of cpu cores; this value can also be given in</span>
@@ -591,7 +592,7 @@
                 <span class="s1">&#39;How many bootstrap samples to use for the var_method=bootstrap and &#39;</span>
                 <span class="s1">&#39;marked_bootstrap&#39;</span><span class="p">),</span>
         <span class="s1">&#39;cross_patch_weight&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;simple&#39;</span><span class="p">,</span> <span class="s1">&#39;mean&#39;</span><span class="p">,</span> <span class="s1">&#39;match&#39;</span><span class="p">,</span> <span class="s1">&#39;geom&#39;</span><span class="p">],</span>
-                <span class="s1">&#39;How to weight pairs that cross between a selected and unselected patch&#39;</span><span class="p">),</span>
+                <span class="s1">&#39;How to weight triangles that cross between selected and unselected patches&#39;</span><span class="p">),</span>
         <span class="s1">&#39;num_threads&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">int</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
                 <span class="s1">&#39;How many threads should be used. num_threads &lt;= 0 means auto based on num cores.&#39;</span><span class="p">),</span>
     <span class="p">}</span>
@@ -806,7 +807,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">bin_slop</span> <span class="o">=</span> <span class="mf">1.0</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">bin_slop</span> <span class="o">=</span> <span class="mf">0.1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span>  <span class="c1"># The stored bin_slop corresponds to lnr bins.</span>
+                <span class="c1"># The stored bin_slop corresponds to lnr bins.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">bin_slop</span> <span class="o">=</span> <span class="mf">0.1</span><span class="o">/</span><span class="bp">self</span><span class="o">.</span><span class="n">bin_size</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="mf">0.1</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">==</span> <span class="s1">&#39;LogRUV&#39;</span><span class="p">:</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">ubin_size</span> <span class="o">&lt;=</span> <span class="mf">0.1</span><span class="p">:</span>
@@ -1300,7 +1302,9 @@
                 <span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ntri</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">ntri</span><span class="p">)</span> <span class="ow">and</span>
                 <span class="nb">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array_equal</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">other</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">8</span><span class="p">)))</span>
 
-<div class="viewcode-block" id="Corr3.copy"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Corr3.copy">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make a copy&quot;&quot;&quot;</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">item</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -1315,6 +1319,7 @@
         <span class="n">ret</span><span class="o">.</span><span class="n">_z</span> <span class="o">=</span> <span class="p">[</span><span class="n">zi</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">zi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">]</span>
         <span class="n">ret</span><span class="o">.</span><span class="n">_corr</span> <span class="o">=</span> <span class="kc">None</span> <span class="c1"># We&#39;ll want to make a new one of these if we need it.</span>
         <span class="k">return</span> <span class="n">ret</span></div>
+
 
     <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">kwargs</span> <span class="o">=</span> <span class="n">make_minimal_config</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">Corr3</span><span class="o">.</span><span class="n">_valid_params</span><span class="p">)</span>
@@ -1335,13 +1340,16 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span> <span class="o">=</span> <span class="n">setup_logger</span><span class="p">(</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span><span class="s1">&#39;verbose&#39;</span><span class="p">,</span><span class="nb">int</span><span class="p">,</span><span class="mi">1</span><span class="p">),</span>
                                        <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;log_file&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_logger_name</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Corr3.clear"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.clear">[docs]</a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Corr3.clear">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.clear">[docs]</a>
+    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Clear all data vectors, the results dict, and any related values.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_clear</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch3</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_ok&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">nonzero</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1446,7 +1454,7 @@
 
             <span class="c1"># Now the tricky part.  If using MPI, we need to divide up the jobs smartly.</span>
             <span class="c1"># The first point is to divvy up the auto jobs evenly.  This is where most of the</span>
-            <span class="c1"># work is done, so we want those to be spreads as evenly as possibly across procs.</span>
+            <span class="c1"># work is done, so we want those to be spread as evenly as possible across procs.</span>
             <span class="c1"># Therefore, if all indices are mine, then do the job.</span>
             <span class="c1"># This reduces the number of catalogs this machine needs to load up.</span>
             <span class="n">n1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">i</span> <span class="ow">in</span> <span class="n">my_indices</span><span class="p">,</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">my_indices</span><span class="p">,</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">my_indices</span><span class="p">])</span>
@@ -1640,7 +1648,8 @@
                                 <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_letter1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_letter2</span><span class="p">):</span>
                             <span class="n">c1e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_expanded_patch</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
                             <span class="n">c2e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_expanded_patch</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Process patch </span><span class="si">%d</span><span class="s1"> from cat2 with surrounding local patches&#39;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                                <span class="s1">&#39;Process patch </span><span class="si">%d</span><span class="s1"> from cat2 with surrounding local patches&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_single_process123</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span> <span class="n">c1e</span><span class="p">,</span> <span class="n">c2e</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">),</span> <span class="n">metric</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span>
                                                     <span class="n">num_threads</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
                             <span class="k">if</span> <span class="n">low_mem</span><span class="p">:</span>
@@ -1877,7 +1886,8 @@
                                 <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_letter1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_letter2</span><span class="p">):</span>
                             <span class="n">c1e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_expanded_patch</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
                             <span class="n">c3e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_expanded_patch</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span> <span class="n">cat3</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Process patch </span><span class="si">%d</span><span class="s1"> from cat2 with surrounding local patches&#39;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                                <span class="s1">&#39;Process patch </span><span class="si">%d</span><span class="s1"> from cat2 with surrounding local patches&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_single_process123</span><span class="p">(</span><span class="n">c2</span><span class="p">,</span> <span class="n">c1e</span><span class="p">,</span> <span class="n">c3e</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">),</span> <span class="n">metric</span><span class="p">,</span>
                                                     <span class="mi">1</span> <span class="k">if</span> <span class="n">ordered</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">4</span><span class="p">,</span>
                                                     <span class="n">num_threads</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
@@ -1890,7 +1900,8 @@
                                 <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_letter1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_letter3</span><span class="p">):</span>
                             <span class="n">c1e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_expanded_patch</span><span class="p">(</span><span class="n">c3</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
                             <span class="n">c2e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_make_expanded_patch</span><span class="p">(</span><span class="n">c3</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">)</span>
-                            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Process patch </span><span class="si">%d</span><span class="s1"> from cat3 with surrounding local patches&#39;</span><span class="p">,</span><span class="n">i</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span>
+                                <span class="s1">&#39;Process patch </span><span class="si">%d</span><span class="s1"> from cat3 with surrounding local patches&#39;</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">_single_process123</span><span class="p">(</span><span class="n">c3</span><span class="p">,</span> <span class="n">c2e</span><span class="p">,</span> <span class="n">c1e</span><span class="p">,</span> <span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">),</span> <span class="n">metric</span><span class="p">,</span>
                                                     <span class="mi">1</span> <span class="k">if</span> <span class="n">ordered</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">4</span><span class="p">,</span>
                                                     <span class="n">num_threads</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">,</span> <span class="n">temp</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
@@ -1927,7 +1938,9 @@
                         <span class="bp">self</span> <span class="o">+=</span> <span class="n">temp</span>
                         <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">temp</span><span class="o">.</span><span class="n">results</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Corr3.getStat"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.getStat">[docs]</a>    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="Corr3.getStat">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.getStat">[docs]</a>
+    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The standard statistic for the current correlation object as a 1-d array.</span>
 
 <span class="sd">        Usually, this is just self.zeta.  But in case we have a multi-dimensional array</span>
@@ -1938,7 +1951,10 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">zeta</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="Corr3.getWeight"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.getWeight">[docs]</a>    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Corr3.getWeight">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.getWeight">[docs]</a>
+    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The weight array for the current correlation object as a 1-d array.</span>
 
 <span class="sd">        This is the weight array corresponding to `getStat`. Usually just self.weight.ravel(),</span>
@@ -1948,7 +1964,10 @@
         <span class="c1"># but for LogMultipole, the absolute value is what we want.</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">ravel</span><span class="p">())</span></div>
 
-<div class="viewcode-block" id="Corr3.process_auto"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.process_auto">[docs]</a>    <span class="k">def</span> <span class="nf">process_auto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+
+<div class="viewcode-block" id="Corr3.process_auto">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.process_auto">[docs]</a>
+    <span class="k">def</span> <span class="nf">process_auto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a single catalog, accumulating the auto-correlation.</span>
 
 <span class="sd">        This accumulates the auto-correlation for the given catalog.  After</span>
@@ -1991,14 +2010,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Starting </span><span class="si">%d</span><span class="s1"> jobs.&#39;</span><span class="p">,</span><span class="n">field</span><span class="o">.</span><span class="n">nTopLevelNodes</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="o">.</span><span class="n">processAuto</span><span class="p">(</span><span class="n">field</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span> <span class="nb">bool</span><span class="p">(</span><span class="n">corr_only</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Corr3.process_cross12"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.process_cross12">[docs]</a>    <span class="k">def</span> <span class="nf">process_cross12</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Corr3.process_cross12">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.process_cross12">[docs]</a>
+    <span class="k">def</span> <span class="nf">process_cross12</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                         <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Process two catalogs, accumulating the 3pt cross-correlation, where one of the</span>
 <span class="sd">        points in each triangle come from the first catalog, and two come from the second.</span>
 
 <span class="sd">        This accumulates the cross-correlation for the given catalogs as part of a larger</span>
 <span class="sd">        auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into</span>
-<span class="sd">        patches, this is appropriate to use for the cross correlation between different patches</span>
+<span class="sd">        patches, this is appropriate to use for the cross-correlation between different patches</span>
 <span class="sd">        as part of the complete auto-correlation of the full catalog.</span>
 
 <span class="sd">        This method is only valid for classes that have the same type of value in vertices</span>
@@ -2050,14 +2072,17 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="o">.</span><span class="n">processCross12</span><span class="p">(</span><span class="n">f1</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">ocode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span>
                                  <span class="nb">bool</span><span class="p">(</span><span class="n">corr_only</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Corr3.process_cross21"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.process_cross21">[docs]</a>    <span class="k">def</span> <span class="nf">process_cross21</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Corr3.process_cross21">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.process_cross21">[docs]</a>
+    <span class="k">def</span> <span class="nf">process_cross21</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                         <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Process two catalogs, accumulating the 3pt cross-correlation, where two of the</span>
 <span class="sd">        points in each triangle come from the first catalog, and one comes from the second.</span>
 
 <span class="sd">        This accumulates the cross-correlation for the given catalogs as part of a larger</span>
 <span class="sd">        auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into</span>
-<span class="sd">        patches, this is appropriate to use for the cross correlation between different patches</span>
+<span class="sd">        patches, this is appropriate to use for the cross-correlation between different patches</span>
 <span class="sd">        as part of the complete auto-correlation of the full catalog.</span>
 
 <span class="sd">        This method is only valid for classes that have the same type of value in vertices</span>
@@ -2109,13 +2134,16 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="o">.</span><span class="n">processCross21</span><span class="p">(</span><span class="n">f1</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">ocode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span>
                                  <span class="nb">bool</span><span class="p">(</span><span class="n">corr_only</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Corr3.process_cross"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.process_cross">[docs]</a>    <span class="k">def</span> <span class="nf">process_cross</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat3</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Corr3.process_cross">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.process_cross">[docs]</a>
+    <span class="k">def</span> <span class="nf">process_cross</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat3</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                       <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Process a set of three catalogs, accumulating the 3pt cross-correlation.</span>
 
 <span class="sd">        This accumulates the cross-correlation for the given catalogs as part of a larger</span>
 <span class="sd">        auto- or cross-correlation calculation.  E.g. when splitting up a large catalog into</span>
-<span class="sd">        patches, this is appropriate to use for the cross correlation between different patches</span>
+<span class="sd">        patches, this is appropriate to use for the cross-correlation between different patches</span>
 <span class="sd">        as part of the complete auto-correlation of the full catalog.</span>
 
 <span class="sd">        Parameters:</span>
@@ -2168,7 +2196,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">corr</span><span class="o">.</span><span class="n">processCross</span><span class="p">(</span><span class="n">f1</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f2</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">f3</span><span class="o">.</span><span class="n">data</span><span class="p">,</span> <span class="n">ocode</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_dots</span><span class="p">,</span>
                                <span class="nb">bool</span><span class="p">(</span><span class="n">corr_only</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_metric</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Corr3.process"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.process">[docs]</a>    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cat3</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Corr3.process">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.process">[docs]</a>
+    <span class="k">def</span> <span class="nf">process</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cat3</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">low_mem</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">initialize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">finalize</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                 <span class="n">patch_method</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">algo</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">max_n</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute the 3pt correlation function.</span>
@@ -2180,7 +2211,7 @@
 
 <span class="sd">        .. note::</span>
 
-<span class="sd">            For cross correlations where the third field type is different from the other two</span>
+<span class="sd">            For cross-correlations where the third field type is different from the other two</span>
 <span class="sd">            (e.g. KKG, NNG, etc.) then the 2 argument version will use the first catalog</span>
 <span class="sd">            for first two vertices and the second for the third vertex, since that&#39;s the</span>
 <span class="sd">            only valid combination for those correlation types.</span>
@@ -2189,10 +2220,10 @@
 <span class="sd">            except it will be slightly more efficient, since it knows the first two vertices</span>
 <span class="sd">            are from a single field.</span>
 
-<span class="sd">        For cross correlations, the default behavior is to use cat1 for the first vertex (P1),</span>
+<span class="sd">        For cross-correlations, the default behavior is to use cat1 for the first vertex (P1),</span>
 <span class="sd">        cat2 for the second vertex (P2), and cat3 for the third vertex (P3).  If only two</span>
 <span class="sd">        catalogs are given, vertices P2 and P3 both come from cat2.  The sides d1, d2, d3,</span>
-<span class="sd">        used to define the binning, are taken to be opposte P1, P2, P3 respectively.</span>
+<span class="sd">        used to define the binning, are taken to be opposite P1, P2, P3 respectively.</span>
 
 <span class="sd">        However, if you want to accumulate triangles where objects from each catalog can take</span>
 <span class="sd">        any position in the triangles, you can set ``ordered=False``.  In this case, triangles</span>
@@ -2234,7 +2265,8 @@
 <span class="sd">            num_threads (int):  How many OpenMP threads to use during the calculation.</span>
 <span class="sd">                                (default: use the number of cpu cores; this value can also be given</span>
 <span class="sd">                                in the constructor in the config dict.)</span>
-<span class="sd">            comm (mpi4py.Comm): If running MPI, an mpi4py Comm object to communicate between</span>
+<span class="sd">            comm (:class:`mpi4py.MPI.Comm`):</span>
+<span class="sd">                                If running MPI, a ``Comm`` object to communicate between</span>
 <span class="sd">                                processes.  If used, the rank=0 process will have the final</span>
 <span class="sd">                                computation. This only works if using patches. (default: None)</span>
 <span class="sd">            low_mem (bool):     Whether to sacrifice a little speed to try to reduce memory usage.</span>
@@ -2248,7 +2280,7 @@
 <span class="sd">            algo (str):         Which accumulation algorithm to use. (options are &#39;triangle&#39; or</span>
 <span class="sd">                                &#39;multipole&#39;; default is &#39;multipole&#39; unless bin_type is &#39;LogRUV&#39;,</span>
 <span class="sd">                                which can only use &#39;triangle&#39;)  cf. `Three-point Algorithm`.</span>
-<span class="sd">            max_n (int):        If using the multpole algorithm, and this is not directly using</span>
+<span class="sd">            max_n (int):        If using the multipole algorithm, and this is not directly using</span>
 <span class="sd">                                bin_type=&#39;LogMultipole&#39;, then this is the value of max_n to use</span>
 <span class="sd">                                for the multipole part of the calculation. (default is to use</span>
 <span class="sd">                                2pi/phi_bin_size; this value can also be given in the constructor</span>
@@ -2309,7 +2341,8 @@
 
         <span class="k">if</span> <span class="n">cat2</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_letter1</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_letter2</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">_letter3</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> cannot use one catalog version of process&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_letters</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> cannot use one catalog version of process&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_letters</span><span class="p">))</span>
             <span class="k">if</span> <span class="n">cat3</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;For two catalog case, use cat1,cat2, not cat1,cat3&quot;</span><span class="p">)</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">ordered</span> <span class="ow">is</span> <span class="kc">True</span> <span class="ow">or</span> <span class="n">ordered</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">):</span>
@@ -2325,7 +2358,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_process_all_cross21</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">ordered</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">,</span>
                                           <span class="n">comm</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">,</span> <span class="n">local</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> cannot use two catalog version of process&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_letters</span><span class="p">))</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">{}</span><span class="s2"> cannot use two catalog version of process&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_letters</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_process_all_cross</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat3</span><span class="p">,</span> <span class="n">metric</span><span class="p">,</span> <span class="n">ordered</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">,</span>
                                     <span class="n">comm</span><span class="p">,</span> <span class="n">low_mem</span><span class="p">,</span> <span class="n">local</span><span class="p">)</span>
@@ -2386,6 +2420,7 @@
 
             <span class="n">finalize_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="p">[</span><span class="n">var1</span><span class="p">,</span> <span class="n">var2</span><span class="p">,</span> <span class="n">var3</span><span class="p">]</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">]</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">finalize</span><span class="p">(</span><span class="o">*</span><span class="n">finalize_args</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">_finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">mask1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weightr</span> <span class="o">!=</span> <span class="mi">0</span>
@@ -2628,7 +2663,9 @@
                     <span class="n">phases</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">g1phase</span><span class="p">)</span> <span class="o">*</span> <span class="n">g2phase</span> <span class="o">*</span> <span class="n">g3phase</span>
         <span class="k">return</span> <span class="n">phases</span>
 
-<div class="viewcode-block" id="Corr3.toSAS"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.toSAS">[docs]</a>    <span class="k">def</span> <span class="nf">toSAS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="Corr3.toSAS">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.toSAS">[docs]</a>
+    <span class="k">def</span> <span class="nf">toSAS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a multipole-binned correlation to the corresponding SAS binning.</span>
 
 <span class="sd">        This is only valid for bin_type == LogMultipole.</span>
@@ -2636,7 +2673,7 @@
 <span class="sd">        Keyword Arguments:</span>
 <span class="sd">            target:     A target Correlation object with LogSAS binning to write to.</span>
 <span class="sd">                        If this is not given, a new object will be created based on the</span>
-<span class="sd">                        configuration paramters of the current object. (default: None)</span>
+<span class="sd">                        configuration parameters of the current object. (default: None)</span>
 <span class="sd">            **kwargs:   Any kwargs that you want to use to configure the returned object.</span>
 <span class="sd">                        Typically, might include min_phi, max_phi, nphi_bins, phi_bin_size.</span>
 <span class="sd">                        The default phi binning is [0,pi] with nphi_bins = self.max_n.</span>
@@ -2645,7 +2682,7 @@
 <span class="sd">            An object with bin_type=LogSAS containing the same information as this object,</span>
 <span class="sd">            but with the SAS binning.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="c1"># Each class will add a bit to this.  The implemenation here is the common code</span>
+        <span class="c1"># Each class will add a bit to this.  The implementation here is the common code</span>
         <span class="c1"># that applies to all the different classes.</span>
 
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="o">!=</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">:</span>
@@ -2753,7 +2790,10 @@
 
         <span class="k">return</span> <span class="n">sas</span></div>
 
-<div class="viewcode-block" id="Corr3.estimate_cov"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.estimate_cov">[docs]</a>    <span class="k">def</span> <span class="nf">estimate_cov</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Corr3.estimate_cov">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.estimate_cov">[docs]</a>
+    <span class="k">def</span> <span class="nf">estimate_cov</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                      <span class="n">cross_patch_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Estimate the covariance matrix based on the data</span>
 
@@ -2786,8 +2826,8 @@
 <span class="sd">        triangles that cross between two or three patches are weighted when some, but not all</span>
 <span class="sd">        of the patches are selected.  See Mohammad and Percival (2021)</span>
 <span class="sd">        (https://arxiv.org/abs/2109.07071) for an in-depth discussion of these options for</span>
-<span class="sd">        two-point statistics.  We use a similar definitions for three-point statistics.</span>
-<span class="sd">        Briefly the options are: (TODO!  This is aspirational so far.)</span>
+<span class="sd">        two-point statistics. We use a similar set of definitions for three-point statistics.</span>
+<span class="sd">        Briefly the options are:</span>
 
 <span class="sd">            - &#39;simple&#39; = Don&#39;t use any triangles where any object is in a deselected patch.</span>
 <span class="sd">              This is currently the default for all methods.</span>
@@ -2843,15 +2883,15 @@
 <span class="sd">            func (function):    A unary function that acts on the current correlation object and</span>
 <span class="sd">                                returns the desired data vector. (default: None, which is</span>
 <span class="sd">                                equivalent to ``lambda corr: corr.getStat()``)</span>
-<span class="sd">            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between</span>
+<span class="sd">            comm (:class:`mpi4py.MPI.Comm`):</span>
+<span class="sd">                                If using MPI, a ``Comm`` object to communicate between</span>
 <span class="sd">                                processes.  (default: None)</span>
 <span class="sd">            num_bootstrap (int): How many bootstrap samples to use for the &#39;bootstrap&#39; and</span>
 <span class="sd">                                &#39;marked_bootstrap&#39; var_methods.  (default: 500; this value</span>
 <span class="sd">                                can also be given in the constructor.)</span>
-<span class="sd">            cross_patch_weight (str): How to weight pairs that cross between two patches when one</span>
-<span class="sd">                                patch is deselected (e.g. in a jackknife sense) and the other is</span>
-<span class="sd">                                selected.  (default &#39;simple&#39;; this value can also be given in</span>
-<span class="sd">                                the constructor.)</span>
+<span class="sd">            cross_patch_weight (str): How to weight triangles that span selected and</span>
+<span class="sd">                                deselected patches.  (default &#39;simple&#39;; this value can also be</span>
+<span class="sd">                                given in the constructor.)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A numpy array with the estimated covariance matrix.</span>
@@ -2867,7 +2907,10 @@
                                   <span class="n">num_bootstrap</span><span class="o">=</span><span class="n">num_bootstrap</span><span class="p">,</span>
                                   <span class="n">cross_patch_weight</span><span class="o">=</span><span class="n">cross_patch_weight</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Corr3.build_cov_design_matrix"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.build_cov_design_matrix">[docs]</a>    <span class="k">def</span> <span class="nf">build_cov_design_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="Corr3.build_cov_design_matrix">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.build_cov_design_matrix">[docs]</a>
+    <span class="k">def</span> <span class="nf">build_cov_design_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                                 <span class="n">cross_patch_weight</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Build the design matrix that is used for estimating the covariance matrix.</span>
 
@@ -2875,7 +2918,7 @@
 <span class="sd">        corresponds to a different estimate of the data vector, :math:`\zeta_i` (or</span>
 <span class="sd">        :math:`f(\zeta_i)` if using the optional ``func`` parameter).</span>
 
-<span class="sd">        The different of rows in the matrix for each valid ``method`` are:</span>
+<span class="sd">        The different rows in the matrix for each valid ``method`` are:</span>
 
 <span class="sd">            - &#39;shot&#39;: This method is not valid here.</span>
 <span class="sd">            - &#39;jackknife&#39;: The data vector when excluding a single patch.</span>
@@ -2896,18 +2939,18 @@
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            method (str):       Which method to use to estimate the covariance matrix.</span>
-<span class="sd">            func (function):    A unary function that takes the list ``corrs`` and returns the</span>
-<span class="sd">                                desired full data vector. (default: None, which is equivalent to</span>
-<span class="sd">                                ``lambda corrs: np.concatenate([c.getStat() for c in corrs])``)</span>
-<span class="sd">            comm (mpi4py.Comm): If using MPI, an mpi4py Comm object to communicate between</span>
+<span class="sd">            func (function):    A unary function that acts on the current correlation object and</span>
+<span class="sd">                                returns the desired data vector. (default: None, which is</span>
+<span class="sd">                                equivalent to ``lambda corr: corr.getStat()``)</span>
+<span class="sd">            comm (:class:`mpi4py.MPI.Comm`):</span>
+<span class="sd">                                If using MPI, a ``Comm`` object to communicate between</span>
 <span class="sd">                                processes.  (default: None)</span>
 <span class="sd">            num_bootstrap (int): How many bootstrap samples to use for the &#39;bootstrap&#39; and</span>
 <span class="sd">                                &#39;marked_bootstrap&#39; var_methods.  (default: 500; this value</span>
 <span class="sd">                                can also be given in the constructor.)</span>
-<span class="sd">            cross_patch_weight (str): How to weight pairs that cross between two patches when one</span>
-<span class="sd">                                patch is deselected (e.g. in a jackknife sense) and the other is</span>
-<span class="sd">                                selected.  (default &#39;simple&#39;; this value can also be given in the</span>
-<span class="sd">                                constructor.)</span>
+<span class="sd">            cross_patch_weight (str): How to weight triangles that span selected and</span>
+<span class="sd">                                deselected patches.  (default &#39;simple&#39;; this value can also be</span>
+<span class="sd">                                given in the constructor.)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A, w: numpy arrays with the design matrix and weights respectively.</span>
@@ -2922,6 +2965,7 @@
         <span class="k">return</span> <span class="n">build_multi_cov_design_matrix</span><span class="p">([</span><span class="bp">self</span><span class="p">],</span> <span class="n">method</span><span class="o">=</span><span class="n">method</span><span class="p">,</span> <span class="n">func</span><span class="o">=</span><span class="n">all_func</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span>
                                              <span class="n">num_bootstrap</span><span class="o">=</span><span class="n">num_bootstrap</span><span class="p">,</span>
                                              <span class="n">cross_patch_weight</span><span class="o">=</span><span class="n">cross_patch_weight</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">_set_num_threads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">num_threads</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">num_threads</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -3524,7 +3568,9 @@
         <span class="k">if</span> <span class="n">write_cov</span><span class="p">:</span>
             <span class="n">writer</span><span class="o">.</span><span class="n">write_array</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cov</span><span class="p">,</span> <span class="n">ext</span><span class="o">=</span><span class="s1">&#39;cov&#39;</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Corr3.write"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="Corr3.write">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
               <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Write the correlation function to the file, file_name.</span>
 
@@ -3596,7 +3642,7 @@
 <span class="sd">            file_name (str):    The name of the file to write to.</span>
 <span class="sd">            file_type (str):    The type of file to write (&#39;ASCII&#39; or &#39;FITS&#39;).  (default: determine</span>
 <span class="sd">                                the type automatically from the extension of file_name.)</span>
-<span class="sd">            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;</span>
+<span class="sd">            precision (int):    For ASCII output files, the desired precision. (default: 4;</span>
 <span class="sd">                                this value can also be given in the constructor in the config dict.)</span>
 <span class="sd">            write_patch_results (bool): Whether to write the patch-based results as well.</span>
 <span class="sd">                                        (default: False)</span>
@@ -3606,6 +3652,7 @@
         <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;precision&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">precision</span>
         <span class="k">with</span> <span class="n">make_writer</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">file_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="o">=</span><span class="n">write_cov</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reader</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;main&#39;</span> <span class="k">if</span> <span class="s1">&#39;main&#39;</span> <span class="ow">in</span> <span class="n">reader</span> <span class="ow">and</span> <span class="n">name</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">name</span>
@@ -3621,7 +3668,8 @@
         <span class="c1"># Version 5.0 used weight_re, weight_im.  These are now weightr, weighti.</span>
         <span class="c1"># Fix in place to keep backwards compatibility.</span>
         <span class="k">if</span> <span class="s1">&#39;weight_re&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">names</span><span class="p">:</span>
-            <span class="n">dt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([(</span><span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_re&#39;</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_im&#39;</span><span class="p">,</span><span class="s1">&#39;i&#39;</span><span class="p">),</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span><span class="n">t</span><span class="p">)</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">descr</span><span class="p">])</span>
+            <span class="n">dt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dtype</span><span class="p">([(</span><span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_re&#39;</span><span class="p">,</span><span class="s1">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_im&#39;</span><span class="p">,</span><span class="s1">&#39;i&#39;</span><span class="p">),</span> <span class="n">t</span><span class="p">)</span>
+                           <span class="k">for</span> <span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">dtype</span><span class="o">.</span><span class="n">descr</span><span class="p">])</span>
             <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
 
         <span class="c1"># This helper function defines how to set the attributes for each class</span>
@@ -3674,7 +3722,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;npatch2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">npatch3</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;npatch3&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
-<div class="viewcode-block" id="Corr3.read"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="Corr3.read">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.read">[docs]</a>
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read in values from a file.</span>
 
 <span class="sd">        This should be a file that was written by TreeCorr, preferably a FITS or HDF5 file, so</span>
@@ -3697,7 +3747,10 @@
         <span class="k">with</span> <span class="n">make_reader</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Corr3.from_file"><a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.from_file">[docs]</a>    <span class="nd">@classmethod</span>
+
+<div class="viewcode-block" id="Corr3.from_file">
+<a class="viewcode-back" href="../../correlation3.html#treecorr.Corr3.from_file">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create a new instance from an output file.</span>
 
@@ -3716,9 +3769,11 @@
 <span class="sd">            file_name (str):    The name of the file to read in.</span>
 <span class="sd">            file_type (str):    The type of file (&#39;ASCII&#39;, &#39;FITS&#39;, or &#39;HDF&#39;).  (default: determine</span>
 <span class="sd">                                the type automatically from the extension of file_name.)</span>
-<span class="sd">            logger (Logger):    If desired, a logger object to use for logging. (default: None)</span>
-<span class="sd">            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap</span>
-<span class="sd">                                random number generation. (default: None)</span>
+<span class="sd">            logger (:class:`logging.Logger`):</span>
+<span class="sd">                                If desired, a ``Logger`` object to use for logging. (default: None)</span>
+<span class="sd">            rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                                If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                                bootstrap random number generation. (default: None)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            A Correlation object, constructed from the information in the file.</span>
@@ -3748,7 +3803,9 @@
             <span class="n">corr</span> <span class="o">=</span> <span class="bp">cls</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="n">rng</span><span class="p">)</span>
             <span class="n">corr</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="sa">f</span><span class="s1">&#39;Reading </span><span class="si">{</span><span class="bp">cls</span><span class="o">.</span><span class="n">_letters</span><span class="si">}</span><span class="s1"> correlations from %s&#39;</span><span class="p">,</span> <span class="n">file_name</span><span class="p">)</span>
             <span class="n">corr</span><span class="o">.</span><span class="n">_read</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">corr</span></div></div>
+        <span class="k">return</span> <span class="n">corr</span></div>
+</div>
+
 </pre></div>
 
            </div>

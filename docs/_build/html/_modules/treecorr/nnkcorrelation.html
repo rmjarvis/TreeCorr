@@ -1,20 +1,20 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>treecorr.nnkcorrelation &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2c218288"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -31,9 +31,6 @@
           <a href="../../index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,6 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
@@ -55,7 +53,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
@@ -109,7 +106,9 @@
 <span class="kn">from</span> <span class="nn">.corr3base</span> <span class="kn">import</span> <span class="n">Corr3</span>
 
 
-<div class="viewcode-block" id="KNNCorrelation"><a class="viewcode-back" href="../../nnk.html#treecorr.KNNCorrelation">[docs]</a><span class="k">class</span> <span class="nc">KNNCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
+<div class="viewcode-block" id="KNNCorrelation">
+<a class="viewcode-back" href="../../nnk.html#treecorr.KNNCorrelation">[docs]</a>
+<span class="k">class</span> <span class="nc">KNNCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 3-point scalar-count-count correlation</span>
 <span class="sd">    function.</span>
 
@@ -117,7 +116,7 @@
 <span class="sd">    scalar value.  Use `NKNCorrelation` and `NNKCorrelation` for classes with the scalar in the</span>
 <span class="sd">    other two positions.</span>
 
-<span class="sd">    See the doc string of `Corr3` for a description of how the triangles are binned along</span>
+<span class="sd">    See the docstring of `Corr3` for a description of how the triangles are binned along</span>
 <span class="sd">    with the attributes related to the different binning options.</span>
 
 <span class="sd">    In addition to the attributes common to all `Corr3` subclasses, objects of this class</span>
@@ -125,27 +124,31 @@
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        zeta:       The correlation function, :math:`\zeta`.</span>
-<span class="sd">        varzeta:    The variance estimate, only including the shot noise propagated into the</span>
-<span class="sd">                    final correlation.</span>
+<span class="sd">        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
 
 <span class="sd">    The typical usage pattern is as follows:</span>
 
 <span class="sd">        &gt;&gt;&gt; knn = treecorr.KNNCorrelation(config)</span>
-<span class="sd">        &gt;&gt;&gt; knn.process(cat1, cat2)        # Compute cross-correlation of two fields.</span>
-<span class="sd">        &gt;&gt;&gt; knn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.</span>
-<span class="sd">        &gt;&gt;&gt; krr.process(cat1, rand)        # Compute cross-correlation with randoms.</span>
-<span class="sd">        &gt;&gt;&gt; kdr.process(cat1, cat2, rand)  # Compute cross-correlation with randoms and data</span>
-<span class="sd">        &gt;&gt;&gt; knn.write(file_name)           # Write out to a file.</span>
-<span class="sd">        &gt;&gt;&gt; knn.calculateZeta(krr=krr, kdr=kdr) # Calculate zeta using randoms</span>
-<span class="sd">        &gt;&gt;&gt; zeta = knn.zeta                # Access correlation function</span>
-<span class="sd">        &gt;&gt;&gt; zetar = knn.zetar              # Or access real and imaginary parts separately</span>
+<span class="sd">        &gt;&gt;&gt; knn.process(cat1, cat2)          # Compute the cross-correlation of two fields.</span>
+<span class="sd">        &gt;&gt;&gt; # knn.process(cat1, cat2, cat3)  # ... or of three fields.</span>
+<span class="sd">        &gt;&gt;&gt; krr.process(cat1, rand)          # Compute the random cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; kdr.process(cat1, cat2, rand)    # Optionally compute data-random cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; knn.write(file_name)             # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; knn.calculateZeta(krr=krr, kdr=kdr)  # Calculate zeta using randoms.</span>
+<span class="sd">        &gt;&gt;&gt; zeta = knn.zeta                  # Access the correlation function.</span>
+<span class="sd">        &gt;&gt;&gt; zetar = knn.zetar                # Or access real and imaginary parts separately.</span>
 <span class="sd">        &gt;&gt;&gt; zetai = knn.zetai</span>
+
+<span class="sd">    See also: `NKNCorrelation`, `NNKCorrelation`, `NKKCorrelation`, `NNNCorrelation`,</span>
+<span class="sd">    `NKCorrelation`.</span>
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
-<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
+<span class="sd">                        This dict is allowed to have additional entries besides those listed</span>
 <span class="sd">                        in `Corr3`, which are ignored here. (default: None)</span>
-<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                        If desired, a ``Logger`` object for logging. (default: None, in which case</span>
 <span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
 
 <span class="sd">    Keyword Arguments:</span>
@@ -166,7 +169,9 @@
     <span class="n">_sig3</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_default_angle_slop</span> <span class="o">=</span> <span class="mi">1</span>
 
-<div class="viewcode-block" id="KNNCorrelation.__init__"><a class="viewcode-back" href="../../nnk.html#treecorr.KNNCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="KNNCorrelation.__init__">
+<a class="viewcode-back" href="../../nnk.html#treecorr.KNNCorrelation.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_krr</span> <span class="o">=</span> <span class="kc">None</span>
@@ -179,6 +184,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_varzeta</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building KNNCorr&#39;</span><span class="p">)</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_zeta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -194,7 +200,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span>
 
-<div class="viewcode-block" id="KNNCorrelation.copy"><a class="viewcode-back" href="../../nnk.html#treecorr.KNNCorrelation.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="KNNCorrelation.copy">
+<a class="viewcode-back" href="../../nnk.html#treecorr.KNNCorrelation.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="c1"># True is possible during read before we finish reading in these attributes.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_krr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_krr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">True</span><span class="p">:</span>
@@ -205,7 +213,10 @@
             <span class="n">ret</span><span class="o">.</span><span class="n">_krd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_krd</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="KNNCorrelation.finalize"><a class="viewcode-back" href="../../nnk.html#treecorr.KNNCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark</span><span class="p">):</span>
+
+<div class="viewcode-block" id="KNNCorrelation.finalize">
+<a class="viewcode-back" href="../../nnk.html#treecorr.KNNCorrelation.finalize">[docs]</a>
+    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
 
 <span class="sd">        Parameters:</span>
@@ -215,6 +226,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="n">vark</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;LogSAS&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">*=</span> <span class="mi">2</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_varzeta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -237,24 +249,33 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_varzeta</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="KNNCorrelation.calculateZeta"><a class="viewcode-back" href="../../nnk.html#treecorr.KNNCorrelation.calculateZeta">[docs]</a>    <span class="k">def</span> <span class="nf">calculateZeta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">krr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kdr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">krd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="KNNCorrelation.calculateZeta">
+<a class="viewcode-back" href="../../nnk.html#treecorr.KNNCorrelation.calculateZeta">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculateZeta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">krr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">kdr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">krd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the correlation function given another correlation function of random</span>
-<span class="sd">        points using the same mask, and possibly cross correlations of the data and random.</span>
+<span class="sd">        points using the same mask, and possibly cross-correlations of the data and random.</span>
 
 <span class="sd">        The krr value is the `KNNCorrelation` function for random points with the scalar field.</span>
-<span class="sd">        One can also provide a cross correlation of the count data with randoms and the scalar.</span>
+<span class="sd">        One can also provide a cross-correlation of the count data with randoms and the scalar.</span>
 
 <span class="sd">        - If krr is None, the simple correlation function (self.zeta) is returned.</span>
 <span class="sd">        - If only krr is given the compensated value :math:`\zeta = KDD - KRR` is returned.</span>
-<span class="sd">        - if kdr is given and krd is None (or vice versa), then :math:`\zeta = KDD - 2KDR + KRR`</span>
+<span class="sd">        - If kdr is given and krd is None (or vice versa), then :math:`\zeta = KDD - 2KDR + KRR`</span>
 <span class="sd">          is returned.</span>
 <span class="sd">        - If kdr and krd are both given, then :math:`\zeta = KDD - KDR - KRD + KRR` is returned.</span>
 
-<span class="sd">        where KDD is the data KNN correlation function, which is the current object.</span>
+<span class="sd">        Here KDD is the data KNN correlation function, which is the current object.</span>
 
-<span class="sd">        After calling this method, you can use the `Corr2.estimate_cov` method or use this</span>
-<span class="sd">        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and</span>
-<span class="sd">        varzeta returned from this function will be available as attributes.</span>
+<span class="sd">        After calling this method, you can use this correlation object in the</span>
+<span class="sd">        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this</span>
+<span class="sd">        function will be available as attributes.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            The returned variance estimate (``varzeta``) is computed according to this object&#39;s</span>
+<span class="sd">            ``var_method`` setting, specified when constructing the object (default: ``&#39;shot&#39;``).</span>
+<span class="sd">            Internally, this method calls `Corr3.estimate_cov`; see that method for details</span>
+<span class="sd">            about available variance and covariance estimation schemes.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            krr (KNNCorrelation):   The correlation of the random points with the scalar field</span>
@@ -334,6 +355,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varzeta</span></div>
 
+
     <span class="k">def</span> <span class="nf">_calculate_xi_from_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_krr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -370,10 +392,13 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_zeta</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kdr</span><span class="o">.</span><span class="n">zeta</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_krd</span><span class="o">.</span><span class="n">zeta</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_krr</span><span class="o">.</span><span class="n">zeta</span>
 
-<div class="viewcode-block" id="KNNCorrelation.write"><a class="viewcode-back" href="../../nnk.html#treecorr.KNNCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="KNNCorrelation.write">
+<a class="viewcode-back" href="../../nnk.html#treecorr.KNNCorrelation.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
               <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
                       <span class="n">write_patch_results</span><span class="o">=</span><span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="o">=</span><span class="n">write_cov</span><span class="p">)</span></div>
+
 
     <span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">Corr3</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -407,7 +432,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_varzeta</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_zeta&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_comp_varzeta</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="NKNCorrelation"><a class="viewcode-back" href="../../nnk.html#treecorr.NKNCorrelation">[docs]</a><span class="k">class</span> <span class="nc">NKNCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NKNCorrelation">
+<a class="viewcode-back" href="../../nnk.html#treecorr.NKNCorrelation">[docs]</a>
+<span class="k">class</span> <span class="nc">NKNCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 3-point count-scalar-count correlation</span>
 <span class="sd">    function.</span>
 
@@ -415,7 +443,7 @@
 <span class="sd">    scalar value.  Use `KNNCorrelation` and `NNKCorrelation` for classes with the scalar in the</span>
 <span class="sd">    other two positions.</span>
 
-<span class="sd">    See the doc string of `Corr3` for a description of how the triangles are binned along</span>
+<span class="sd">    See the docstring of `Corr3` for a description of how the triangles are binned along</span>
 <span class="sd">    with the attributes related to the different binning options.</span>
 
 <span class="sd">    In addition to the attributes common to all `Corr3` subclasses, objects of this class</span>
@@ -423,27 +451,31 @@
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        zeta:       The correlation function, :math:`\zeta`.</span>
-<span class="sd">        varzeta:    The variance estimate, only including the shot noise propagated into the</span>
-<span class="sd">                    final correlation.</span>
+<span class="sd">        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
 
 <span class="sd">    The typical usage pattern is as follows:</span>
 
 <span class="sd">        &gt;&gt;&gt; nkn = treecorr.NKNCorrelation(config)</span>
-<span class="sd">        &gt;&gt;&gt; nkn.process(cat1, cat2, cat1)  # Compute cross-correlation of two fields.</span>
-<span class="sd">        &gt;&gt;&gt; nkn.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.</span>
-<span class="sd">        &gt;&gt;&gt; rkr.process(rand, cat2, rand)  # Compute cross-correlation with randoms.</span>
-<span class="sd">        &gt;&gt;&gt; dkr.process(cat1, cat2, rand)  # Compute cross-correlation with randoms and data</span>
-<span class="sd">        &gt;&gt;&gt; nkn.write(file_name)           # Write out to a file.</span>
-<span class="sd">        &gt;&gt;&gt; nkn.calculateZeta(rkr=rkr, dkr=dkr) # Calculate zeta using randoms</span>
-<span class="sd">        &gt;&gt;&gt; zeta = nkn.zeta                # Access correlation function</span>
-<span class="sd">        &gt;&gt;&gt; zetar = nkn.zetar              # Or access real and imaginary parts separately</span>
+<span class="sd">        &gt;&gt;&gt; nkn.process(cat1, cat2, cat1)    # Compute the cross-correlation of two fields.</span>
+<span class="sd">        &gt;&gt;&gt; # nkn.process(cat1, cat2, cat3)  # ... or of three fields.</span>
+<span class="sd">        &gt;&gt;&gt; rkr.process(rand, cat2, rand)    # Compute the random cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; dkr.process(cat1, cat2, rand)    # Optionally compute data-random cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; nkn.write(file_name)             # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; nkn.calculateZeta(rkr=rkr, dkr=dkr)  # Calculate zeta using randoms.</span>
+<span class="sd">        &gt;&gt;&gt; zeta = nkn.zeta                  # Access the correlation function.</span>
+<span class="sd">        &gt;&gt;&gt; zetar = nkn.zetar                # Or access real and imaginary parts separately.</span>
 <span class="sd">        &gt;&gt;&gt; zetai = nkn.zetai</span>
+
+<span class="sd">    See also: `KNNCorrelation`, `NNKCorrelation`, `NKKCorrelation`, `NNNCorrelation`,</span>
+<span class="sd">    `NKCorrelation`.</span>
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
-<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
+<span class="sd">                        This dict is allowed to have additional entries besides those listed</span>
 <span class="sd">                        in `Corr3`, which are ignored here. (default: None)</span>
-<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                        If desired, a ``Logger`` object for logging. (default: None, in which case</span>
 <span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
 
 <span class="sd">    Keyword Arguments:</span>
@@ -464,7 +496,9 @@
     <span class="n">_sig3</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_default_angle_slop</span> <span class="o">=</span> <span class="mi">1</span>
 
-<div class="viewcode-block" id="NKNCorrelation.__init__"><a class="viewcode-back" href="../../nnk.html#treecorr.NKNCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="NKNCorrelation.__init__">
+<a class="viewcode-back" href="../../nnk.html#treecorr.NKNCorrelation.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_rkr</span> <span class="o">=</span> <span class="kc">None</span>
@@ -477,6 +511,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_varzeta</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building NKNCorr&#39;</span><span class="p">)</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_zeta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -492,7 +527,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span>
 
-<div class="viewcode-block" id="NKNCorrelation.copy"><a class="viewcode-back" href="../../nnk.html#treecorr.NKNCorrelation.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NKNCorrelation.copy">
+<a class="viewcode-back" href="../../nnk.html#treecorr.NKNCorrelation.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="c1"># True is possible during read before we finish reading in these attributes.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rkr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rkr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">True</span><span class="p">:</span>
@@ -503,7 +540,10 @@
             <span class="n">ret</span><span class="o">.</span><span class="n">_rkd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rkd</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="NKNCorrelation.finalize"><a class="viewcode-back" href="../../nnk.html#treecorr.NKNCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NKNCorrelation.finalize">
+<a class="viewcode-back" href="../../nnk.html#treecorr.NKNCorrelation.finalize">[docs]</a>
+    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
 
 <span class="sd">        Parameters:</span>
@@ -513,6 +553,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="n">vark</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;LogSAS&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">*=</span> <span class="mi">2</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_varzeta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -535,24 +576,33 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_varzeta</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="NKNCorrelation.calculateZeta"><a class="viewcode-back" href="../../nnk.html#treecorr.NKNCorrelation.calculateZeta">[docs]</a>    <span class="k">def</span> <span class="nf">calculateZeta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rkr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dkr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rkd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="NKNCorrelation.calculateZeta">
+<a class="viewcode-back" href="../../nnk.html#treecorr.NKNCorrelation.calculateZeta">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculateZeta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rkr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">dkr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rkd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the correlation function given another correlation function of random</span>
-<span class="sd">        points using the same mask, and possibly cross correlations of the data and random.</span>
+<span class="sd">        points using the same mask, and possibly cross-correlations of the data and random.</span>
 
 <span class="sd">        The rkr value is the `NKNCorrelation` function for random points with the scalar field.</span>
-<span class="sd">        One can also provide a cross correlation of the count data with randoms and the scalar.</span>
+<span class="sd">        One can also provide a cross-correlation of the count data with randoms and the scalar.</span>
 
 <span class="sd">        - If rkr is None, the simple correlation function (self.zeta) is returned.</span>
 <span class="sd">        - If only rkr is given the compensated value :math:`\zeta = DKD - RKR` is returned.</span>
-<span class="sd">        - if dkr is given and rkd is None (or vice versa), then :math:`\zeta = DKD - 2DKR + RKR`</span>
+<span class="sd">        - If dkr is given and rkd is None (or vice versa), then :math:`\zeta = DKD - 2DKR + RKR`</span>
 <span class="sd">          is returned.</span>
 <span class="sd">        - If dkr and rkd are both given, then :math:`\zeta = DKD - DKR - RKD + RKR` is returned.</span>
 
-<span class="sd">        where DKD is the data NKN correlation function, which is the current object.</span>
+<span class="sd">        Here DKD is the data NKN correlation function, which is the current object.</span>
 
-<span class="sd">        After calling this method, you can use the `Corr2.estimate_cov` method or use this</span>
-<span class="sd">        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and</span>
-<span class="sd">        varzeta returned from this function will be available as attributes.</span>
+<span class="sd">        After calling this method, you can use this correlation object in the</span>
+<span class="sd">        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this</span>
+<span class="sd">        function will be available as attributes.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            The returned variance estimate (``varzeta``) is computed according to this object&#39;s</span>
+<span class="sd">            ``var_method`` setting, specified when constructing the object (default: ``&#39;shot&#39;``).</span>
+<span class="sd">            Internally, this method calls `Corr3.estimate_cov`; see that method for details</span>
+<span class="sd">            about available variance and covariance estimation schemes.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            rkr (NKNCorrelation):   The correlation of the random points with the scalar field</span>
@@ -632,6 +682,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varzeta</span></div>
 
+
     <span class="k">def</span> <span class="nf">_calculate_xi_from_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rkr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -668,10 +719,13 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_zeta</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dkr</span><span class="o">.</span><span class="n">zeta</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rkd</span><span class="o">.</span><span class="n">zeta</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rkr</span><span class="o">.</span><span class="n">zeta</span>
 
-<div class="viewcode-block" id="NKNCorrelation.write"><a class="viewcode-back" href="../../nnk.html#treecorr.NKNCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="NKNCorrelation.write">
+<a class="viewcode-back" href="../../nnk.html#treecorr.NKNCorrelation.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
               <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
                       <span class="n">write_patch_results</span><span class="o">=</span><span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="o">=</span><span class="n">write_cov</span><span class="p">)</span></div>
+
 
     <span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">Corr3</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -705,7 +759,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_varzeta</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_zeta&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_comp_varzeta</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="NNKCorrelation"><a class="viewcode-back" href="../../nnk.html#treecorr.NNKCorrelation">[docs]</a><span class="k">class</span> <span class="nc">NNKCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NNKCorrelation">
+<a class="viewcode-back" href="../../nnk.html#treecorr.NNKCorrelation">[docs]</a>
+<span class="k">class</span> <span class="nc">NNKCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 3-point count-count-scalar correlation</span>
 <span class="sd">    function.</span>
 
@@ -713,7 +770,7 @@
 <span class="sd">    scalar value.  Use `KNNCorrelation` and `NKNCorrelation` for classes with the scalar in the</span>
 <span class="sd">    other two positions.</span>
 
-<span class="sd">    See the doc string of `Corr3` for a description of how the triangles are binned along</span>
+<span class="sd">    See the docstring of `Corr3` for a description of how the triangles are binned along</span>
 <span class="sd">    with the attributes related to the different binning options.</span>
 
 <span class="sd">    In addition to the attributes common to all `Corr3` subclasses, objects of this class</span>
@@ -721,27 +778,31 @@
 
 <span class="sd">    Attributes:</span>
 <span class="sd">        zeta:       The correlation function, :math:`\zeta`.</span>
-<span class="sd">        varzeta:    The variance estimate, only including the shot noise propagated into the</span>
-<span class="sd">                    final correlation.</span>
+<span class="sd">        varzeta:    The variance estimate of :math:`\zeta`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
 
 <span class="sd">    The typical usage pattern is as follows:</span>
 
 <span class="sd">        &gt;&gt;&gt; nnk = treecorr.NNKCorrelation(config)</span>
-<span class="sd">        &gt;&gt;&gt; nnk.process(cat1, cat2)        # Compute cross-correlation of two fields.</span>
-<span class="sd">        &gt;&gt;&gt; nnk.process(cat1, cat2, cat3)  # Compute cross-correlation of three fields.</span>
-<span class="sd">        &gt;&gt;&gt; rrk.process(rand, cat2)        # Compute cross-correlation with randoms.</span>
-<span class="sd">        &gt;&gt;&gt; drk.process(cat1, rand, cat2)  # Compute cross-correlation with randoms and data</span>
-<span class="sd">        &gt;&gt;&gt; nnk.write(file_name)           # Write out to a file.</span>
-<span class="sd">        &gt;&gt;&gt; nnk.calculateZeta(rrk=rrk, drk=drk) # Calculate zeta using randoms</span>
-<span class="sd">        &gt;&gt;&gt; zeta = nnk.zeta                # Access correlation function</span>
-<span class="sd">        &gt;&gt;&gt; zetar = nnk.zetar              # Or access real and imaginary parts separately</span>
+<span class="sd">        &gt;&gt;&gt; nnk.process(cat1, cat2)          # Compute the cross-correlation of two fields.</span>
+<span class="sd">        &gt;&gt;&gt; # nnk.process(cat1, cat2, cat3)  # ... or of three fields.</span>
+<span class="sd">        &gt;&gt;&gt; rrk.process(rand, cat2)          # Compute the random cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; drk.process(cat1, rand, cat2)    # Optionally compute data-random cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; nnk.write(file_name)             # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; nnk.calculateZeta(rrk=rrk, drk=drk)  # Calculate zeta using randoms.</span>
+<span class="sd">        &gt;&gt;&gt; zeta = nnk.zeta                  # Access the correlation function.</span>
+<span class="sd">        &gt;&gt;&gt; zetar = nnk.zetar                # Or access real and imaginary parts separately.</span>
 <span class="sd">        &gt;&gt;&gt; zetai = nnk.zetai</span>
+
+<span class="sd">    See also: `KNNCorrelation`, `NKNCorrelation`, `NKKCorrelation`, `NNNCorrelation`,</span>
+<span class="sd">    `NKCorrelation`.</span>
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
-<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
+<span class="sd">                        This dict is allowed to have additional entries besides those listed</span>
 <span class="sd">                        in `Corr3`, which are ignored here. (default: None)</span>
-<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                        If desired, a ``Logger`` object for logging. (default: None, in which case</span>
 <span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
 
 <span class="sd">    Keyword Arguments:</span>
@@ -762,7 +823,9 @@
     <span class="n">_sig3</span> <span class="o">=</span> <span class="s1">&#39;sig_k&#39;</span>
     <span class="n">_default_angle_slop</span> <span class="o">=</span> <span class="mi">1</span>
 
-<div class="viewcode-block" id="NNKCorrelation.__init__"><a class="viewcode-back" href="../../nnk.html#treecorr.NNKCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="NNKCorrelation.__init__">
+<a class="viewcode-back" href="../../nnk.html#treecorr.NNKCorrelation.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_rrk</span> <span class="o">=</span> <span class="kc">None</span>
@@ -775,6 +838,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_varzeta</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building NNKCorr&#39;</span><span class="p">)</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_zeta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -790,7 +854,9 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span>
 
-<div class="viewcode-block" id="NNKCorrelation.copy"><a class="viewcode-back" href="../../nnk.html#treecorr.NNKCorrelation.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NNKCorrelation.copy">
+<a class="viewcode-back" href="../../nnk.html#treecorr.NNKCorrelation.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="c1"># True is possible during read before we finish reading in these attributes.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rrk</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rrk</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">True</span><span class="p">:</span>
@@ -801,7 +867,10 @@
             <span class="n">ret</span><span class="o">.</span><span class="n">_rdk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rdk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="NNKCorrelation.finalize"><a class="viewcode-back" href="../../nnk.html#treecorr.NNKCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NNKCorrelation.finalize">
+<a class="viewcode-back" href="../../nnk.html#treecorr.NNKCorrelation.finalize">[docs]</a>
+    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
 
 <span class="sd">        Parameters:</span>
@@ -811,6 +880,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="n">vark</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;LogSAS&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">*=</span> <span class="mi">2</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_varzeta</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -833,24 +903,33 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_varzeta</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="NNKCorrelation.calculateZeta"><a class="viewcode-back" href="../../nnk.html#treecorr.NNKCorrelation.calculateZeta">[docs]</a>    <span class="k">def</span> <span class="nf">calculateZeta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rrk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rdk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="NNKCorrelation.calculateZeta">
+<a class="viewcode-back" href="../../nnk.html#treecorr.NNKCorrelation.calculateZeta">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculateZeta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rrk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rdk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the correlation function given another correlation function of random</span>
-<span class="sd">        points using the same mask, and possibly cross correlations of the data and random.</span>
+<span class="sd">        points using the same mask, and possibly cross-correlations of the data and random.</span>
 
 <span class="sd">        The rrk value is the `NNKCorrelation` function for random points with the scalar field.</span>
-<span class="sd">        One can also provide a cross correlation of the count data with randoms and the scalar.</span>
+<span class="sd">        One can also provide a cross-correlation of the count data with randoms and the scalar.</span>
 
 <span class="sd">        - If rrk is None, the simple correlation function (self.zeta) is returned.</span>
 <span class="sd">        - If only rrk is given the compensated value :math:`\zeta = DDK - RRK` is returned.</span>
-<span class="sd">        - if drk is given and rdk is None (or vice versa), then :math:`\zeta = DDK - 2DRK + RRK`</span>
+<span class="sd">        - If drk is given and rdk is None (or vice versa), then :math:`\zeta = DDK - 2DRK + RRK`</span>
 <span class="sd">          is returned.</span>
 <span class="sd">        - If drk and rdk are both given, then :math:`\zeta = DDK - DRK - RDK + RRK` is returned.</span>
 
-<span class="sd">        where DDK is the data NNK correlation function, which is the current object.</span>
+<span class="sd">        Here DDK is the data NNK correlation function, which is the current object.</span>
 
-<span class="sd">        After calling this method, you can use the `Corr2.estimate_cov` method or use this</span>
-<span class="sd">        correlation object in the `estimate_multi_cov` function.  Also, the calculated zeta and</span>
-<span class="sd">        varzeta returned from this function will be available as attributes.</span>
+<span class="sd">        After calling this method, you can use this correlation object in the</span>
+<span class="sd">        `estimate_multi_cov` function.  Also, the calculated zeta and varzeta returned from this</span>
+<span class="sd">        function will be available as attributes.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            The returned variance estimate (``varzeta``) is computed according to this object&#39;s</span>
+<span class="sd">            ``var_method`` setting, specified when constructing the object (default: ``&#39;shot&#39;``).</span>
+<span class="sd">            Internally, this method calls `Corr3.estimate_cov`; see that method for details</span>
+<span class="sd">            about available variance and covariance estimation schemes.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            rrk (NNKCorrelation):   The correlation of the random points with the scalar field</span>
@@ -930,6 +1009,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varzeta</span></div>
 
+
     <span class="k">def</span> <span class="nf">_calculate_xi_from_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rrk</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -966,10 +1046,13 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_zeta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_zeta</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_drk</span><span class="o">.</span><span class="n">zeta</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rdk</span><span class="o">.</span><span class="n">zeta</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rrk</span><span class="o">.</span><span class="n">zeta</span>
 
-<div class="viewcode-block" id="NNKCorrelation.write"><a class="viewcode-back" href="../../nnk.html#treecorr.NNKCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="NNKCorrelation.write">
+<a class="viewcode-back" href="../../nnk.html#treecorr.NNKCorrelation.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
               <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
                       <span class="n">write_patch_results</span><span class="o">=</span><span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="o">=</span><span class="n">write_cov</span><span class="p">)</span></div>
+
 
     <span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">Corr3</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
@@ -1002,6 +1085,7 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;zeta&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_varzeta</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_zeta&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_comp_varzeta</span><span class="p">]</span></div>
+
 </pre></div>
 
            </div>

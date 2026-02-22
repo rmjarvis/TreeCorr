@@ -1,20 +1,20 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>treecorr.nnncorrelation &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2c218288"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -31,9 +31,6 @@
           <a href="../../index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,6 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
@@ -55,7 +53,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
@@ -110,28 +107,34 @@
 <span class="kn">from</span> <span class="nn">.config</span> <span class="kn">import</span> <span class="n">make_minimal_config</span>
 
 
-<div class="viewcode-block" id="NNNCorrelation"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation">[docs]</a><span class="k">class</span> <span class="nc">NNNCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
+<div class="viewcode-block" id="NNNCorrelation">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation">[docs]</a>
+<span class="k">class</span> <span class="nc">NNNCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 3-point count-count-count correlation</span>
 <span class="sd">    function.</span>
 
-<span class="sd">    See the doc string of `Corr3` for a description of how the triangles are binned along</span>
+<span class="sd">    See the docstring of `Corr3` for a description of how the triangles are binned along</span>
 <span class="sd">    with the attributes related to the different binning options.</span>
 
 <span class="sd">    The typical usage pattern is as follows:</span>
 
 <span class="sd">        &gt;&gt;&gt; nnn = treecorr.NNNCorrelation(config)</span>
-<span class="sd">        &gt;&gt;&gt; nnn.process(cat)         # Compute auto-correlation.</span>
-<span class="sd">        &gt;&gt;&gt; rrr.process(rand)        # Compute auto-correlation of random field.</span>
-<span class="sd">        &gt;&gt;&gt; drr.process(cat,rand)    # If desired, compute data-random cross-correlations</span>
-<span class="sd">        &gt;&gt;&gt; rdd.process(rand,cat)    # Also compute cross-correlation with two data and one random</span>
-<span class="sd">        &gt;&gt;&gt; nnn.write(file_name, rrr=rrr, drr=drr, ...)  # Write out to a file.</span>
-<span class="sd">        &gt;&gt;&gt; zeta,varzeta = nnn.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)  # Calculate zeta</span>
+<span class="sd">        &gt;&gt;&gt; nnn.process(cat)                 # Compute the auto-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; # nnn.process(cat1, cat2, cat3)  # ... or the cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; rrr.process(rand)                # Compute the random auto-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; drr.process(cat, rand)           # Optionally compute data-random cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; rdd.process(rand, cat)           # Also compute random-data cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; zeta, varzeta = nnn.calculateZeta(rrr=rrr, drr=drr, rdd=rdd)  # Calculate zeta.</span>
+<span class="sd">        &gt;&gt;&gt; nnn.write(file_name, rrr=rrr, drr=drr, ...)   # Write out to a file.</span>
+
+<span class="sd">    See also: `NNCorrelation`, `NNGCorrelation`, `NNKCorrelation`.</span>
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
-<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
+<span class="sd">                        This dict is allowed to have additional entries besides those listed</span>
 <span class="sd">                        in `Corr3`, which are ignored here. (default: None)</span>
-<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                        If desired, a ``Logger`` object for logging. (default: None, in which case</span>
 <span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
 
 <span class="sd">    Keyword Arguments:</span>
@@ -152,7 +155,9 @@
     <span class="n">_sig3</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_default_angle_slop</span> <span class="o">=</span> <span class="mi">1</span>
 
-<div class="viewcode-block" id="NNNCorrelation.__init__"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="NNNCorrelation.__init__">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">=</span> <span class="mf">0.</span>
@@ -167,7 +172,10 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">zeta</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building NNNCorr&#39;</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="NNNCorrelation.copy"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NNNCorrelation.copy">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="c1"># True is possible during read before we finish reading in these attributes.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rrr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rrr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">True</span><span class="p">:</span>
@@ -177,6 +185,7 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rdd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rdd</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">ret</span><span class="o">.</span><span class="n">_rdd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rdd</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">ret</span></div>
+
 
     <span class="k">def</span> <span class="nf">_zero_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tot</span><span class="p">):</span>
         <span class="c1"># A minimal &quot;copy&quot; with zero for the weight array, and the given value for tot.</span>
@@ -210,26 +219,38 @@
         <span class="nb">setattr</span><span class="p">(</span><span class="n">ret</span><span class="p">,</span> <span class="s1">&#39;_nonzero&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ret</span>
 
-<div class="viewcode-block" id="NNNCorrelation.process_auto"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.process_auto">[docs]</a>    <span class="k">def</span> <span class="nf">process_auto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<div class="viewcode-block" id="NNNCorrelation.process_auto">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.process_auto">[docs]</a>
+    <span class="k">def</span> <span class="nf">process_auto</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">process_auto</span><span class="p">(</span><span class="n">cat</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="n">corr_only</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">+=</span> <span class="p">(</span><span class="mf">1.</span><span class="o">/</span><span class="mf">6.</span><span class="p">)</span> <span class="o">*</span> <span class="n">cat</span><span class="o">.</span><span class="n">sumw</span><span class="o">**</span><span class="mi">3</span></div>
 
-<div class="viewcode-block" id="NNNCorrelation.process_cross12"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.process_cross12">[docs]</a>    <span class="k">def</span> <span class="nf">process_cross12</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="NNNCorrelation.process_cross12">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.process_cross12">[docs]</a>
+    <span class="k">def</span> <span class="nf">process_cross12</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                         <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">process_cross12</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="n">ordered</span><span class="p">,</span>
                                 <span class="n">num_threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="n">corr_only</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">+=</span> <span class="mf">0.5</span> <span class="o">*</span> <span class="n">cat1</span><span class="o">.</span><span class="n">sumw</span> <span class="o">*</span> <span class="n">cat2</span><span class="o">.</span><span class="n">sumw</span><span class="o">**</span><span class="mi">2</span></div>
 
-<div class="viewcode-block" id="NNNCorrelation.process_cross"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.process_cross">[docs]</a>    <span class="k">def</span> <span class="nf">process_cross</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat3</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="NNNCorrelation.process_cross">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.process_cross">[docs]</a>
+    <span class="k">def</span> <span class="nf">process_cross</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat3</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">num_threads</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                         <span class="n">corr_only</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">process_cross</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat3</span><span class="p">,</span> <span class="n">metric</span><span class="o">=</span><span class="n">metric</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="n">ordered</span><span class="p">,</span>
                               <span class="n">num_threads</span><span class="o">=</span><span class="n">num_threads</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="n">corr_only</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">+=</span> <span class="n">cat1</span><span class="o">.</span><span class="n">sumw</span> <span class="o">*</span> <span class="n">cat2</span><span class="o">.</span><span class="n">sumw</span> <span class="o">*</span> <span class="n">cat3</span><span class="o">.</span><span class="n">sumw</span></div>
 
-<div class="viewcode-block" id="NNNCorrelation.finalize"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NNNCorrelation.finalize">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.finalize">[docs]</a>
+    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">()</span></div>
+
 
     <span class="k">def</span> <span class="nf">_clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_clear</span><span class="p">()</span>
@@ -264,7 +285,9 @@
         <span class="c1"># the resulting weight is zero.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="n">ijk</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_copy</span><span class="p">(</span><span class="n">tot</span><span class="p">)</span>
 
-<div class="viewcode-block" id="NNNCorrelation.__iadd__"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.__iadd__">[docs]</a>    <span class="k">def</span> <span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+<div class="viewcode-block" id="NNNCorrelation.__iadd__">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.__iadd__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__iadd__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Add a second Correlation object&#39;s data to this one.</span>
 
 <span class="sd">        .. note::</span>
@@ -276,11 +299,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">tot</span> <span class="o">+=</span> <span class="n">other</span><span class="o">.</span><span class="n">tot</span>
         <span class="k">return</span> <span class="bp">self</span></div>
 
+
     <span class="k">def</span> <span class="nf">_mean_weight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">mean_ntri</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ntri</span><span class="p">)</span>
         <span class="k">return</span> <span class="mi">1</span> <span class="k">if</span> <span class="n">mean_ntri</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span><span class="o">/</span><span class="n">mean_ntri</span>
 
-<div class="viewcode-block" id="NNNCorrelation.getStat"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.getStat">[docs]</a>    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NNNCorrelation.getStat">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.getStat">[docs]</a>
+    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The standard statistic for the current correlation object as a 1-d array.</span>
 
 <span class="sd">        This raises a RuntimeError if calculateZeta has not been run yet.</span>
@@ -289,7 +315,10 @@
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;You need to call calculateZeta before calling estimate_cov.&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">zeta</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span></div>
 
-<div class="viewcode-block" id="NNNCorrelation.getWeight"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.getWeight">[docs]</a>    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NNNCorrelation.getWeight">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.getWeight">[docs]</a>
+    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The weight array for the current correlation object as a 1-d array.</span>
 
 <span class="sd">        This is the weight array corresponding to `getStat`.  In this case, it is the denominator</span>
@@ -300,7 +329,10 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot</span></div>
 
-<div class="viewcode-block" id="NNNCorrelation.toSAS"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.toSAS">[docs]</a>    <span class="k">def</span> <span class="nf">toSAS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NNNCorrelation.toSAS">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.toSAS">[docs]</a>
+    <span class="k">def</span> <span class="nf">toSAS</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">target</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">sas</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">toSAS</span><span class="p">(</span><span class="n">target</span><span class="o">=</span><span class="n">target</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="n">sas</span><span class="o">.</span><span class="n">tot</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">tot</span>
@@ -309,9 +341,12 @@
 
         <span class="k">return</span> <span class="n">sas</span></div>
 
-<div class="viewcode-block" id="NNNCorrelation.calculateZeta"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.calculateZeta">[docs]</a>    <span class="k">def</span> <span class="nf">calculateZeta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">drr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rdd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NNNCorrelation.calculateZeta">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.calculateZeta">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculateZeta</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rrr</span><span class="p">,</span> <span class="n">drr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rdd</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the 3pt function given another 3pt function of random</span>
-<span class="sd">        points using the same mask, and possibly cross correlations of the data and random.</span>
+<span class="sd">        points using the same mask, and possibly cross-correlations of the data and random.</span>
 
 <span class="sd">        There are two possible formulae that are currently supported.</span>
 
@@ -338,7 +373,7 @@
 
 <span class="sd">           .. note::</span>
 
-<span class="sd">                One might thing the formula should be :math:`\zeta = (DDD-3RDD+3DRR-RRR)/RRR`</span>
+<span class="sd">                One might think the formula should be :math:`\zeta = (DDD-3RDD+3DRR-RRR)/RRR`</span>
 <span class="sd">                by analogy with the 2pt Landy-Szalay formula. However, the way these are</span>
 <span class="sd">                calculated, the object we are calling RDD already includes triangles where R</span>
 <span class="sd">                is in each of the 3 locations.  So it is really more like RDD + DRD + DDR.</span>
@@ -353,9 +388,16 @@
 <span class="sd">        .. note::</span>
 
 <span class="sd">            This method is not valid for bin_type=&#39;LogMultipole&#39;. I don&#39;t think there is</span>
-<span class="sd">            a straightforward way to go directly from the multipole expoansion of DDD and</span>
+<span class="sd">            a straightforward way to go directly from the multipole expansion of DDD and</span>
 <span class="sd">            RRR to Zeta.  Normally one would instead convert both to LogSAS binning</span>
 <span class="sd">            (cf. `toSAS`) and then call `calculateZeta` with those.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            The returned variance estimate (``varzeta``) is computed according to this object&#39;s</span>
+<span class="sd">            ``var_method`` setting, specified when constructing the object (default: ``&#39;shot&#39;``).</span>
+<span class="sd">            Internally, this method calls `Corr3.estimate_cov`; see that method for details</span>
+<span class="sd">            about available variance and covariance estimation schemes.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            rrr (NNNCorrelation):   The auto-correlation of the random field (RRR)</span>
@@ -398,7 +440,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">zeta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">weight</span> <span class="o">-</span> <span class="n">rdd</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="n">rddf</span> <span class="o">+</span> <span class="n">drr</span><span class="o">.</span><span class="n">weight</span> <span class="o">*</span> <span class="n">drrf</span> <span class="o">-</span> <span class="n">denom</span>
 
-        <span class="c1"># Divide by DRR in all cases.</span>
+        <span class="c1"># Divide by RRR in all cases.</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">rrr</span><span class="o">.</span><span class="n">weight</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Warning: Some bins for the randoms had no triangles.&quot;</span><span class="p">)</span>
             <span class="n">denom</span><span class="p">[</span><span class="n">rrr</span><span class="o">.</span><span class="n">weight</span><span class="o">==</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.</span>  <span class="c1"># guard against division by 0.</span>
@@ -471,6 +513,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">varzeta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cov_diag</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">zeta</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">zeta</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varzeta</span></div>
 
+
     <span class="k">def</span> <span class="nf">_calculate_xi_from_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">):</span>
         <span class="c1"># Note: we keep the notation ij and pairs here, even though they are really ijk and</span>
         <span class="c1"># triples.</span>
@@ -532,7 +575,9 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">zeta</span> <span class="o">=</span> <span class="n">zeta</span> <span class="o">/</span> <span class="n">denom</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rrr_weight</span> <span class="o">=</span> <span class="n">denom</span>
 
-<div class="viewcode-block" id="NNNCorrelation.write"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rrr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rdd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="NNNCorrelation.write">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rrr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">drr</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rdd</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Write the correlation function to the file, file_name.</span>
 
@@ -640,7 +685,7 @@
 <span class="sd">            file_type (str):        The type of file to write (&#39;ASCII&#39; or &#39;FITS&#39;).</span>
 <span class="sd">                                    (default: determine the type automatically from the extension</span>
 <span class="sd">                                    of file_name.)</span>
-<span class="sd">            precision (int):        For ASCII output catalogs, the desired precision. (default: 4;</span>
+<span class="sd">            precision (int):        For ASCII output files, the desired precision. (default: 4;</span>
 <span class="sd">                                    this value can also be given in the constructor in the config</span>
 <span class="sd">                                    dict.)</span>
 <span class="sd">            write_patch_results (bool): Whether to write the patch-based results as well.</span>
@@ -670,6 +715,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_write_drr</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_write_rdd</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_write_patch_results</span> <span class="o">=</span> <span class="kc">False</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_write_col_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -755,7 +801,9 @@
             <span class="n">params</span><span class="p">[</span><span class="s1">&#39;_rdd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_rdd</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">params</span>
 
-<div class="viewcode-block" id="NNNCorrelation.from_file"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.from_file">[docs]</a>    <span class="nd">@classmethod</span>
+<div class="viewcode-block" id="NNNCorrelation.from_file">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.from_file">[docs]</a>
+    <span class="nd">@classmethod</span>
     <span class="k">def</span> <span class="nf">from_file</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">rng</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Create an NNNCorrelation instance from an output file.</span>
 
@@ -765,9 +813,11 @@
 <span class="sd">            file_name (str):    The name of the file to read in.</span>
 <span class="sd">            file_type (str):    The type of file (&#39;ASCII&#39;, &#39;FITS&#39;, or &#39;HDF&#39;).  (default: determine</span>
 <span class="sd">                                the type automatically from the extension of file_name.)</span>
-<span class="sd">            logger (Logger):    If desired, a logger object to use for logging. (default: None)</span>
-<span class="sd">            rng (RandomState):  If desired, a numpy.random.RandomState instance to use for bootstrap</span>
-<span class="sd">                                random number generation. (default: None)</span>
+<span class="sd">            logger (:class:`logging.Logger`):</span>
+<span class="sd">                                If desired, a ``Logger`` object to use for logging. (default: None)</span>
+<span class="sd">            rng (:class:`numpy.random.Generator`):</span>
+<span class="sd">                                If desired, a ``Generator`` instance to use for</span>
+<span class="sd">                                bootstrap random number generation. (default: None)</span>
 
 <span class="sd">        Returns:</span>
 <span class="sd">            An NNNCorrelation object, constructed from the information in the file.</span>
@@ -789,7 +839,10 @@
             <span class="n">corr</span><span class="o">.</span><span class="n">_do_read</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">name</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">corr</span></div>
 
-<div class="viewcode-block" id="NNNCorrelation.read"><a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.read">[docs]</a>    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NNNCorrelation.read">
+<a class="viewcode-back" href="../../nnn.html#treecorr.NNNCorrelation.read">[docs]</a>
+    <span class="k">def</span> <span class="nf">read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Read in values from a file.</span>
 
 <span class="sd">        This should be a file that was written by TreeCorr, preferably a FITS or HDF5 file, so</span>
@@ -809,6 +862,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Reading NNN correlations from </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span><span class="n">file_name</span><span class="p">)</span>
         <span class="k">with</span> <span class="n">make_reader</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">reader</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_do_read</span><span class="p">(</span><span class="n">reader</span><span class="p">)</span></div>
+
 
     <span class="k">def</span> <span class="nf">_do_read</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">reader</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">params</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_read</span><span class="p">(</span><span class="n">reader</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
@@ -838,6 +892,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_rrr</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_rrr&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_drr</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_drr&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_rdd</span> <span class="o">=</span> <span class="n">params</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;_rdd&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">or</span> <span class="kc">None</span></div>
+
 </pre></div>
 
            </div>

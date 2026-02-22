@@ -1,20 +1,20 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>treecorr.nkcorrelation &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2c218288"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -31,9 +31,6 @@
           <a href="../../index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,6 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
@@ -55,7 +53,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
@@ -110,7 +107,9 @@
 <span class="kn">from</span> <span class="nn">.util</span> <span class="kn">import</span> <span class="n">make_writer</span>
 
 
-<div class="viewcode-block" id="NKCorrelation"><a class="viewcode-back" href="../../nk.html#treecorr.NKCorrelation">[docs]</a><span class="k">class</span> <span class="nc">NKCorrelation</span><span class="p">(</span><span class="n">Corr2</span><span class="p">):</span>
+<div class="viewcode-block" id="NKCorrelation">
+<a class="viewcode-back" href="../../nk.html#treecorr.NKCorrelation">[docs]</a>
+<span class="k">class</span> <span class="nc">NKCorrelation</span><span class="p">(</span><span class="n">Corr2</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 2-point count-scalar correlation</span>
 <span class="sd">    function.</span>
 
@@ -121,10 +120,10 @@
 <span class="sd">        correlations of non-shear quantities, e.g. the sizes or concentrations of galaxies, around</span>
 <span class="sd">        a set of lenses, where &quot;kappa&quot; would be the measurements of these quantities.</span>
 
-<span class="sd">    See the doc string of `Corr3` for a description of how the triangles are binned along</span>
+<span class="sd">    See the docstring of `Corr2` for a description of how the pairs are binned along</span>
 <span class="sd">    with the attributes related to the different binning options.</span>
 
-<span class="sd">    In addition to the attributes common to all `Corr3` subclasses, objects of this class</span>
+<span class="sd">    In addition to the attributes common to all `Corr2` subclasses, objects of this class</span>
 <span class="sd">    hold the following attributes:</span>
 
 <span class="sd">    Attributes:</span>
@@ -146,15 +145,18 @@
 <span class="sd">    The typical usage pattern is as follows:</span>
 
 <span class="sd">        &gt;&gt;&gt; nk = treecorr.NKCorrelation(config)</span>
-<span class="sd">        &gt;&gt;&gt; nk.process(cat1,cat2)   # Compute the cross-correlation function.</span>
-<span class="sd">        &gt;&gt;&gt; nk.write(file_name)     # Write out to a file.</span>
-<span class="sd">        &gt;&gt;&gt; xi = nk.xi              # Or access the correlation function directly.</span>
+<span class="sd">        &gt;&gt;&gt; nk.process(cat1, cat2)         # Compute the cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; nk.write(file_name)            # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; xi = nk.xi                     # Or access the correlation function directly.</span>
+
+<span class="sd">    See also: `NGCorrelation`, `KKCorrelation`, `NKKCorrelation`.</span>
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
-<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
+<span class="sd">                        This dict is allowed to have additional entries besides those listed</span>
 <span class="sd">                        in `Corr2`, which are ignored here. (default: None)</span>
-<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                        If desired, a ``Logger`` object for logging. (default: None, in which case</span>
 <span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
 
 <span class="sd">    Keyword Arguments:</span>
@@ -173,7 +175,9 @@
     <span class="c1"># The angles are not important for accuracy of NK correlations.</span>
     <span class="n">_default_angle_slop</span> <span class="o">=</span> <span class="mi">1</span>
 
-<div class="viewcode-block" id="NKCorrelation.__init__"><a class="viewcode-back" href="../../nk.html#treecorr.NKCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="NKCorrelation.__init__">
+<a class="viewcode-back" href="../../nk.html#treecorr.NKCorrelation.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_xi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
@@ -182,11 +186,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_varxi</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building NKCorr&#39;</span><span class="p">)</span></div>
 
+
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_xi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xi</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
 
-<div class="viewcode-block" id="NKCorrelation.copy"><a class="viewcode-back" href="../../nk.html#treecorr.NKCorrelation.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NKCorrelation.copy">
+<a class="viewcode-back" href="../../nk.html#treecorr.NKCorrelation.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Make a copy&quot;&quot;&quot;</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="ow">is</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_xi</span><span class="p">:</span>
@@ -195,7 +202,10 @@
             <span class="n">ret</span><span class="o">.</span><span class="n">_rk</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rk</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="NKCorrelation.finalize"><a class="viewcode-back" href="../../nk.html#treecorr.NKCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NKCorrelation.finalize">
+<a class="viewcode-back" href="../../nk.html#treecorr.NKCorrelation.finalize">[docs]</a>
+    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">vark</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
 
 <span class="sd">        The `Corr2.process_cross` command accumulates values in each bin, so it can be called</span>
@@ -208,6 +218,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_finalize</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="n">vark</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_xi</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_varxi</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -234,7 +245,9 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_sum</span><span class="p">(</span><span class="n">others</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_xi</span>
 
-<div class="viewcode-block" id="NKCorrelation.calculateXi"><a class="viewcode-back" href="../../nk.html#treecorr.NKCorrelation.calculateXi">[docs]</a>    <span class="k">def</span> <span class="nf">calculateXi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="NKCorrelation.calculateXi">
+<a class="viewcode-back" href="../../nk.html#treecorr.NKCorrelation.calculateXi">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculateXi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rk</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the correlation function possibly given another correlation function</span>
 <span class="sd">        that uses random points for the foreground objects.</span>
 
@@ -246,7 +259,14 @@
 
 <span class="sd">        After calling this function, the attributes ``xi``, ``varxi`` and ``cov`` will correspond</span>
 <span class="sd">        to the compensated values (if rk is provided).  The raw, uncompensated values are</span>
-<span class="sd">        available as ``rawxi`` and ``raw_varxi``.</span>
+<span class="sd">        available as ``raw_xi`` and ``raw_varxi``.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            The returned variance estimate (``varxi``) is computed according to this object&#39;s</span>
+<span class="sd">            ``var_method`` setting, specified when constructing the object (default: ``&#39;shot&#39;``).</span>
+<span class="sd">            Internally, this method calls `Corr2.estimate_cov`; see that method for details</span>
+<span class="sd">            about available variance and covariance estimation schemes.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            rk (NKCorrelation): The cross-correlation using random locations as the lenses (RK),</span>
@@ -290,6 +310,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xi</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">varxi</span></div>
 
+
     <span class="k">def</span> <span class="nf">_calculate_xi_from_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rk</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -300,7 +321,9 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_rk</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="o">-=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rk</span><span class="o">.</span><span class="n">xi</span>
 
-<div class="viewcode-block" id="NKCorrelation.write"><a class="viewcode-back" href="../../nk.html#treecorr.NKCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span> <span class="p">,</span><span class="n">rk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<div class="viewcode-block" id="NKCorrelation.write">
+<a class="viewcode-back" href="../../nk.html#treecorr.NKCorrelation.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span> <span class="p">,</span><span class="n">rk</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
               <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Write the correlation function to the file, file_name.</span>
 
@@ -322,7 +345,7 @@
 <span class="sd">                        that fell into each bin</span>
 <span class="sd">        kappa           The mean value :math:`\langle \kappa\rangle(r)`</span>
 <span class="sd">        sigma           The sqrt of the variance estimate of</span>
-<span class="sd">                        :math:`\langle \kappa\rangle`</span>
+<span class="sd">                        :math:`\langle \kappa\rangle(r)`</span>
 <span class="sd">        weight          The total weight contributing to each bin</span>
 <span class="sd">        npairs          The total number of pairs in each bin</span>
 <span class="sd">        ==========      =========================================================</span>
@@ -337,7 +360,7 @@
 <span class="sd">                                if desired.  (default: None)</span>
 <span class="sd">            file_type (str):    The type of file to write (&#39;ASCII&#39; or &#39;FITS&#39;).  (default: determine</span>
 <span class="sd">                                the type automatically from the extension of file_name.)</span>
-<span class="sd">            precision (int):    For ASCII output catalogs, the desired precision. (default: 4;</span>
+<span class="sd">            precision (int):    For ASCII output files, the desired precision. (default: 4;</span>
 <span class="sd">                                this value can also be given in the constructor in the config dict.)</span>
 <span class="sd">            write_patch_results (bool): Whether to write the patch-based results as well.</span>
 <span class="sd">                                        (default: False)</span>
@@ -348,6 +371,7 @@
         <span class="n">precision</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;precision&#39;</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span> <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">precision</span>
         <span class="k">with</span> <span class="n">make_writer</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">file_type</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="p">)</span> <span class="k">as</span> <span class="n">writer</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_write</span><span class="p">(</span><span class="n">writer</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="o">=</span><span class="n">write_cov</span><span class="p">)</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">_write_col_names</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -367,6 +391,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_varxi</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">xi</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_xi</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_varxi</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_comp_varxi</span><span class="p">]</span></div>
+
 </pre></div>
 
            </div>

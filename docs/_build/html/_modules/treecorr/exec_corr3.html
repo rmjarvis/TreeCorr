@@ -1,20 +1,20 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>treecorr.exec_corr3 &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2c218288"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -31,9 +31,6 @@
           <a href="../../index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,6 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
@@ -55,7 +53,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
@@ -99,7 +96,7 @@
 <span class="c1">#    and/or other materials provided with the distribution.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">.. module:: corr3</span>
+<span class="sd">.. module:: exec_corr3</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">from</span> <span class="nn">.catalog</span> <span class="kn">import</span> <span class="n">Catalog</span><span class="p">,</span> <span class="n">read_catalogs</span>
@@ -126,7 +123,7 @@
 <span class="c1">#    description</span>
 <span class="n">corr3_valid_params</span> <span class="o">=</span> <span class="p">{</span>
 
-    <span class="c1"># Parameters about the input catlogs</span>
+    <span class="c1"># Parameters about the input catalogs</span>
 
     <span class="s1">&#39;file_name&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">True</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s1">&#39;The file(s) with the galaxy data.&#39;</span><span class="p">),</span>
@@ -144,9 +141,9 @@
     <span class="c1"># Parameters about the output file(s)</span>
 
     <span class="s1">&#39;nnn_file_name&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
-            <span class="s1">&#39;The output filename for point-point correlation function.&#39;</span><span class="p">),</span>
+            <span class="s1">&#39;The output filename for count-count-count correlation function.&#39;</span><span class="p">),</span>
     <span class="s1">&#39;nnn_statistic&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;compensated&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;compensated&#39;</span><span class="p">,</span><span class="s1">&#39;simple&#39;</span><span class="p">],</span>
-            <span class="s1">&#39;Which statistic to use for omega as the estimator fo the NN correlation function. &#39;</span><span class="p">),</span>
+            <span class="s1">&#39;Which statistic to use for omega as the estimator for the NNN correlation function. &#39;</span><span class="p">),</span>
     <span class="s1">&#39;kkk_file_name&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
             <span class="s1">&#39;The output filename for scalar-scalar-scalar correlation function.&#39;</span><span class="p">),</span>
     <span class="s1">&#39;ggg_file_name&#39;</span> <span class="p">:</span> <span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="kc">False</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span>
@@ -208,18 +205,20 @@
 <span class="n">corr3_aliases</span> <span class="o">=</span> <span class="p">{</span>
 <span class="p">}</span>
 
-<div class="viewcode-block" id="corr3"><a class="viewcode-back" href="../../scripts.html#treecorr.corr3">[docs]</a><span class="k">def</span> <span class="nf">corr3</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<div class="viewcode-block" id="corr3">
+<a class="viewcode-back" href="../../scripts.html#treecorr.corr3">[docs]</a>
+<span class="k">def</span> <span class="nf">corr3</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the full three-point correlation function code based on the parameters in the</span>
 <span class="sd">    given config dict.</span>
 
 <span class="sd">    The function `print_corr3_params` will output information about the valid parameters</span>
 <span class="sd">    that are expected to be in the config dict.</span>
 
-<span class="sd">    Optionally a logger parameter maybe given, in which case it is used for logging.</span>
+<span class="sd">    Optionally a logger parameter may be given, in which case it is used for logging.</span>
 <span class="sd">    If not given, the logging will be based on the verbose and log_file parameters.</span>
 
 <span class="sd">    :param config:  The configuration dict which defines what to do.</span>
-<span class="sd">    :param logger:  If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">    :param logger:  If desired, a ``Logger`` object for logging. (default: None, in which case</span>
 <span class="sd">                    one will be built according to the config dict&#39;s verbose level.)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># Setup logger based on config verbose value</span>
@@ -284,7 +283,8 @@
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;No random catalogs given.  Only doing ntri calculation.&quot;</span><span class="p">)</span>
             <span class="n">rrr</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="c1"># TODO: I haven&#39;t don&#39;t all the options correctly with cat2, cat3 yet.</span>
+            <span class="c1"># Note: random handling here is currently only implemented for the primary</span>
+            <span class="c1"># data catalog in the NNN workflow.</span>
             <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Performing RRR calculations...&quot;</span><span class="p">)</span>
             <span class="n">rrr</span> <span class="o">=</span> <span class="n">NNNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
             <span class="n">rrr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand1</span><span class="p">)</span>
@@ -312,7 +312,8 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrote KKK correlation to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;kkk_file_name&#39;</span><span class="p">])</span>
 
     <span class="c1"># Do NNK correlation function if necessary</span>
-    <span class="c1"># TODO: randoms on all cross correlations that include N</span>
+    <span class="c1"># Note: random-catalog support is not implemented here for all cross-correlations</span>
+    <span class="c1"># that include N.</span>
     <span class="k">if</span> <span class="s1">&#39;nnk_file_name&#39;</span> <span class="ow">in</span> <span class="n">config</span><span class="p">:</span>
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Performing NNK calculations...&quot;</span><span class="p">)</span>
         <span class="n">nnk</span> <span class="o">=</span> <span class="n">NNKCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">)</span>
@@ -475,10 +476,14 @@
         <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;Wrote GGK correlation to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">config</span><span class="p">[</span><span class="s1">&#39;ggk_file_name&#39;</span><span class="p">])</span></div>
 
 
-<div class="viewcode-block" id="print_corr3_params"><a class="viewcode-back" href="../../scripts.html#treecorr.print_corr3_params">[docs]</a><span class="k">def</span> <span class="nf">print_corr3_params</span><span class="p">():</span>
+
+<div class="viewcode-block" id="print_corr3_params">
+<a class="viewcode-back" href="../../scripts.html#treecorr.print_corr3_params">[docs]</a>
+<span class="k">def</span> <span class="nf">print_corr3_params</span><span class="p">():</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Print information about the valid parameters that may be given to the `corr3` function.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">print_params</span><span class="p">(</span><span class="n">corr3_valid_params</span><span class="p">)</span></div>
+
 </pre></div>
 
            </div>

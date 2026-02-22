@@ -1,20 +1,20 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="../../">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>treecorr.nggcorrelation &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="../../_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="../../_static/jquery.js"></script>
-        <script src="../../_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="../../" id="documentation_options" src="../../_static/documentation_options.js"></script>
-        <script src="../../_static/doctools.js"></script>
-        <script src="../../_static/sphinx_highlight.js"></script>
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=2c218288"></script>
+      <script src="../../_static/doctools.js?v=9bcbadda"></script>
+      <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
@@ -31,9 +31,6 @@
           <a href="../../index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -44,6 +41,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul>
 <li class="toctree-l1"><a class="reference internal" href="../../overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../correlation3.html">Three-point Correlation Functions</a></li>
@@ -55,7 +53,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../history.html">Previous History</a></li>
 </ul>
@@ -99,7 +96,7 @@
 <span class="c1">#    and/or other materials provided with the distribution.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">.. module:: nnncorrelation</span>
+<span class="sd">.. module:: nggcorrelation</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -109,11 +106,13 @@
 <span class="kn">from</span> <span class="nn">.corr3base</span> <span class="kn">import</span> <span class="n">Corr3</span>
 
 
-<div class="viewcode-block" id="NGGCorrelation"><a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation">[docs]</a><span class="k">class</span> <span class="nc">NGGCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
+<div class="viewcode-block" id="NGGCorrelation">
+<a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation">[docs]</a>
+<span class="k">class</span> <span class="nc">NGGCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 3-point count-shear-shear correlation</span>
 <span class="sd">    function.</span>
 
-<span class="sd">    With this class, points 2 and 3 of the triangle (i.e. the vertces opposite d2,d3) are the ones</span>
+<span class="sd">    With this class, points 2 and 3 of the triangle (i.e. the vertices opposite d2, d3) are the ones</span>
 <span class="sd">    with the shear values.  Use `GNGCorrelation` and `GGNCorrelation` for classes with the shears</span>
 <span class="sd">    in the other positions.</span>
 
@@ -134,7 +133,7 @@
 <span class="sd">    names you find most convenient: ``gam0``, ``gam1``, ``gam2`` and ``gam3`` are all valid</span>
 <span class="sd">    attributes, which return the corresponding value.</span>
 
-<span class="sd">    See the doc string of `Corr3` for a description of how the triangles are binned along</span>
+<span class="sd">    See the docstring of `Corr3` for a description of how the triangles are binned along</span>
 <span class="sd">    with the attributes related to the different binning options.</span>
 
 <span class="sd">    In addition to the attributes common to all `Corr3` subclasses, objects of this class</span>
@@ -145,28 +144,36 @@
 <span class="sd">        gam1:       The 1st &quot;natural&quot; correlation function, :math:`\Gamma_1`.</span>
 <span class="sd">        gam2:       The 2nd &quot;natural&quot; correlation function, :math:`\Gamma_2`.</span>
 <span class="sd">        gam3:       The 3rd &quot;natural&quot; correlation function, :math:`\Gamma_3`.</span>
-<span class="sd">        vargam0:    The variance estimate of :math:`\Gamma_0`, only including the shot noise.</span>
-<span class="sd">        vargam1:    The variance estimate of :math:`\Gamma_1`, only including the shot noise.</span>
-<span class="sd">        vargam2:    The variance estimate of :math:`\Gamma_2`, only including the shot noise.</span>
-<span class="sd">        vargam3:    The variance estimate of :math:`\Gamma_3`, only including the shot noise.</span>
+<span class="sd">        vargam0:    The variance estimate of :math:`\Gamma_0`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
+<span class="sd">        vargam1:    The variance estimate of :math:`\Gamma_1`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
+<span class="sd">        vargam2:    The variance estimate of :math:`\Gamma_2`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
+<span class="sd">        vargam3:    The variance estimate of :math:`\Gamma_3`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
 
 <span class="sd">    The typical usage pattern is as follows::</span>
 
 <span class="sd">        &gt;&gt;&gt; ngg = treecorr.NGGCorrelation(config)</span>
-<span class="sd">        &gt;&gt;&gt; ngg.process(cat1, cat2)       # Compute cross-correlation of two fields.</span>
-<span class="sd">        &gt;&gt;&gt; ngg.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.</span>
-<span class="sd">        &gt;&gt;&gt; ngg.write(file_name)          # Write out to a file.</span>
-<span class="sd">        &gt;&gt;&gt; rgg.process(rand, cat2)       # Compute cross-correlation with randoms.</span>
-<span class="sd">        &gt;&gt;&gt; ngg.calculateZeta(rgg=rgg)    # Calculate zeta using randoms</span>
-<span class="sd">        &gt;&gt;&gt; gam0 = ngg.gam0, etc.         # Access gamma values directly.</span>
-<span class="sd">        &gt;&gt;&gt; gam0r = ngg.gam0r             # Or access real and imag parts separately.</span>
+<span class="sd">        &gt;&gt;&gt; ngg.process(cat1, cat2)         # Compute the cross-correlation of two fields.</span>
+<span class="sd">        &gt;&gt;&gt; # ngg.process(cat1, cat2, cat3) # ... or of three fields.</span>
+<span class="sd">        &gt;&gt;&gt; ngg.write(file_name)            # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; rgg.process(rand, cat2)         # Compute the random cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; ngg.calculateZeta(rgg=rgg)      # Calculate zeta using randoms.</span>
+<span class="sd">        &gt;&gt;&gt; gam0 = ngg.gam0, etc.           # Access gamma values directly.</span>
+<span class="sd">        &gt;&gt;&gt; gam0r = ngg.gam0r               # Or access real and imaginary parts separately.</span>
 <span class="sd">        &gt;&gt;&gt; gam0i = ngg.gam0i</span>
+
+<span class="sd">    See also: `GNGCorrelation`, `GGNCorrelation`, `NNGCorrelation`, `GGGCorrelation`,</span>
+<span class="sd">    `NGCorrelation`.</span>
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
-<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
+<span class="sd">                        This dict is allowed to have additional entries besides those listed</span>
 <span class="sd">                        in `Corr3`, which are ignored here. (default: None)</span>
-<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                        If desired, a ``Logger`` object for logging. (default: None, in which case</span>
 <span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
 
 <span class="sd">    Keyword Arguments:</span>
@@ -186,7 +193,9 @@
     <span class="n">_sig2</span> <span class="o">=</span> <span class="s1">&#39;sig_sn (per component)&#39;</span>
     <span class="n">_sig3</span> <span class="o">=</span> <span class="s1">&#39;sig_sn (per component)&#39;</span>
 
-<div class="viewcode-block" id="NGGCorrelation.__init__"><a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="NGGCorrelation.__init__">
+<a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_rgg</span> <span class="o">=</span> <span class="kc">None</span>
@@ -199,6 +208,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam0</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam2</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building NGGCorr&#39;</span><span class="p">)</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_gam0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -274,14 +284,19 @@
     <span class="k">def</span> <span class="nf">gam3i</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">gam2i</span>
 
-<div class="viewcode-block" id="NGGCorrelation.copy"><a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NGGCorrelation.copy">
+<a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="c1"># True is possible during read before we finish reading in these attributes.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rgg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rgg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">ret</span><span class="o">.</span><span class="n">_rgg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rgg</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="NGGCorrelation.finalize"><a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varg1</span><span class="p">,</span> <span class="n">varg2</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NGGCorrelation.finalize">
+<a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.finalize">[docs]</a>
+    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varg1</span><span class="p">,</span> <span class="n">varg2</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
 
 <span class="sd">        Parameters:</span>
@@ -292,6 +307,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">varg1</span> <span class="o">*</span> <span class="n">varg2</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;LogSAS&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">*=</span> <span class="mi">2</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_vargam0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -335,21 +351,29 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam0</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam2</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="NGGCorrelation.getStat"><a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.getStat">[docs]</a>    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="NGGCorrelation.getStat">
+<a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.getStat">[docs]</a>
+    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The standard statistic for the current correlation object as a 1-d array.</span>
 
 <span class="sd">        In this case, the concatenation of gam0.ravel() and gam2.ravel().</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">gam0</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam2</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span></div>
 
-<div class="viewcode-block" id="NGGCorrelation.getWeight"><a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.getWeight">[docs]</a>    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NGGCorrelation.getWeight">
+<a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.getWeight">[docs]</a>
+    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The weight array for the current correlation object as a 1-d array.</span>
 
 <span class="sd">        In this case, 2 copies of self.weight.ravel().</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">ravel</span><span class="p">())]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="NGGCorrelation.calculateGam"><a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.calculateGam">[docs]</a>    <span class="k">def</span> <span class="nf">calculateGam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rgg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="NGGCorrelation.calculateGam">
+<a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.calculateGam">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculateGam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">rgg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the correlation function possibly given another correlation function</span>
 <span class="sd">        that uses random points for the foreground objects.</span>
 
@@ -360,8 +384,15 @@
 
 <span class="sd">        After calling this function, the attributes ``gam0``, ``gam2``, ``vargam0``,</span>
 <span class="sd">        ``vargam2``, and ``cov`` will correspond to the compensated values (if rgg is provided).</span>
-<span class="sd">        The raw, uncompensated values are available as ``raw_gam0`` , ``raw_gam2``,</span>
+<span class="sd">        The raw, uncompensated values are available as ``raw_gam0``, ``raw_gam2``,</span>
 <span class="sd">        ``raw_vargam0``, and ``raw_vargam2``.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            The returned variance estimates (``vargam0`` and ``vargam2``) are computed according</span>
+<span class="sd">            to this object&#39;s ``var_method`` setting, specified when constructing the object</span>
+<span class="sd">            (default: ``&#39;shot&#39;``). Internally, this method calls `Corr3.estimate_cov`; see that</span>
+<span class="sd">            method for details about available variance and covariance estimation schemes.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            rgg (NGGCorrelation): The cross-correlation using random locations as the lenses (RGG),</span>
@@ -418,6 +449,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gam0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gam2</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vargam0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vargam2</span></div>
 
+
     <span class="k">def</span> <span class="nf">_calculate_xi_from_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rgg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -429,17 +461,20 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_gam0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_gam0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rgg</span><span class="o">.</span><span class="n">gam0</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gam2</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_gam2</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rgg</span><span class="o">.</span><span class="n">gam2</span>
 
-<div class="viewcode-block" id="NGGCorrelation.write"><a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="NGGCorrelation.write">
+<a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
               <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
                       <span class="n">write_patch_results</span><span class="o">=</span><span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="o">=</span><span class="n">write_cov</span><span class="p">)</span></div>
 
+
     <span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">Corr3</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        gam0r           The real part of the estimator of :math:`\Gamma_0`</span>
-<span class="sd">        gam0i           The imag part of the estimator of :math:`\Gamma_0`</span>
+<span class="sd">        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`</span>
 <span class="sd">        gam2r           The real part of the estimator of :math:`\Gamma_2`</span>
-<span class="sd">        gam2i           The imag part of the estimator of :math:`\Gamma_2`</span>
+<span class="sd">        gam2i           The imaginary part of the estimator of :math:`\Gamma_2`</span>
 <span class="sd">        sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`</span>
 <span class="sd">        sigma_gam2      The sqrt of the variance estimate of :math:`\Gamma_2`</span>
 <span class="sd">        &quot;&quot;&quot;</span><span class="p">)</span>
@@ -464,11 +499,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam2</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_gam2&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam2</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="GNGCorrelation"><a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation">[docs]</a><span class="k">class</span> <span class="nc">GNGCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
+
+<div class="viewcode-block" id="GNGCorrelation">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation">[docs]</a>
+<span class="k">class</span> <span class="nc">GNGCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 3-point shear-count-shear correlation</span>
 <span class="sd">    function.</span>
 
-<span class="sd">    With this class, points 1 and 3 of the triangle (i.e. the vertces opposite d2,d3) are the ones</span>
+<span class="sd">    With this class, points 1 and 3 of the triangle (i.e. the vertices opposite d1, d3) are the ones</span>
 <span class="sd">    with the shear values.  Use `NGGCorrelation` and `GGNCorrelation` for classes with the shears</span>
 <span class="sd">    in the other positions.</span>
 
@@ -489,7 +527,7 @@
 <span class="sd">    names you find most convenient: ``gam0``, ``gam1``, ``gam2`` and ``gam3`` are all valid</span>
 <span class="sd">    attributes, which return the corresponding value.</span>
 
-<span class="sd">    See the doc string of `Corr3` for a description of how the triangles are binned along</span>
+<span class="sd">    See the docstring of `Corr3` for a description of how the triangles are binned along</span>
 <span class="sd">    with the attributes related to the different binning options.</span>
 
 <span class="sd">    In addition to the attributes common to all `Corr3` subclasses, objects of this class</span>
@@ -500,28 +538,36 @@
 <span class="sd">        gam1:       The 1st &quot;natural&quot; correlation function, :math:`\Gamma_1`.</span>
 <span class="sd">        gam2:       The 2nd &quot;natural&quot; correlation function, :math:`\Gamma_2`.</span>
 <span class="sd">        gam3:       The 3rd &quot;natural&quot; correlation function, :math:`\Gamma_3`.</span>
-<span class="sd">        vargam0:    The variance estimate of :math:`\Gamma_0`, only including the shot noise.</span>
-<span class="sd">        vargam1:    The variance estimate of :math:`\Gamma_1`, only including the shot noise.</span>
-<span class="sd">        vargam2:    The variance estimate of :math:`\Gamma_2`, only including the shot noise.</span>
-<span class="sd">        vargam3:    The variance estimate of :math:`\Gamma_3`, only including the shot noise.</span>
+<span class="sd">        vargam0:    The variance estimate of :math:`\Gamma_0`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
+<span class="sd">        vargam1:    The variance estimate of :math:`\Gamma_1`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
+<span class="sd">        vargam2:    The variance estimate of :math:`\Gamma_2`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
+<span class="sd">        vargam3:    The variance estimate of :math:`\Gamma_3`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
 
 <span class="sd">    The typical usage pattern is as follows::</span>
 
 <span class="sd">        &gt;&gt;&gt; gng = treecorr.GNGCorrelation(config)</span>
-<span class="sd">        &gt;&gt;&gt; gng.process(cat1, cat2, cat1) # Compute cross-correlation of two fields.</span>
-<span class="sd">        &gt;&gt;&gt; gng.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.</span>
-<span class="sd">        &gt;&gt;&gt; gng.write(file_name)          # Write out to a file.</span>
-<span class="sd">        &gt;&gt;&gt; grg.process(cat1, rand, cat1) # Compute cross-correlation with randoms.</span>
-<span class="sd">        &gt;&gt;&gt; gng.calculateZeta(grg=grg)    # Calculate zeta using randoms</span>
-<span class="sd">        &gt;&gt;&gt; gam0 = gng.gam0, etc.         # Access gamma values directly.</span>
-<span class="sd">        &gt;&gt;&gt; gam0r = gng.gam0r             # Or access real and imag parts separately.</span>
+<span class="sd">        &gt;&gt;&gt; gng.process(cat1, cat2, cat1)   # Compute the cross-correlation of two fields.</span>
+<span class="sd">        &gt;&gt;&gt; # gng.process(cat1, cat2, cat3) # ... or of three fields.</span>
+<span class="sd">        &gt;&gt;&gt; gng.write(file_name)            # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; grg.process(cat1, rand, cat1)   # Compute the random cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; gng.calculateZeta(grg=grg)      # Calculate zeta using randoms.</span>
+<span class="sd">        &gt;&gt;&gt; gam0 = gng.gam0, etc.           # Access gamma values directly.</span>
+<span class="sd">        &gt;&gt;&gt; gam0r = gng.gam0r               # Or access real and imaginary parts separately.</span>
 <span class="sd">        &gt;&gt;&gt; gam0i = gng.gam0i</span>
+
+<span class="sd">    See also: `NGGCorrelation`, `GGNCorrelation`, `NNGCorrelation`, `GGGCorrelation`,</span>
+<span class="sd">    `NGCorrelation`.</span>
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
-<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
+<span class="sd">                        This dict is allowed to have additional entries besides those listed</span>
 <span class="sd">                        in `Corr3`, which are ignored here. (default: None)</span>
-<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                        If desired, a ``Logger`` object for logging. (default: None, in which case</span>
 <span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
 
 <span class="sd">    Keyword Arguments:</span>
@@ -541,7 +587,9 @@
     <span class="n">_sig2</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">_sig3</span> <span class="o">=</span> <span class="s1">&#39;sig_sn (per component)&#39;</span>
 
-<div class="viewcode-block" id="GNGCorrelation.__init__"><a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="GNGCorrelation.__init__">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">_grg</span> <span class="o">=</span> <span class="kc">None</span>
@@ -552,6 +600,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam0</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam1</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building GNGCorr&#39;</span><span class="p">)</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_gam0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -627,14 +676,19 @@
     <span class="k">def</span> <span class="nf">gam3i</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">gam1i</span>
 
-<div class="viewcode-block" id="GNGCorrelation.copy"><a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GNGCorrelation.copy">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="c1"># True is possible during read before we finish reading in these attributes.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">ret</span><span class="o">.</span><span class="n">_grg</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grg</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="GNGCorrelation.finalize"><a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varg1</span><span class="p">,</span> <span class="n">varg2</span><span class="p">):</span>
+
+<div class="viewcode-block" id="GNGCorrelation.finalize">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.finalize">[docs]</a>
+    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varg1</span><span class="p">,</span> <span class="n">varg2</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
 
 <span class="sd">        Parameters:</span>
@@ -645,6 +699,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">varg1</span> <span class="o">*</span> <span class="n">varg2</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;LogSAS&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">*=</span> <span class="mi">2</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_vargam0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -688,21 +743,29 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam0</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam1</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="GNGCorrelation.getStat"><a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.getStat">[docs]</a>    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GNGCorrelation.getStat">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.getStat">[docs]</a>
+    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The standard statistic for the current correlation object as a 1-d array.</span>
 
 <span class="sd">        In this case, the concatenation of gam0.ravel() and gam1.ravel().</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">gam0</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam1</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span></div>
 
-<div class="viewcode-block" id="GNGCorrelation.getWeight"><a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.getWeight">[docs]</a>    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="GNGCorrelation.getWeight">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.getWeight">[docs]</a>
+    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The weight array for the current correlation object as a 1-d array.</span>
 
 <span class="sd">        In this case, 2 copies of self.weight.ravel().</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">ravel</span><span class="p">())]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GNGCorrelation.calculateGam"><a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.calculateGam">[docs]</a>    <span class="k">def</span> <span class="nf">calculateGam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">grg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="GNGCorrelation.calculateGam">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.calculateGam">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculateGam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">grg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the correlation function possibly given another correlation function</span>
 <span class="sd">        that uses random points for the foreground objects.</span>
 
@@ -713,8 +776,15 @@
 
 <span class="sd">        After calling this function, the attributes ``gam0``, ``gam1``, ``vargam0``,</span>
 <span class="sd">        ``vargam1``, and ``cov`` will correspond to the compensated values (if grg is provided).</span>
-<span class="sd">        The raw, uncompensated values are available as ``raw_gam0`` , ``raw_gam1``,</span>
+<span class="sd">        The raw, uncompensated values are available as ``raw_gam0``, ``raw_gam1``,</span>
 <span class="sd">        ``raw_vargam0``, and ``raw_vargam1``.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            The returned variance estimates (``vargam0`` and ``vargam1``) are computed according</span>
+<span class="sd">            to this object&#39;s ``var_method`` setting, specified when constructing the object</span>
+<span class="sd">            (default: ``&#39;shot&#39;``). Internally, this method calls `Corr3.estimate_cov`; see that</span>
+<span class="sd">            method for details about available variance and covariance estimation schemes.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            grg (GNGCorrelation): The cross-correlation using random locations as the lenses (GRG),</span>
@@ -771,6 +841,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gam0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gam1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vargam0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vargam1</span></div>
 
+
     <span class="k">def</span> <span class="nf">_calculate_xi_from_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -782,17 +853,20 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_gam0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_gam0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grg</span><span class="o">.</span><span class="n">gam0</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gam1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_gam1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grg</span><span class="o">.</span><span class="n">gam1</span>
 
-<div class="viewcode-block" id="GNGCorrelation.write"><a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="GNGCorrelation.write">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
               <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
                       <span class="n">write_patch_results</span><span class="o">=</span><span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="o">=</span><span class="n">write_cov</span><span class="p">)</span></div>
 
+
     <span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">Corr3</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        gam0r           The real part of the estimator of :math:`\Gamma_0`</span>
-<span class="sd">        gam0i           The imag part of the estimator of :math:`\Gamma_0`</span>
+<span class="sd">        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`</span>
 <span class="sd">        gam1r           The real part of the estimator of :math:`\Gamma_1`</span>
-<span class="sd">        gam1i           The imag part of the estimator of :math:`\Gamma_1`</span>
+<span class="sd">        gam1i           The imaginary part of the estimator of :math:`\Gamma_1`</span>
 <span class="sd">        sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`</span>
 <span class="sd">        sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`</span>
 <span class="sd">        &quot;&quot;&quot;</span><span class="p">)</span>
@@ -817,11 +891,14 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_gam1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam1</span><span class="p">]</span></div>
 
-<div class="viewcode-block" id="GGNCorrelation"><a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation">[docs]</a><span class="k">class</span> <span class="nc">GGNCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
+
+<div class="viewcode-block" id="GGNCorrelation">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation">[docs]</a>
+<span class="k">class</span> <span class="nc">GGNCorrelation</span><span class="p">(</span><span class="n">Corr3</span><span class="p">):</span>
 <span class="w">    </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;This class handles the calculation and storage of a 3-point shear-shear-count correlation</span>
 <span class="sd">    function.</span>
 
-<span class="sd">    With this class, points 1 and 2 of the triangle (i.e. the vertces opposite d2,d3) are the ones</span>
+<span class="sd">    With this class, points 1 and 2 of the triangle (i.e. the vertices opposite d1, d2) are the ones</span>
 <span class="sd">    with the shear values.  Use `NGGCorrelation` and `GNGCorrelation` for classes with the shears</span>
 <span class="sd">    in the other positions.</span>
 
@@ -842,7 +919,7 @@
 <span class="sd">    names you find most convenient: ``gam0``, ``gam1``, ``gam2`` and ``gam3`` are all valid</span>
 <span class="sd">    attributes, which return the corresponding value.</span>
 
-<span class="sd">    See the doc string of `Corr3` for a description of how the triangles are binned along</span>
+<span class="sd">    See the docstring of `Corr3` for a description of how the triangles are binned along</span>
 <span class="sd">    with the attributes related to the different binning options.</span>
 
 <span class="sd">    In addition to the attributes common to all `Corr3` subclasses, objects of this class</span>
@@ -853,28 +930,36 @@
 <span class="sd">        gam1:       The 1st &quot;natural&quot; correlation function, :math:`\Gamma_1`.</span>
 <span class="sd">        gam2:       The 2nd &quot;natural&quot; correlation function, :math:`\Gamma_2`.</span>
 <span class="sd">        gam3:       The 3rd &quot;natural&quot; correlation function, :math:`\Gamma_3`.</span>
-<span class="sd">        vargam0:    The variance estimate of :math:`\Gamma_0`, only including the shot noise.</span>
-<span class="sd">        vargam1:    The variance estimate of :math:`\Gamma_1`, only including the shot noise.</span>
-<span class="sd">        vargam2:    The variance estimate of :math:`\Gamma_2`, only including the shot noise.</span>
-<span class="sd">        vargam3:    The variance estimate of :math:`\Gamma_3`, only including the shot noise.</span>
+<span class="sd">        vargam0:    The variance estimate of :math:`\Gamma_0`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
+<span class="sd">        vargam1:    The variance estimate of :math:`\Gamma_1`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
+<span class="sd">        vargam2:    The variance estimate of :math:`\Gamma_2`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
+<span class="sd">        vargam3:    The variance estimate of :math:`\Gamma_3`, computed according to ``var_method``</span>
+<span class="sd">                    (default: ``&#39;shot&#39;``).</span>
 
 <span class="sd">    The typical usage pattern is as follows::</span>
 
 <span class="sd">        &gt;&gt;&gt; ggn = treecorr.GGNCorrelation(config)</span>
-<span class="sd">        &gt;&gt;&gt; ggn.process(cat1, cat2)       # Compute cross-correlation of two fields.</span>
-<span class="sd">        &gt;&gt;&gt; ggn.process(cat1, cat2, cat3) # Compute cross-correlation of three fields.</span>
-<span class="sd">        &gt;&gt;&gt; ggn.write(file_name)          # Write out to a file.</span>
-<span class="sd">        &gt;&gt;&gt; ggr.process(cat1, rand)       # Compute cross-correlation with randoms.</span>
-<span class="sd">        &gt;&gt;&gt; ggn.calculateZeta(ggr=ggr)    # Calculate zeta using randoms</span>
-<span class="sd">        &gt;&gt;&gt; gam0 = ggn.gam0, etc.         # Access gamma values directly.</span>
-<span class="sd">        &gt;&gt;&gt; gam0r = ggn.gam0r             # Or access real and imag parts separately.</span>
+<span class="sd">        &gt;&gt;&gt; ggn.process(cat1, cat2)         # Compute the cross-correlation of two fields.</span>
+<span class="sd">        &gt;&gt;&gt; # ggn.process(cat1, cat2, cat3) # ... or of three fields.</span>
+<span class="sd">        &gt;&gt;&gt; ggn.write(file_name)            # Write out to a file.</span>
+<span class="sd">        &gt;&gt;&gt; ggr.process(cat1, rand)         # Compute the random cross-correlation.</span>
+<span class="sd">        &gt;&gt;&gt; ggn.calculateZeta(ggr=ggr)      # Calculate zeta using randoms.</span>
+<span class="sd">        &gt;&gt;&gt; gam0 = ggn.gam0, etc.           # Access gamma values directly.</span>
+<span class="sd">        &gt;&gt;&gt; gam0r = ggn.gam0r               # Or access real and imaginary parts separately.</span>
 <span class="sd">        &gt;&gt;&gt; gam0i = ggn.gam0i</span>
+
+<span class="sd">    See also: `NGGCorrelation`, `GNGCorrelation`, `NNGCorrelation`, `GGGCorrelation`,</span>
+<span class="sd">    `NGCorrelation`.</span>
 
 <span class="sd">    Parameters:</span>
 <span class="sd">        config (dict):  A configuration dict that can be used to pass in kwargs if desired.</span>
-<span class="sd">                        This dict is allowed to have addition entries besides those listed</span>
+<span class="sd">                        This dict is allowed to have additional entries besides those listed</span>
 <span class="sd">                        in `Corr3`, which are ignored here. (default: None)</span>
-<span class="sd">        logger:         If desired, a logger object for logging. (default: None, in which case</span>
+<span class="sd">        logger (:class:`logging.Logger`):</span>
+<span class="sd">                        If desired, a ``Logger`` object for logging. (default: None, in which case</span>
 <span class="sd">                        one will be built according to the config dict&#39;s verbose level.)</span>
 
 <span class="sd">    Keyword Arguments:</span>
@@ -894,7 +979,9 @@
     <span class="n">_sig2</span> <span class="o">=</span> <span class="s1">&#39;sig_sn (per component)&#39;</span>
     <span class="n">_sig3</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="GGNCorrelation.__init__"><a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.__init__">[docs]</a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="GGNCorrelation.__init__">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.__init__">[docs]</a>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">logger</span><span class="o">=</span><span class="n">logger</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
 
         <span class="n">shape</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">data_shape</span>
@@ -905,6 +992,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam0</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam1</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Finished building GGNCorr&#39;</span><span class="p">)</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_gam0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -980,14 +1068,19 @@
     <span class="k">def</span> <span class="nf">gam3i</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam0i</span>
 
-<div class="viewcode-block" id="GGNCorrelation.copy"><a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.copy">[docs]</a>    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GGNCorrelation.copy">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.copy">[docs]</a>
+    <span class="k">def</span> <span class="nf">copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">ret</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="c1"># True is possible during read before we finish reading in these attributes.</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ggr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ggr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">True</span><span class="p">:</span>
             <span class="n">ret</span><span class="o">.</span><span class="n">_ggr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ggr</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
         <span class="k">return</span> <span class="n">ret</span></div>
 
-<div class="viewcode-block" id="GGNCorrelation.finalize"><a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.finalize">[docs]</a>    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varg1</span><span class="p">,</span> <span class="n">varg2</span><span class="p">):</span>
+
+<div class="viewcode-block" id="GGNCorrelation.finalize">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.finalize">[docs]</a>
+    <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varg1</span><span class="p">,</span> <span class="n">varg2</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Finalize the calculation of the correlation function.</span>
 
 <span class="sd">        Parameters:</span>
@@ -998,6 +1091,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">varg1</span> <span class="o">*</span> <span class="n">varg2</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">bin_type</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;LogSAS&#39;</span><span class="p">,</span> <span class="s1">&#39;LogMultipole&#39;</span><span class="p">]:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_var_num</span> <span class="o">*=</span> <span class="mi">2</span></div>
+
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">raw_vargam0</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -1041,21 +1135,29 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam0</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam1</span> <span class="o">=</span> <span class="kc">None</span>
 
-<div class="viewcode-block" id="GGNCorrelation.getStat"><a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.getStat">[docs]</a>    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+<div class="viewcode-block" id="GGNCorrelation.getStat">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.getStat">[docs]</a>
+    <span class="k">def</span> <span class="nf">getStat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The standard statistic for the current correlation object as a 1-d array.</span>
 
 <span class="sd">        In this case, the concatenation of gam0.ravel() and gam1.ravel().</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">gam0</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="bp">self</span><span class="o">.</span><span class="n">gam1</span><span class="o">.</span><span class="n">ravel</span><span class="p">()])</span></div>
 
-<div class="viewcode-block" id="GGNCorrelation.getWeight"><a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.getWeight">[docs]</a>    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+
+<div class="viewcode-block" id="GGNCorrelation.getWeight">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.getWeight">[docs]</a>
+    <span class="k">def</span> <span class="nf">getWeight</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;The weight array for the current correlation object as a 1-d array.</span>
 
 <span class="sd">        In this case, 2 copies of self.weight.ravel().</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="o">.</span><span class="n">ravel</span><span class="p">())]</span> <span class="o">*</span> <span class="mi">2</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="GGNCorrelation.calculateGam"><a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.calculateGam">[docs]</a>    <span class="k">def</span> <span class="nf">calculateGam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ggr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+
+<div class="viewcode-block" id="GGNCorrelation.calculateGam">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.calculateGam">[docs]</a>
+    <span class="k">def</span> <span class="nf">calculateGam</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">ggr</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;Calculate the correlation function possibly given another correlation function</span>
 <span class="sd">        that uses random points for the foreground objects.</span>
 
@@ -1066,8 +1168,15 @@
 
 <span class="sd">        After calling this function, the attributes ``gam0``, ``gam1``, ``vargam0``,</span>
 <span class="sd">        ``vargam1``, and ``cov`` will correspond to the compensated values (if ggr is provided).</span>
-<span class="sd">        The raw, uncompensated values are available as ``raw_gam0`` , ``raw_gam1``,</span>
+<span class="sd">        The raw, uncompensated values are available as ``raw_gam0``, ``raw_gam1``,</span>
 <span class="sd">        ``raw_vargam0``, and ``raw_vargam1``.</span>
+
+<span class="sd">        .. note::</span>
+
+<span class="sd">            The returned variance estimates (``vargam0`` and ``vargam1``) are computed according</span>
+<span class="sd">            to this object&#39;s ``var_method`` setting, specified when constructing the object</span>
+<span class="sd">            (default: ``&#39;shot&#39;``). Internally, this method calls `Corr3.estimate_cov`; see that</span>
+<span class="sd">            method for details about available variance and covariance estimation schemes.</span>
 
 <span class="sd">        Parameters:</span>
 <span class="sd">            ggr (GGNCorrelation): The cross-correlation using random locations as the lenses (GGR),</span>
@@ -1090,7 +1199,7 @@
 
             <span class="k">if</span> <span class="p">(</span><span class="n">ggr</span><span class="o">.</span><span class="n">npatch3</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">1</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">npatch3</span><span class="p">)</span> <span class="ow">or</span> <span class="n">ggr</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch1</span>
                     <span class="ow">or</span> <span class="n">ggr</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">npatch2</span><span class="p">):</span>
-                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;GRG must be run with the same patches as GDG&quot;</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;GGR must be run with the same patches as GGD&quot;</span><span class="p">)</span>
 
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="c1"># If there are any ggr patch pairs that aren&#39;t in results (e.g. due to different</span>
@@ -1124,6 +1233,7 @@
 
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gam0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_gam1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vargam0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">vargam1</span></div>
 
+
     <span class="k">def</span> <span class="nf">_calculate_xi_from_pairs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ggr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
@@ -1135,17 +1245,20 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">_gam0</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_gam0</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ggr</span><span class="o">.</span><span class="n">gam0</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_gam1</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">raw_gam1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ggr</span><span class="o">.</span><span class="n">gam1</span>
 
-<div class="viewcode-block" id="GGNCorrelation.write"><a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.write">[docs]</a>    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<div class="viewcode-block" id="GGNCorrelation.write">
+<a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.write">[docs]</a>
+    <span class="k">def</span> <span class="nf">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">write_patch_results</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
               <span class="n">write_cov</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="n">file_type</span><span class="o">=</span><span class="n">file_type</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="n">precision</span><span class="p">,</span>
                       <span class="n">write_patch_results</span><span class="o">=</span><span class="n">write_patch_results</span><span class="p">,</span> <span class="n">write_cov</span><span class="o">=</span><span class="n">write_cov</span><span class="p">)</span></div>
 
+
     <span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span> <span class="o">=</span> <span class="n">Corr3</span><span class="o">.</span><span class="n">write</span><span class="o">.</span><span class="vm">__doc__</span><span class="o">.</span><span class="n">format</span><span class="p">(</span>
 <span class="w">        </span><span class="sa">r</span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        gam0r           The real part of the estimator of :math:`\Gamma_0`</span>
-<span class="sd">        gam0i           The imag part of the estimator of :math:`\Gamma_0`</span>
+<span class="sd">        gam0i           The imaginary part of the estimator of :math:`\Gamma_0`</span>
 <span class="sd">        gam1r           The real part of the estimator of :math:`\Gamma_1`</span>
-<span class="sd">        gam1i           The imag part of the estimator of :math:`\Gamma_1`</span>
+<span class="sd">        gam1i           The imaginary part of the estimator of :math:`\Gamma_1`</span>
 <span class="sd">        sigma_gam0      The sqrt of the variance estimate of :math:`\Gamma_0`</span>
 <span class="sd">        sigma_gam1      The sqrt of the variance estimate of :math:`\Gamma_1`</span>
 <span class="sd">        &quot;&quot;&quot;</span><span class="p">)</span>
@@ -1169,6 +1282,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam0</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_gam0&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam1</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;sigma_gam1&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">s</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_varzeta</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam0</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_comp_vargam1</span><span class="p">]</span></div>
+
 </pre></div>
 
            </div>

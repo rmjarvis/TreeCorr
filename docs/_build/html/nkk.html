@@ -1,22 +1,22 @@
+
+
 <!DOCTYPE html>
-<html class="writer-html5" lang="en" >
+<html class="writer-html5" lang="en" data-content_root="./">
 <head>
-  <meta charset="utf-8" /><meta name="generator" content="Docutils 0.18.1: http://docutils.sourceforge.net/" />
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>NKKCorrelation: Count-scalar-scalar correlations &mdash; TreeCorr 5.1.2 documentation</title>
-      <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
-      <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
-  <!--[if lt IE 9]>
-    <script src="_static/js/html5shiv.min.js"></script>
-  <![endif]-->
+      <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
+      <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
+
   
-        <script src="_static/jquery.js"></script>
-        <script src="_static/_sphinx_javascript_frameworks_compat.js"></script>
-        <script data-url_root="./" id="documentation_options" src="_static/documentation_options.js"></script>
-        <script src="_static/doctools.js"></script>
-        <script src="_static/sphinx_highlight.js"></script>
-        <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+      <script src="_static/jquery.js?v=5d32c60e"></script>
+      <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="_static/documentation_options.js?v=2c218288"></script>
+      <script src="_static/doctools.js?v=9bcbadda"></script>
+      <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
+      <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
     <script src="_static/js/theme.js"></script>
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
@@ -35,9 +35,6 @@
           <a href="index.html" class="icon icon-home">
             TreeCorr
           </a>
-              <div class="version">
-                5.1
-              </div>
 <div role="search">
   <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
     <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
@@ -48,6 +45,7 @@
         </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="overview.html">Overview</a></li>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="catalog.html">Input Data</a></li>
 <li class="toctree-l1"><a class="reference internal" href="correlation2.html">Two-point Correlation Functions</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="correlation3.html">Three-point Correlation Functions</a><ul class="current">
@@ -113,7 +111,6 @@
 <li class="toctree-l1"><a class="reference internal" href="cov.html">Covariance Estimates</a></li>
 <li class="toctree-l1"><a class="reference internal" href="field.html">Fields</a></li>
 <li class="toctree-l1"><a class="reference internal" href="scripts.html">Using configuration files</a></li>
-<li class="toctree-l1"><a class="reference internal" href="guide.html">Getting Started Guide</a></li>
 <li class="toctree-l1"><a class="reference internal" href="changes.html">Changes from version 5.0 to 5.1</a></li>
 <li class="toctree-l1"><a class="reference internal" href="history.html">Previous History</a></li>
 </ul>
@@ -144,17 +141,17 @@
            <div itemprop="articleBody">
              
   <section id="nkkcorrelation-count-scalar-scalar-correlations">
-<h1>NKKCorrelation: Count-scalar-scalar correlations<a class="headerlink" href="#nkkcorrelation-count-scalar-scalar-correlations" title="Permalink to this heading"></a></h1>
+<h1>NKKCorrelation: Count-scalar-scalar correlations<a class="headerlink" href="#nkkcorrelation-count-scalar-scalar-correlations" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="treecorr.NKKCorrelation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">NKKCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#NKKCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKKCorrelation" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">NKKCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#NKKCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKKCorrelation" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.corr3base.Corr3"><code class="xref py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a></p>
 <p>This class handles the calculation and storage of a 3-point count-scalar-scalar correlation
 function.</p>
 <p>With this class, point 1 of the triangle (i.e. the vertex opposite d1) is the one with the
 scalar value.  Use <a class="reference internal" href="#treecorr.KNKCorrelation" title="treecorr.KNKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KNKCorrelation</span></code></a> and <a class="reference internal" href="#treecorr.KKNCorrelation" title="treecorr.KKNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKNCorrelation</span></code></a> for classes with the scalar in the
 other two positions.</p>
-<p>See the doc string of <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for a description of how the triangles are binned along
+<p>See the docstring of <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for a description of how the triangles are binned along
 with the attributes related to the different binning options.</p>
 <p>In addition to the attributes common to all <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> subclasses, objects of this class
 hold the following attributes:</p>
@@ -162,30 +159,32 @@ hold the following attributes:</p>
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>zeta</strong> – The correlation function, <span class="math notranslate nohighlight">\(\zeta\)</span>.</p></li>
-<li><p><strong>varzeta</strong> – The variance estimate, only including the shot noise propagated into the
-final correlation.</p></li>
+<li><p><strong>varzeta</strong> – The variance estimate of <span class="math notranslate nohighlight">\(\zeta\)</span>, computed according to <code class="docutils literal notranslate"><span class="pre">var_method</span></code>
+(default: <code class="docutils literal notranslate"><span class="pre">'shot'</span></code>).</p></li>
 </ul>
 </dd>
 </dl>
 <p>The typical usage pattern is as follows:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">nkk</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NKKCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nkk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">)</span>        <span class="c1"># Compute cross-correlation of two fields.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nkk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat3</span><span class="p">)</span>  <span class="c1"># Compute cross-correlation of three fields.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nkk</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>           <span class="c1"># Write out to a file.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">rkk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand</span><span class="p">,</span> <span class="n">cat2</span><span class="p">)</span>        <span class="c1"># Compute cross-correlation with randoms.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">nkk</span><span class="o">.</span><span class="n">calculateZeta</span><span class="p">(</span><span class="n">rkk</span><span class="o">=</span><span class="n">rkk</span><span class="p">)</span>     <span class="c1"># Calculate zeta using randoms</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">zeta</span> <span class="o">=</span> <span class="n">nkk</span><span class="o">.</span><span class="n">zeta</span>                <span class="c1"># Access correlation function</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">zetar</span> <span class="o">=</span> <span class="n">nkk</span><span class="o">.</span><span class="n">zetar</span>              <span class="c1"># Or access real and imaginary parts separately</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nkk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">)</span>          <span class="c1"># Compute the cross-correlation of two fields.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># nkk.process(cat1, cat2, cat3)  # ... or of three fields.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nkk</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>             <span class="c1"># Write out to a file.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rkk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">rand</span><span class="p">,</span> <span class="n">cat2</span><span class="p">)</span>          <span class="c1"># Compute the random cross-correlation.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">nkk</span><span class="o">.</span><span class="n">calculateZeta</span><span class="p">(</span><span class="n">rkk</span><span class="o">=</span><span class="n">rkk</span><span class="p">)</span>       <span class="c1"># Calculate zeta using randoms.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zeta</span> <span class="o">=</span> <span class="n">nkk</span><span class="o">.</span><span class="n">zeta</span>                  <span class="c1"># Access the correlation function.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zetar</span> <span class="o">=</span> <span class="n">nkk</span><span class="o">.</span><span class="n">zetar</span>                <span class="c1"># Or access real and imaginary parts separately.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">zetai</span> <span class="o">=</span> <span class="n">nkk</span><span class="o">.</span><span class="n">zetai</span>
 </pre></div>
 </div>
+<p>See also: <a class="reference internal" href="#treecorr.KNKCorrelation" title="treecorr.KNKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KNKCorrelation</span></code></a>, <a class="reference internal" href="#treecorr.KKNCorrelation" title="treecorr.KKNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKNCorrelation</span></code></a>, <a class="reference internal" href="nnk.html#treecorr.NNKCorrelation" title="treecorr.NNKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNKCorrelation</span></code></a>, <a class="reference internal" href="kkk.html#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a>,
+<a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
-This dict is allowed to have addition entries besides those listed
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – A configuration dict that can be used to pass in kwargs if desired.
+This dict is allowed to have additional entries besides those listed
 in <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a>, which are ignored here. (default: None)</p></li>
-<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Logger</span></code></a>) – If desired, a <code class="docutils literal notranslate"><span class="pre">Logger</span></code> object for logging. (default: None, in which case
 one will be built according to the config dict’s verbose level.)</p></li>
 </ul>
 </dd>
@@ -196,12 +195,12 @@ arguments, which may be passed either directly or in the config dict.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.NKKCorrelation.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#NKKCorrelation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKKCorrelation.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#NKKCorrelation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKKCorrelation.__init__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.NKKCorrelation.calculateZeta">
-<span class="sig-name descname"><span class="pre">calculateZeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">rkk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#NKKCorrelation.calculateZeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKKCorrelation.calculateZeta" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">calculateZeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">rkk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#NKKCorrelation.calculateZeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKKCorrelation.calculateZeta" title="Link to this definition"></a></dt>
 <dd><p>Calculate the correlation function possibly given another correlation function
 that uses random points for the foreground objects.</p>
 <ul class="simple">
@@ -212,7 +211,14 @@ field with the data points and RKK represents the correlation with random points
 </ul>
 <p>After calling this function, the attributes <code class="docutils literal notranslate"><span class="pre">zeta</span></code>, <code class="docutils literal notranslate"><span class="pre">varzeta</span></code> and <code class="docutils literal notranslate"><span class="pre">cov</span></code> will
 correspond to the compensated values (if rkk is provided).  The raw, uncompensated values
-are available as <code class="docutils literal notranslate"><span class="pre">rawxi</span></code> and <code class="docutils literal notranslate"><span class="pre">raw_varxi</span></code>.</p>
+are available as <code class="docutils literal notranslate"><span class="pre">raw_zeta</span></code> and <code class="docutils literal notranslate"><span class="pre">raw_varzeta</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The returned variance estimate (<code class="docutils literal notranslate"><span class="pre">varzeta</span></code>) is computed according to this object’s
+<code class="docutils literal notranslate"><span class="pre">var_method</span></code> setting, specified when constructing the object (default: <code class="docutils literal notranslate"><span class="pre">'shot'</span></code>).
+Internally, this method calls <a class="reference internal" href="correlation3.html#treecorr.Corr3.estimate_cov" title="treecorr.Corr3.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.estimate_cov</span></code></a>; see that method for details
+about available variance and covariance estimation schemes.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><p><strong>rkk</strong> (<a class="reference internal" href="#treecorr.NKKCorrelation" title="treecorr.NKKCorrelation"><em>NKKCorrelation</em></a>) – The cross-correlation using random locations as the lenses (RKK),
@@ -233,19 +239,19 @@ if desired.  (default: None)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.NKKCorrelation.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#NKKCorrelation.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKKCorrelation.copy" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#NKKCorrelation.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKKCorrelation.copy" title="Link to this definition"></a></dt>
 <dd><p>Make a copy</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.NKKCorrelation.finalize">
-<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vark1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vark2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#NKKCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKKCorrelation.finalize" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vark1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vark2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#NKKCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKKCorrelation.finalize" title="Link to this definition"></a></dt>
 <dd><p>Finalize the calculation of the correlation function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vark1</strong> (<em>float</em>) – The variance of the first scalar field.</p></li>
-<li><p><strong>vark2</strong> (<em>float</em>) – The variance of the second scalar field.</p></li>
+<li><p><strong>vark1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The variance of the first scalar field.</p></li>
+<li><p><strong>vark2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The variance of the second scalar field.</p></li>
 </ul>
 </dd>
 </dl>
@@ -253,7 +259,7 @@ if desired.  (default: None)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.NKKCorrelation.write">
-<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_patch_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#NKKCorrelation.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKKCorrelation.write" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_patch_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#NKKCorrelation.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.NKKCorrelation.write" title="Link to this definition"></a></dt>
 <dd><p>Write the correlation function to the file, file_name.</p>
 <p>For bin_type = LogRUV, the output file will include the following columns:</p>
 <table class="docutils align-default">
@@ -380,14 +386,14 @@ radians (for spherical coordinates).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
-<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+<li><p><strong>file_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The name of the file to write to.</p></li>
+<li><p><strong>file_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
 the type automatically from the extension of file_name.)</p></li>
-<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+<li><p><strong>precision</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – For ASCII output files, the desired precision. (default: 4;
 this value can also be given in the constructor in the config dict.)</p></li>
-<li><p><strong>write_patch_results</strong> (<em>bool</em>) – Whether to write the patch-based results as well.
+<li><p><strong>write_patch_results</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to write the patch-based results as well.
 (default: False)</p></li>
-<li><p><strong>write_cov</strong> (<em>bool</em>) – Whether to write the covariance matrix as well. (default: False)</p></li>
+<li><p><strong>write_cov</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to write the covariance matrix as well. (default: False)</p></li>
 </ul>
 </dd>
 </dl>
@@ -397,17 +403,17 @@ this value can also be given in the constructor in the config dict.)</p></li>
 
 </section>
 <section id="knkcorrelation-scalar-count-scalar-correlations">
-<h1>KNKCorrelation: Scalar-count-scalar correlations<a class="headerlink" href="#knkcorrelation-scalar-count-scalar-correlations" title="Permalink to this heading"></a></h1>
+<h1>KNKCorrelation: Scalar-count-scalar correlations<a class="headerlink" href="#knkcorrelation-scalar-count-scalar-correlations" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="treecorr.KNKCorrelation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">KNKCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KNKCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KNKCorrelation" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">KNKCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KNKCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KNKCorrelation" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.corr3base.Corr3"><code class="xref py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a></p>
 <p>This class handles the calculation and storage of a 3-point scalar-count-scalar correlation
 function.</p>
 <p>With this class, point 2 of the triangle (i.e. the vertex opposite d2) is the one with the
 scalar value.  Use <a class="reference internal" href="#treecorr.NKKCorrelation" title="treecorr.NKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKKCorrelation</span></code></a> and <a class="reference internal" href="#treecorr.KKNCorrelation" title="treecorr.KKNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKNCorrelation</span></code></a> for classes with the scalar in the
 other two positions.</p>
-<p>See the doc string of <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for a description of how the triangles are binned along
+<p>See the docstring of <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for a description of how the triangles are binned along
 with the attributes related to the different binning options.</p>
 <p>In addition to the attributes common to all <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> subclasses, objects of this class
 hold the following attributes:</p>
@@ -415,30 +421,32 @@ hold the following attributes:</p>
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>zeta</strong> – The correlation function, <span class="math notranslate nohighlight">\(\zeta\)</span>.</p></li>
-<li><p><strong>varzeta</strong> – The variance estimate, only including the shot noise propagated into the
-final correlation.</p></li>
+<li><p><strong>varzeta</strong> – The variance estimate of <span class="math notranslate nohighlight">\(\zeta\)</span>, computed according to <code class="docutils literal notranslate"><span class="pre">var_method</span></code>
+(default: <code class="docutils literal notranslate"><span class="pre">'shot'</span></code>).</p></li>
 </ul>
 </dd>
 </dl>
 <p>The typical usage pattern is as follows:</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">knk</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">NKKCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">knk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat1</span><span class="p">)</span>  <span class="c1"># Compute cross-correlation of two fields.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">knk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat3</span><span class="p">)</span>  <span class="c1"># Compute cross-correlation of three fields.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">knk</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>           <span class="c1"># Write out to a file.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">krk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">rand</span><span class="p">,</span> <span class="n">cat1</span><span class="p">)</span>  <span class="c1"># Compute cross-correlation with randoms.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">knk</span><span class="o">.</span><span class="n">calculateZeta</span><span class="p">(</span><span class="n">krk</span><span class="o">=</span><span class="n">krk</span><span class="p">)</span>     <span class="c1"># Calculate zeta using randoms</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">zeta</span> <span class="o">=</span> <span class="n">knk</span><span class="o">.</span><span class="n">zeta</span>                <span class="c1"># Access correlation function</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">zetar</span> <span class="o">=</span> <span class="n">knk</span><span class="o">.</span><span class="n">zetar</span>              <span class="c1"># Or access real and imaginary parts separately</span>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">knk</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">KNKCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">knk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat1</span><span class="p">)</span>    <span class="c1"># Compute the cross-correlation of two fields.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># knk.process(cat1, cat2, cat3)  # ... or of three fields.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">knk</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>             <span class="c1"># Write out to a file.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">krk</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">rand</span><span class="p">,</span> <span class="n">cat1</span><span class="p">)</span>    <span class="c1"># Compute the random cross-correlation.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">knk</span><span class="o">.</span><span class="n">calculateZeta</span><span class="p">(</span><span class="n">krk</span><span class="o">=</span><span class="n">krk</span><span class="p">)</span>       <span class="c1"># Calculate zeta using randoms.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zeta</span> <span class="o">=</span> <span class="n">knk</span><span class="o">.</span><span class="n">zeta</span>                  <span class="c1"># Access the correlation function.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zetar</span> <span class="o">=</span> <span class="n">knk</span><span class="o">.</span><span class="n">zetar</span>                <span class="c1"># Or access real and imaginary parts separately.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">zetai</span> <span class="o">=</span> <span class="n">knk</span><span class="o">.</span><span class="n">zetai</span>
 </pre></div>
 </div>
+<p>See also: <a class="reference internal" href="#treecorr.NKKCorrelation" title="treecorr.NKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKKCorrelation</span></code></a>, <a class="reference internal" href="#treecorr.KKNCorrelation" title="treecorr.KKNCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKNCorrelation</span></code></a>, <a class="reference internal" href="nnk.html#treecorr.NNKCorrelation" title="treecorr.NNKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNKCorrelation</span></code></a>, <a class="reference internal" href="kkk.html#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a>,
+<a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
-This dict is allowed to have addition entries besides those listed
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – A configuration dict that can be used to pass in kwargs if desired.
+This dict is allowed to have additional entries besides those listed
 in <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a>, which are ignored here. (default: None)</p></li>
-<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Logger</span></code></a>) – If desired, a <code class="docutils literal notranslate"><span class="pre">Logger</span></code> object for logging. (default: None, in which case
 one will be built according to the config dict’s verbose level.)</p></li>
 </ul>
 </dd>
@@ -449,12 +457,12 @@ arguments, which may be passed either directly or in the config dict.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.KNKCorrelation.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KNKCorrelation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KNKCorrelation.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KNKCorrelation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KNKCorrelation.__init__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.KNKCorrelation.calculateZeta">
-<span class="sig-name descname"><span class="pre">calculateZeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">krk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KNKCorrelation.calculateZeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KNKCorrelation.calculateZeta" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">calculateZeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">krk</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KNKCorrelation.calculateZeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KNKCorrelation.calculateZeta" title="Link to this definition"></a></dt>
 <dd><p>Calculate the correlation function possibly given another correlation function
 that uses random points for the foreground objects.</p>
 <ul class="simple">
@@ -465,10 +473,17 @@ field with the data points and KRK represents the correlation with random points
 </ul>
 <p>After calling this function, the attributes <code class="docutils literal notranslate"><span class="pre">zeta</span></code>, <code class="docutils literal notranslate"><span class="pre">varzeta</span></code> and <code class="docutils literal notranslate"><span class="pre">cov</span></code> will
 correspond to the compensated values (if krk is provided).  The raw, uncompensated values
-are available as <code class="docutils literal notranslate"><span class="pre">rawxi</span></code> and <code class="docutils literal notranslate"><span class="pre">raw_varxi</span></code>.</p>
+are available as <code class="docutils literal notranslate"><span class="pre">raw_zeta</span></code> and <code class="docutils literal notranslate"><span class="pre">raw_varzeta</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The returned variance estimate (<code class="docutils literal notranslate"><span class="pre">varzeta</span></code>) is computed according to this object’s
+<code class="docutils literal notranslate"><span class="pre">var_method</span></code> setting, specified when constructing the object (default: <code class="docutils literal notranslate"><span class="pre">'shot'</span></code>).
+Internally, this method calls <a class="reference internal" href="correlation3.html#treecorr.Corr3.estimate_cov" title="treecorr.Corr3.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.estimate_cov</span></code></a>; see that method for details
+about available variance and covariance estimation schemes.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>krk</strong> (<a class="reference internal" href="#treecorr.KNKCorrelation" title="treecorr.KNKCorrelation"><em>KNKCorrelation</em></a>) – The cross-correlation using random locations as the lenses (RKK),
+<dd class="field-odd"><p><strong>krk</strong> (<a class="reference internal" href="#treecorr.KNKCorrelation" title="treecorr.KNKCorrelation"><em>KNKCorrelation</em></a>) – The cross-correlation using random locations as the lenses (KRK),
 if desired.  (default: None)</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -486,19 +501,19 @@ if desired.  (default: None)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.KNKCorrelation.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KNKCorrelation.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KNKCorrelation.copy" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KNKCorrelation.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KNKCorrelation.copy" title="Link to this definition"></a></dt>
 <dd><p>Make a copy</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.KNKCorrelation.finalize">
-<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vark1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vark2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KNKCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KNKCorrelation.finalize" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vark1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vark2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KNKCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KNKCorrelation.finalize" title="Link to this definition"></a></dt>
 <dd><p>Finalize the calculation of the correlation function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vark1</strong> (<em>float</em>) – The variance of the first scalar field.</p></li>
-<li><p><strong>vark2</strong> (<em>float</em>) – The variance of the second scalar field.</p></li>
+<li><p><strong>vark1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The variance of the first scalar field.</p></li>
+<li><p><strong>vark2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The variance of the second scalar field.</p></li>
 </ul>
 </dd>
 </dl>
@@ -506,7 +521,7 @@ if desired.  (default: None)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.KNKCorrelation.write">
-<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_patch_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KNKCorrelation.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KNKCorrelation.write" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_patch_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KNKCorrelation.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KNKCorrelation.write" title="Link to this definition"></a></dt>
 <dd><p>Write the correlation function to the file, file_name.</p>
 <p>For bin_type = LogRUV, the output file will include the following columns:</p>
 <table class="docutils align-default">
@@ -633,14 +648,14 @@ radians (for spherical coordinates).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
-<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+<li><p><strong>file_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The name of the file to write to.</p></li>
+<li><p><strong>file_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
 the type automatically from the extension of file_name.)</p></li>
-<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+<li><p><strong>precision</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – For ASCII output files, the desired precision. (default: 4;
 this value can also be given in the constructor in the config dict.)</p></li>
-<li><p><strong>write_patch_results</strong> (<em>bool</em>) – Whether to write the patch-based results as well.
+<li><p><strong>write_patch_results</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to write the patch-based results as well.
 (default: False)</p></li>
-<li><p><strong>write_cov</strong> (<em>bool</em>) – Whether to write the covariance matrix as well. (default: False)</p></li>
+<li><p><strong>write_cov</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to write the covariance matrix as well. (default: False)</p></li>
 </ul>
 </dd>
 </dl>
@@ -650,17 +665,17 @@ this value can also be given in the constructor in the config dict.)</p></li>
 
 </section>
 <section id="kkncorrelation-scalar-scalar-count-correlations">
-<h1>KKNCorrelation: Scalar-scalar-count correlations<a class="headerlink" href="#kkncorrelation-scalar-scalar-count-correlations" title="Permalink to this heading"></a></h1>
+<h1>KKNCorrelation: Scalar-scalar-count correlations<a class="headerlink" href="#kkncorrelation-scalar-scalar-count-correlations" title="Link to this heading"></a></h1>
 <dl class="py class">
 <dt class="sig sig-object py" id="treecorr.KKNCorrelation">
-<em class="property"><span class="pre">class</span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">KKNCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KKNCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKNCorrelation" title="Permalink to this definition"></a></dt>
+<em class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></em><span class="sig-prename descclassname"><span class="pre">treecorr.</span></span><span class="sig-name descname"><span class="pre">KKNCorrelation</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KKNCorrelation"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKNCorrelation" title="Link to this definition"></a></dt>
 <dd><p>Bases: <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.corr3base.Corr3"><code class="xref py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a></p>
 <p>This class handles the calculation and storage of a 3-point scalar-scalar-count correlation
 function.</p>
 <p>With this class, point 3 of the triangle (i.e. the vertex opposite d3) is the one with the
 scalar value.  Use <a class="reference internal" href="#treecorr.NKKCorrelation" title="treecorr.NKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKKCorrelation</span></code></a> and <a class="reference internal" href="#treecorr.KNKCorrelation" title="treecorr.KNKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KNKCorrelation</span></code></a> for classes with the scalar in the
 other two positions.</p>
-<p>See the doc string of <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for a description of how the triangles are binned along
+<p>See the docstring of <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> for a description of how the triangles are binned along
 with the attributes related to the different binning options.</p>
 <p>In addition to the attributes common to all <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a> subclasses, objects of this class
 hold the following attributes:</p>
@@ -668,30 +683,32 @@ hold the following attributes:</p>
 <dt class="field-odd">Attributes<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>zeta</strong> – The correlation function, <span class="math notranslate nohighlight">\(\zeta\)</span>.</p></li>
-<li><p><strong>varzeta</strong> – The variance estimate, only including the shot noise propagated into the
-final correlation.</p></li>
+<li><p><strong>varzeta</strong> – The variance estimate of <span class="math notranslate nohighlight">\(\zeta\)</span>, computed according to <code class="docutils literal notranslate"><span class="pre">var_method</span></code>
+(default: <code class="docutils literal notranslate"><span class="pre">'shot'</span></code>).</p></li>
 </ul>
 </dd>
 </dl>
 <p>The typical usage pattern is as follows:</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">kkn</span> <span class="o">=</span> <span class="n">treecorr</span><span class="o">.</span><span class="n">KKNCorrelation</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kkn</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">)</span>        <span class="c1"># Compute cross-correlation of two fields.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kkn</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">,</span> <span class="n">cat3</span><span class="p">)</span>  <span class="c1"># Compute cross-correlation of three fields.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kkn</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>           <span class="c1"># Write out to a file.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kkr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">rand</span><span class="p">)</span>        <span class="c1"># Compute cross-correlation with randoms.</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">kkn</span><span class="o">.</span><span class="n">calculateZeta</span><span class="p">(</span><span class="n">kkr</span><span class="o">=</span><span class="n">kkr</span><span class="p">)</span>     <span class="c1"># Calculate zeta using randoms</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">zeta</span> <span class="o">=</span> <span class="n">kkn</span><span class="o">.</span><span class="n">zeta</span>                <span class="c1"># Access correlation function</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">zetar</span> <span class="o">=</span> <span class="n">kkn</span><span class="o">.</span><span class="n">zetar</span>              <span class="c1"># Or access real and imaginary parts separately</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kkn</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">cat2</span><span class="p">)</span>          <span class="c1"># Compute the cross-correlation of two fields.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># kkn.process(cat1, cat2, cat3)  # ... or of three fields.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kkn</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>             <span class="c1"># Write out to a file.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kkr</span><span class="o">.</span><span class="n">process</span><span class="p">(</span><span class="n">cat1</span><span class="p">,</span> <span class="n">rand</span><span class="p">)</span>          <span class="c1"># Compute the random cross-correlation.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">kkn</span><span class="o">.</span><span class="n">calculateZeta</span><span class="p">(</span><span class="n">kkr</span><span class="o">=</span><span class="n">kkr</span><span class="p">)</span>       <span class="c1"># Calculate zeta using randoms.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zeta</span> <span class="o">=</span> <span class="n">kkn</span><span class="o">.</span><span class="n">zeta</span>                  <span class="c1"># Access the correlation function.</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">zetar</span> <span class="o">=</span> <span class="n">kkn</span><span class="o">.</span><span class="n">zetar</span>                <span class="c1"># Or access real and imaginary parts separately.</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">zetai</span> <span class="o">=</span> <span class="n">kkn</span><span class="o">.</span><span class="n">zetai</span>
 </pre></div>
 </div>
+<p>See also: <a class="reference internal" href="#treecorr.NKKCorrelation" title="treecorr.NKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKKCorrelation</span></code></a>, <a class="reference internal" href="#treecorr.KNKCorrelation" title="treecorr.KNKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KNKCorrelation</span></code></a>, <a class="reference internal" href="nnk.html#treecorr.NNKCorrelation" title="treecorr.NNKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NNKCorrelation</span></code></a>, <a class="reference internal" href="kkk.html#treecorr.KKKCorrelation" title="treecorr.KKKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">KKKCorrelation</span></code></a>,
+<a class="reference internal" href="nk.html#treecorr.NKCorrelation" title="treecorr.NKCorrelation"><code class="xref any py py-class docutils literal notranslate"><span class="pre">NKCorrelation</span></code></a>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>config</strong> (<em>dict</em>) – A configuration dict that can be used to pass in kwargs if desired.
-This dict is allowed to have addition entries besides those listed
+<li><p><strong>config</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#dict" title="(in Python v3.14)"><em>dict</em></a>) – A configuration dict that can be used to pass in kwargs if desired.
+This dict is allowed to have additional entries besides those listed
 in <a class="reference internal" href="correlation3.html#treecorr.Corr3" title="treecorr.Corr3"><code class="xref any py py-class docutils literal notranslate"><span class="pre">Corr3</span></code></a>, which are ignored here. (default: None)</p></li>
-<li><p><strong>logger</strong> – If desired, a logger object for logging. (default: None, in which case
+<li><p><strong>logger</strong> (<a class="reference external" href="https://docs.python.org/3/library/logging.html#logging.Logger" title="(in Python v3.14)"><code class="xref py py-class docutils literal notranslate"><span class="pre">logging.Logger</span></code></a>) – If desired, a <code class="docutils literal notranslate"><span class="pre">Logger</span></code> object for logging. (default: None, in which case
 one will be built according to the config dict’s verbose level.)</p></li>
 </ul>
 </dd>
@@ -702,26 +719,33 @@ arguments, which may be passed either directly or in the config dict.</p>
 </dl>
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.KKNCorrelation.__init__">
-<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KKNCorrelation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKNCorrelation.__init__" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">__init__</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">config</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">logger</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KKNCorrelation.__init__"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKNCorrelation.__init__" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.KKNCorrelation.calculateZeta">
-<span class="sig-name descname"><span class="pre">calculateZeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">kkr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KKNCorrelation.calculateZeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKNCorrelation.calculateZeta" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">calculateZeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">kkr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KKNCorrelation.calculateZeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKNCorrelation.calculateZeta" title="Link to this definition"></a></dt>
 <dd><p>Calculate the correlation function possibly given another correlation function
 that uses random points for the foreground objects.</p>
 <ul class="simple">
 <li><p>If kkr is None, the simple correlation function (self.zeta) is returned.</p></li>
 <li><p>If kkr is not None, then a compensated calculation is done:
-<span class="math notranslate nohighlight">\(\zeta = (DKK - RKK)\)</span>, where DKK represents the correlation of the kappa
-field with the data points and RKK represents the correlation with random points.</p></li>
+<span class="math notranslate nohighlight">\(\zeta = (KKD - KKR)\)</span>, where KKD represents the correlation of the kappa
+field with the data points and KKR represents the correlation with random points.</p></li>
 </ul>
 <p>After calling this function, the attributes <code class="docutils literal notranslate"><span class="pre">zeta</span></code>, <code class="docutils literal notranslate"><span class="pre">varzeta</span></code> and <code class="docutils literal notranslate"><span class="pre">cov</span></code> will
 correspond to the compensated values (if kkr is provided).  The raw, uncompensated values
-are available as <code class="docutils literal notranslate"><span class="pre">rawxi</span></code> and <code class="docutils literal notranslate"><span class="pre">raw_varxi</span></code>.</p>
+are available as <code class="docutils literal notranslate"><span class="pre">raw_zeta</span></code> and <code class="docutils literal notranslate"><span class="pre">raw_varzeta</span></code>.</p>
+<div class="admonition note">
+<p class="admonition-title">Note</p>
+<p>The returned variance estimate (<code class="docutils literal notranslate"><span class="pre">varzeta</span></code>) is computed according to this object’s
+<code class="docutils literal notranslate"><span class="pre">var_method</span></code> setting, specified when constructing the object (default: <code class="docutils literal notranslate"><span class="pre">'shot'</span></code>).
+Internally, this method calls <a class="reference internal" href="correlation3.html#treecorr.Corr3.estimate_cov" title="treecorr.Corr3.estimate_cov"><code class="xref any py py-meth docutils literal notranslate"><span class="pre">Corr3.estimate_cov</span></code></a>; see that method for details
+about available variance and covariance estimation schemes.</p>
+</div>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><p><strong>kkr</strong> (<a class="reference internal" href="#treecorr.KKNCorrelation" title="treecorr.KKNCorrelation"><em>KKNCorrelation</em></a>) – The cross-correlation using random locations as the lenses (RKK),
+<dd class="field-odd"><p><strong>kkr</strong> (<a class="reference internal" href="#treecorr.KKNCorrelation" title="treecorr.KKNCorrelation"><em>KKNCorrelation</em></a>) – The cross-correlation using random locations as the lenses (KKR),
 if desired.  (default: None)</p>
 </dd>
 <dt class="field-even">Returns<span class="colon">:</span></dt>
@@ -739,19 +763,19 @@ if desired.  (default: None)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.KKNCorrelation.copy">
-<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KKNCorrelation.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKNCorrelation.copy" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KKNCorrelation.copy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKNCorrelation.copy" title="Link to this definition"></a></dt>
 <dd><p>Make a copy</p>
 </dd></dl>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.KKNCorrelation.finalize">
-<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vark1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vark2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KKNCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKNCorrelation.finalize" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">finalize</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">vark1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">vark2</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KKNCorrelation.finalize"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKNCorrelation.finalize" title="Link to this definition"></a></dt>
 <dd><p>Finalize the calculation of the correlation function.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>vark1</strong> (<em>float</em>) – The variance of the first scalar field.</p></li>
-<li><p><strong>vark2</strong> (<em>float</em>) – The variance of the second scalar field.</p></li>
+<li><p><strong>vark1</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The variance of the first scalar field.</p></li>
+<li><p><strong>vark2</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#float" title="(in Python v3.14)"><em>float</em></a>) – The variance of the second scalar field.</p></li>
 </ul>
 </dd>
 </dl>
@@ -759,7 +783,7 @@ if desired.  (default: None)</p>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="treecorr.KKNCorrelation.write">
-<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_patch_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KKNCorrelation.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKNCorrelation.write" title="Permalink to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">write</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file_name</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">file_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">precision</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_patch_results</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_cov</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/nkkcorrelation.html#KKNCorrelation.write"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.KKNCorrelation.write" title="Link to this definition"></a></dt>
 <dd><p>Write the correlation function to the file, file_name.</p>
 <p>For bin_type = LogRUV, the output file will include the following columns:</p>
 <table class="docutils align-default">
@@ -886,14 +910,14 @@ radians (for spherical coordinates).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>file_name</strong> (<em>str</em>) – The name of the file to write to.</p></li>
-<li><p><strong>file_type</strong> (<em>str</em>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
+<li><p><strong>file_name</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The name of the file to write to.</p></li>
+<li><p><strong>file_type</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The type of file to write (‘ASCII’ or ‘FITS’).  (default: determine
 the type automatically from the extension of file_name.)</p></li>
-<li><p><strong>precision</strong> (<em>int</em>) – For ASCII output catalogs, the desired precision. (default: 4;
+<li><p><strong>precision</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – For ASCII output files, the desired precision. (default: 4;
 this value can also be given in the constructor in the config dict.)</p></li>
-<li><p><strong>write_patch_results</strong> (<em>bool</em>) – Whether to write the patch-based results as well.
+<li><p><strong>write_patch_results</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to write the patch-based results as well.
 (default: False)</p></li>
-<li><p><strong>write_cov</strong> (<em>bool</em>) – Whether to write the covariance matrix as well. (default: False)</p></li>
+<li><p><strong>write_cov</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – Whether to write the covariance matrix as well. (default: False)</p></li>
 </ul>
 </dd>
 </dl>

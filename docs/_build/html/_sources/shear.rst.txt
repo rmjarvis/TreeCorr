@@ -49,7 +49,7 @@ local coordinates in the neighborhood of the galaxy such that north is oriented
 vertically, and then measuring the ellipticity in the normal way.
 
 With this convention, :math:`g` is positive real when the shear is oriented
-in the local E-W direction.  It is negative real when oritented in the N-S direction.
+in the local E-W direction.  It is negative real when oriented in the N-S direction.
 It is positive imaginary when oriented along NW-SE.  And it is negative imaginary
 when oriented along NE-SW.
 

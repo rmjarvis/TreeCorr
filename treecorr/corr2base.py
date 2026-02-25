@@ -2387,7 +2387,7 @@ def _make_cov_design_matrix_core(corrs, plist, func, name, rank=0, size=1):
             else:
                 c._calculate_xi_from_pairs(cpairs, corr_only=c._corr_only or (func is None))
         v[row] = func(corrs)
-        w[row] = np.sum([np.sum(c.getWeight()) for c in corrs])
+        w[row] = sum(np.sum(c.getWeight()) for c in corrs)
     return v,w
 
 def _make_cov_design_matrix(corrs, plist, func, name, comm):

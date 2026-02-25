@@ -862,6 +862,11 @@ class Corr2(object):
             if my_indices is None:
                 return True
 
+            # Check which (if either) index is in my range of indices.
+            start, stop = my_indices
+            i_in = start <= i < stop
+            j_in = start <= j < stop
+
             # Now the tricky part.  If using MPI, we need to divide up the jobs smartly.
             # The first point is to divvy up the auto jobs evenly.  This is where most of the
             # work is done, so we want those to be spread as evenly as possible across procs.
@@ -869,12 +874,12 @@ class Corr2(object):
             # This reduces the number of catalogs this machine needs to load up.
             # If the auto i,i and j,j are both my job, then i and j are already being loaded
             # on this machine, so also do that job.
-            if i in my_indices and j in my_indices:
+            if i_in and j_in:
                 self.logger.info("Rank %d: Job (%d,%d) is mine.",rank,i,j)
                 return True
 
             # If neither index is mine, then it's not my job.
-            if i not in my_indices and j not in my_indices:
+            if not i_in and not j_in:
                 return False
 
             # For the other jobs, we want to minimize how many other catalogs need to be
@@ -887,9 +892,9 @@ class Corr2(object):
             # have to load more catalogs than those with higher indices, since i < j.
             # So we reverse the procedure when j-i > n/2 to spread out the I/O more.
             if j-i < n//2:
-                ret = i % 2 == (0 if i in my_indices else 1)
+                ret = i % 2 == (0 if i_in else 1)
             else:
-                ret = j % 2 == (0 if j in my_indices else 1)
+                ret = j % 2 == (0 if j_in else 1)
             if ret:
                 self.logger.info("Rank %d: Job (%d,%d) is mine.",rank,i,j)
             return ret
@@ -906,8 +911,8 @@ class Corr2(object):
             if comm:
                 size = comm.Get_size()
                 rank = comm.Get_rank()
-                my_indices = np.arange(n * rank // size, n * (rank+1) // size)
-                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
+                my_indices = (n * rank // size, n * (rank+1) // size)
+                self.logger.info("Rank %d: My indices are [%d,%d)",rank,*my_indices)
             else:
                 my_indices = None
 
@@ -973,13 +978,16 @@ class Corr2(object):
             if my_indices is None:
                 return True
 
+            # Otherwise, it depends on the range of my_indices.
+            start, stop = my_indices
+
             # This is much simpler than in the auto case, since the set of catalogs for
             # cat1 and cat2 are different, we can just split up one of them among the jobs.
             if n1 > n2:
                 k = i
             else:
                 k = j
-            if k in my_indices:
+            if start <= k < stop:
                 self.logger.info("Rank %d: Job (%d,%d) is mine.",rank,i,j)
                 return True
             else:
@@ -1004,8 +1012,8 @@ class Corr2(object):
                 size = comm.Get_size()
                 rank = comm.Get_rank()
                 n = max(n1,n2)
-                my_indices = np.arange(n * rank // size, n * (rank+1) // size)
-                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
+                my_indices = (n * rank // size, n * (rank+1) // size)
+                self.logger.info("Rank %d: My indices are [%d,%d)",rank,*my_indices)
             else:
                 my_indices = None
 

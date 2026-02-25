@@ -944,7 +944,8 @@ class Corr2(object):
                             self.results[(i,i)] += temp
                         self += temp
 
-                    for jj,c2 in list(enumerate(cat1))[::-1]:
+                    for jj in range(len(cat1)-1, -1, -1):
+                        c2 = cat1[jj]
                         j = c2._single_patch if c2._single_patch is not None else jj
                         if i < j and is_my_job(my_indices, i, j, n):
                             self.logger.info('Process patches %d, %d cross',i,j)

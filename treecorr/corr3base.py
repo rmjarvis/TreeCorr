@@ -1438,7 +1438,8 @@ class Corr3(object):
                             self.results[(i,i,i)] = temp.copy()
                         self += temp
 
-                    for jj,c2 in list(enumerate(cat1))[::-1]:
+                    for jj in range(len(cat1)-1, -1, -1):
+                        c2 = cat1[jj]
                         j = c2._single_patch if c2._single_patch is not None else jj
                         if i < j:
                             if is_my_job(my_indices, i, j, j, n):
@@ -1583,7 +1584,8 @@ class Corr3(object):
                                                    num_threads, corr_only, temp,
                                                    (i==j or n1==1 or n2==1))
                         # One point in each of c1, c2, c3
-                        for kk,c3 in list(enumerate(cat2))[::-1]:
+                        for kk in range(len(cat2)-1, -1, -1):
+                            c3 = cat2[kk]
                             k = c3._single_patch if c3._single_patch is not None else kk
                             if j < k and is_my_job(my_indices, i, j, k, n1, n2):
                                 self._single_process123(c1, c2, c3, (i,j,k), metric, ordered1,
@@ -1701,7 +1703,8 @@ class Corr3(object):
                                                    num_threads, corr_only, temp,
                                                    (i==k or n1==1 or n2==1))
                         # One point in each of c1, c2, c3
-                        for jj,c2 in list(enumerate(cat1))[::-1]:
+                        for jj in range(len(cat1)-1, -1, -1):
+                            c2 = cat1[jj]
                             j = c2._single_patch if c2._single_patch is not None else jj
                             if i < j and is_my_job(my_indices, i, j, k, n1, n2):
                                 self._single_process123(c1, c2, c3, (i,j,k), metric, ordered3,

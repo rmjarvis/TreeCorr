@@ -1360,12 +1360,18 @@ class Corr3(object):
             if my_indices is None:
                 return True
 
+            # Check which (if any) index is in my range of indices.
+            start, stop = my_indices
+            i_in = start <= i < stop
+            j_in = start <= j < stop
+            k_in = start <= k < stop
+
             # Now the tricky part.  If using MPI, we need to divide up the jobs smartly.
             # The first point is to divvy up the auto jobs evenly.  This is where most of the
             # work is done, so we want those to be spread as evenly as possible across procs.
             # Therefore, if all indices are mine, then do the job.
             # This reduces the number of catalogs this machine needs to load up.
-            n1 = np.sum([i in my_indices, j in my_indices, k in my_indices])
+            n1 = i_in + j_in + k_in
             if n1 == 3:
                 self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
                 return True
@@ -1377,9 +1383,9 @@ class Corr3(object):
             # When only one or two of the indices are mine, then we follow the same kind of
             # procedure as we did in 2pt.  There, we decided based on the parity of i.
             # Here that turns into i mod 3.
-            if ( (i % 3 == 0 and i in my_indices) or
-                 (i % 3 == 1 and j in my_indices) or
-                 (i % 3 == 2 and k in my_indices) ):
+            if ( (i % 3 == 0 and i_in) or
+                 (i % 3 == 1 and j_in) or
+                 (i % 3 == 2 and k_in) ):
                 self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
                 return True
             else:
@@ -1399,8 +1405,8 @@ class Corr3(object):
             if comm:
                 size = comm.Get_size()
                 rank = comm.Get_rank()
-                my_indices = np.arange(n * rank // size, n * (rank+1) // size)
-                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
+                my_indices = (n * rank // size, n * (rank+1) // size)
+                self.logger.info("Rank %d: My indices are [%d,%d)",rank,*my_indices)
             else:
                 my_indices = None
 
@@ -1481,27 +1487,32 @@ class Corr3(object):
             if my_indices is None:
                 return True
 
+            # Otherwise, it depends on the range of my_indices.
+            start, stop = my_indices
+
             # If n1 is n, then this can be simple.  Just split according to i.
             n = max(n1,n2)
             if n1 == n:
-                if i in my_indices:
+                if start <= i < stop:
                     self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
                     return True
                 else:
                     return False
 
             # If not, then this looks like the decision for 2pt auto using j,k.
-            if j in my_indices and k in my_indices:
+            j_in = start <= j < stop
+            k_in = start <= k < stop
+            if j_in and k_in:
                 self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
                 return True
 
-            if j not in my_indices and k not in my_indices:
+            if not j_in and not k_in:
                 return False
 
             if k-j < n//2:
-                ret = j % 2 == (0 if j in my_indices else 1)
+                ret = j % 2 == (0 if j_in else 1)
             else:
-                ret = k % 2 == (0 if k in my_indices else 1)
+                ret = k % 2 == (0 if k_in else 1)
             if ret:
                 self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
             return ret
@@ -1526,8 +1537,8 @@ class Corr3(object):
                 size = comm.Get_size()
                 rank = comm.Get_rank()
                 n = max(n1,n2)
-                my_indices = np.arange(n * rank // size, n * (rank+1) // size)
-                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
+                my_indices = (n * rank // size, n * (rank+1) // size)
+                self.logger.info("Rank %d: My indices are [%d,%d)",rank,*my_indices)
             else:
                 my_indices = None
 
@@ -1608,27 +1619,32 @@ class Corr3(object):
             if my_indices is None:
                 return True
 
+            # Otherwise, it depends on the range of my_indices.
+            start, stop = my_indices
+
             # If n1 is n, then this can be simple.  Just split according to i.
             n = max(n1,n2)
             if n1 == n:
-                if i in my_indices:
+                if start <= i < stop:
                     self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
                     return True
                 else:
                     return False
 
             # If not, then this looks like the decision for 2pt auto using j,k.
-            if j in my_indices and k in my_indices:
+            j_in = start <= j < stop
+            k_in = start <= k < stop
+            if j_in and k_in:
                 self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
                 return True
 
-            if j not in my_indices and k not in my_indices:
+            if not j_in and not k_in:
                 return False
 
             if k-j < n//2:
-                ret = j % 2 == (0 if j in my_indices else 1)
+                ret = j % 2 == (0 if j_in else 1)
             else:
-                ret = k % 2 == (0 if k in my_indices else 1)
+                ret = k % 2 == (0 if k_in else 1)
             if ret:
                 self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
             return ret
@@ -1653,8 +1669,8 @@ class Corr3(object):
                 size = comm.Get_size()
                 rank = comm.Get_rank()
                 n = max(n1,n2)
-                my_indices = np.arange(n * rank // size, n * (rank+1) // size)
-                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
+                my_indices = (n * rank // size, n * (rank+1) // size)
+                self.logger.info("Rank %d: My indices are [%d,%d)",rank,*my_indices)
             else:
                 my_indices = None
 
@@ -1721,6 +1737,9 @@ class Corr3(object):
             if my_indices is None:
                 return True
 
+            # Otherwise, it depends on the range of my_indices.
+            start, stop = my_indices
+
             # Just split up according to one of the catalogs.
             n = max(n1,n2,n3)
             if n1 == n:
@@ -1729,7 +1748,7 @@ class Corr3(object):
                 m = j
             else:
                 m = k
-            if m in my_indices:
+            if start <= m < stop:
                 self.logger.info("Rank %d: Job (%d,%d,%d) is mine.",rank,i,j,k)
                 return True
             else:
@@ -1760,8 +1779,8 @@ class Corr3(object):
                 size = comm.Get_size()
                 rank = comm.Get_rank()
                 n = max(n1,n2,n3)
-                my_indices = np.arange(n * rank // size, n * (rank+1) // size)
-                self.logger.info("Rank %d: My indices are %s",rank,my_indices)
+                my_indices = (n * rank // size, n * (rank+1) // size)
+                self.logger.info("Rank %d: My indices are [%d,%d)",rank,*my_indices)
             else:
                 my_indices = None
 

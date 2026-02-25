@@ -171,8 +171,8 @@ class NNCorrelation(Corr2):
         #     self._clear()
         #     for other in others:
         #         self += other
-        # but no sanity checks and use numpy.sum for faster calculation.
-        tot = np.sum([c.tot*w for c,w in others])
+        # but no sanity checks and more efficient accumulation.
+        tot = sum(c.tot*w for c,w in others)
         # Empty ones were only needed for tot.  Remove them now.
         others = [(c,w) for c,w in others if c._nonzero]
         if len(others) == 0:
@@ -400,10 +400,10 @@ class NNCorrelation(Corr2):
             # The approximation we'll use is that tot in the auto-correlations is
             # proportional to area**2.
             # So the sum of tot**0.5 when i==j gives an estimate of the fraction of the total area.
-            area_frac = np.sum([(self.results[i,j].tot*w)**0.5 for i,j,w in pairs if i == j])
-            area_frac /= np.sum([cij.tot**0.5 for (i,j),cij in self.results.items() if i == j])
+            area_frac = sum((self.results[i,j].tot*w)**0.5 for i,j,w in pairs if i == j)
+            area_frac /= sum(cij.tot**0.5 for (i,j),cij in self.results.items() if i == j)
             # First figure out the original total for all DD that had the same footprint as RR.
-            dd_tot = np.sum([self.results[ij].tot for ij in self.results])
+            dd_tot = sum(self.results[ij].tot for ij in self.results)
             # The rrf we want will be a factor of area_frac smaller than the original
             # dd_tot/rr_tot.  We can effect this by multiplying the full dd_tot by area_frac
             # and use that value normally below.  (Also for drf and rdf.)

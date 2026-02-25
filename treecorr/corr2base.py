@@ -1336,18 +1336,32 @@ class Corr2(object):
         #     for other,w in others:
         #         self += w*other
         # if w*other was valid syntax, which it isn't.
+        assert len(others) > 0
 
-        def x(a, w):
-            return a if w == 1 else a*w
+        def accumulate(out, get):
+            # This helper function is equivalent to
+            #
+            #   np.sum([get(c)*w for c,w in others], axis=0, out=out)
+            #
+            # but is more efficient, because (1) it avoids making the full list of arrays to send
+            # to sum, and (2) it avoids temporary array allocations when possible.
+            first = True
+            for c, w in others:
+                a = get(c)
+                if first:
+                    out[:] = a if w == 1 else a*w
+                    first = False
+                else:
+                    out += a if w == 1 else a*w
 
         for i in range(4):
             if self._xi[i].size:
-                np.sum([x(c._xi[i],w) for c,w in others], axis=0, out=self._xi[i])
-        np.sum([x(c.weight,w) for c,w in others], axis=0, out=self.weight)
+                accumulate(self._xi[i], lambda c, i=i: c._xi[i])
+        accumulate(self.weight, lambda c: c.weight)
         if not corr_only:
-            np.sum([x(c.meanr,w) for c,w in others], axis=0, out=self.meanr)
-            np.sum([x(c.meanlogr,w) for c,w in others], axis=0, out=self.meanlogr)
-            np.sum([x(c.npairs,w) for c,w in others], axis=0, out=self.npairs)
+            accumulate(self.meanr, lambda c: c.meanr)
+            accumulate(self.meanlogr, lambda c: c.meanlogr)
+            accumulate(self.npairs, lambda c: c.npairs)
         self._varxi = None
         self._cov = None
 

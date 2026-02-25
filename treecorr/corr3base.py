@@ -2454,28 +2454,36 @@ class Corr3(object):
         #     for other,w in others:
         #         self += w*other
         # if w*other was valid syntax, which it isn't.
+        assert len(others) > 0
 
-        def x(a, w):
-            return a if w == 1 else a*w
+        def accumulate(out, get):
+            first = True
+            for c, w in others:
+                a = get(c)
+                if first:
+                    out[:] = a if w == 1 else a*w
+                    first = False
+                else:
+                    out += a if w == 1 else a*w
 
         for i in range(8):
             if self._z[i].size:
-                np.sum([x(c._z[i],w) for c,w in others], axis=0, out=self._z[i])
-        np.sum([x(c.weightr,w) for c,w in others], axis=0, out=self.weightr)
+                accumulate(self._z[i], lambda c, i=i: c._z[i])
+        accumulate(self.weightr, lambda c: c.weightr)
         if self.bin_type == 'LogMultipole':
-            np.sum([x(c.weighti,w) for c,w in others], axis=0, out=self.weighti)
+            accumulate(self.weighti, lambda c: c.weighti)
 
         if not corr_only:
-            np.sum([x(c.meand1,w) for c,w in others], axis=0, out=self.meand1)
-            np.sum([x(c.meanlogd1,w) for c,w in others], axis=0, out=self.meanlogd1)
-            np.sum([x(c.meand2,w) for c,w in others], axis=0, out=self.meand2)
-            np.sum([x(c.meanlogd2,w) for c,w in others], axis=0, out=self.meanlogd2)
-            np.sum([x(c.meand3,w) for c,w in others], axis=0, out=self.meand3)
-            np.sum([x(c.meanlogd3,w) for c,w in others], axis=0, out=self.meanlogd3)
-            np.sum([x(c.meanu,w) for c,w in others], axis=0, out=self.meanu)
+            accumulate(self.meand1, lambda c: c.meand1)
+            accumulate(self.meanlogd1, lambda c: c.meanlogd1)
+            accumulate(self.meand2, lambda c: c.meand2)
+            accumulate(self.meanlogd2, lambda c: c.meanlogd2)
+            accumulate(self.meand3, lambda c: c.meand3)
+            accumulate(self.meanlogd3, lambda c: c.meanlogd3)
+            accumulate(self.meanu, lambda c: c.meanu)
             if self.bin_type == 'LogRUV':
-                np.sum([x(c.meanv,w) for c,w in others], axis=0, out=self.meanv)
-            np.sum([x(c.ntri,w) for c,w in others], axis=0, out=self.ntri)
+                accumulate(self.meanv, lambda c: c.meanv)
+            accumulate(self.ntri, lambda c: c.ntri)
 
         self._cov = None
         self._varzeta = None

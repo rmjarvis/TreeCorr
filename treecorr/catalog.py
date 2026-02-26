@@ -1580,7 +1580,6 @@ class Catalog(object):
         elif self._centers is not None:
             self._generate_xyz()
             use = np.empty(self.ntot, dtype=int)
-            npatch = self._centers.shape[0]
             centers = np.ascontiguousarray(self._centers)
             if self._z is None:
                 assert centers.shape[1] == 2
@@ -1736,9 +1735,6 @@ class Catalog(object):
         ra_eval = get_from_list(self.config,'ra_eval',num,str,None)
         dec_eval = get_from_list(self.config,'dec_eval',num,str,None)
         r_eval = get_from_list(self.config,'r_eval',num,str,None)
-        w_eval = get_from_list(self.config,'w_eval',num,str,None)
-        wpos_eval = get_from_list(self.config,'wpos_eval',num,str,None)
-        flag_eval = get_from_list(self.config,'flag_eval',num,str,None)
         k_eval = get_from_list(self.config,'k_eval',num,str,None)
         z1_eval = get_from_list(self.config,'z1_eval',num,str,None)
         z2_eval = get_from_list(self.config,'z2_eval',num,str,None)
@@ -1819,7 +1815,7 @@ class Catalog(object):
 
             # Technically, this doesn't catch all possible errors.  If someone specifies
             # an invalid flag_ext or something, then they'll get the fitsio error message.
-            # But this should probably catch the majorit of error cases.
+            # But this should probably catch the majority of error cases.
             # There are more possible errors using the eval options, but that's to be expected.
             # Those will usually raise something appropriately descriptive later.
             reader.check_valid_ext(ext)
@@ -1993,7 +1989,6 @@ class Catalog(object):
                 self._y = parse_value(data, y_col, y_eval)
                 self.logger.debug('read y')
                 if z_col != '0' or z_eval is not None:
-                    xyz = True
                     self._z = parse_value(data, z_col, z_eval)
                     self.logger.debug('read z')
                 self._apply_xyz_units()

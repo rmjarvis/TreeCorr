@@ -15,7 +15,6 @@
 .. module:: vvcorrelation
 """
 
-import numpy as np
 
 from . import _treecorr
 from .catalog import calculateVarV

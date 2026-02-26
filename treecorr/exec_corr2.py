@@ -17,7 +17,7 @@
 
 from .catalog import Catalog, read_catalogs
 from .corr2base import Corr2
-from .config import setup_logger, check_config, print_params, get
+from .config import setup_logger, check_config, print_params
 from .util import set_omp_threads
 from .nncorrelation import NNCorrelation
 from .nkcorrelation import NKCorrelation

@@ -687,7 +687,6 @@ class Corr2(object):
     @property
     def corr(self):
         if self._corr is None:
-            x = np.array([])
             self._corr = self._builder(self._bintype, self._min_sep, self._max_sep, self._nbins,
                                        self._bin_size, self.b, self.angle_slop,
                                        self.min_rpar, self.max_rpar,

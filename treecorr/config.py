@@ -20,7 +20,6 @@ import coord
 import numpy as np
 import warnings
 import logging
-import os
 
 
 def parse_variable(config, v):

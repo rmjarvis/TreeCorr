@@ -23,6 +23,7 @@ Another difference is that fitsio reads a structured array, whereas h5py reads
 a dictionary of arrays. This does not cause problems here, since both are
 indexed by string, but it may matter elsewhere.
 """
+import importlib.util
 import numpy as np
 
 class AsciiReader(object):
@@ -284,12 +285,10 @@ class PandasReader(AsciiReader):
                                     which means any whitespace)
             comment_marker (str):   What token indicates a comment line. (default: '#')
         """
-        try:
-            import pandas
-        except ImportError:
+        if importlib.util.find_spec('pandas') is None:
             if logger:
                 logger.error("Unable to import pandas.  Cannot read %s"%file_name)
-            raise
+            raise ImportError("No module named 'pandas'")
 
         AsciiReader.__init__(self, file_name, delimiter=delimiter, comment_marker=comment_marker)
         # This is how pandas handles whitespace
@@ -369,12 +368,10 @@ class ParquetReader():
             delimiter (str):        Ignored for Parquet input.
             comment_marker (str):   Ignored for Parquet input.
         """
-        try:
-            import pandas
-        except ImportError:
+        if importlib.util.find_spec('pandas') is None:
             if logger:
                 logger.error("Unable to import pandas.  Cannot read %s"%file_name)
-            raise
+            raise ImportError("No module named 'pandas'")
 
         self.file_name = file_name
         self._df = None
@@ -659,12 +656,10 @@ class HdfReader(object):
         Parameters:
             file_name (str):    The file name.
         """
-        try:
-            import h5py
-        except ImportError:
+        if importlib.util.find_spec('h5py') is None:
             if logger:
                 logger.error("Unable to import h5py.  Cannot read %s"%file_name)
-            raise
+            raise ImportError("No module named 'h5py'")
 
         self._file = None  # Only works inside a with block.
         self.file_name = file_name

@@ -28,7 +28,7 @@ from .config import merge_config, setup_logger, get, make_minimal_config
 from .util import parse_metric, metric_enum, coord_enum, set_omp_threads, lazy_property
 from .util import make_writer, make_reader, spin_by_letter
 from .corr2base import estimate_multi_cov, build_multi_cov_design_matrix, Corr2
-from .catalog import Catalog, calculateMeanW
+from .catalog import calculateMeanW
 
 class Namespace(object):
     pass

@@ -744,7 +744,6 @@ class HdfReader(object):
         col_vals =  list(g.values())
         col_names = list(g.keys())
 
-        ncol = len(col_names)
         num_rows = col_vals[0].size
         dtype=[(name, col.dtype) for (name, col) in zip(col_names, col_vals)]
         data = np.empty(num_rows, dtype=dtype)

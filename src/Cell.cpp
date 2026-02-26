@@ -105,13 +105,13 @@ double BaseCell<C>::calculateInertia() const
     if (getSize() == 0.) return 0.;
     else if (getN() == 1) return 0.;
     else {
-        const Position<C> p1 = getLeft()->getPos();
+        const Position<C>& p1 = getLeft()->getPos();
         double i1 = getLeft()->calculateInertia();
         double w1 = getLeft()->getW();
-        const Position<C> p2 = getRight()->getPos();
+        const Position<C>& p2 = getRight()->getPos();
         double i2 = getRight()->calculateInertia();
         double w2 = getRight()->getW();
-        const Position<C> cen = getPos();
+        const Position<C>& cen = getPos();
         double inertia = i1 + i2 + (p1-cen).normSq() * w1 + (p2-cen).normSq() * w2;
 #ifdef DEBUGLOGGING
         std::vector<const BaseCell<C>*> leaves = getAllLeaves();
@@ -411,8 +411,8 @@ struct DataCompare
 {
     int split;
     DataCompare(int s) : split(s) {}
-    bool operator()(const std::pair<BaseCellData<C>*,WPosLeafInfo> cd1,
-                    const std::pair<BaseCellData<C>*,WPosLeafInfo> cd2) const
+    bool operator()(const std::pair<BaseCellData<C>*,WPosLeafInfo>& cd1,
+                    const std::pair<BaseCellData<C>*,WPosLeafInfo>& cd2) const
     { return cd1.first->getPos().get(split) < cd2.first->getPos().get(split); }
 };
 
@@ -423,7 +423,7 @@ struct DataCompareToValue
     double splitvalue;
 
     DataCompareToValue(int s, double v) : split(s), splitvalue(v) {}
-    bool operator()(const std::pair<BaseCellData<C>*,WPosLeafInfo> cd) const
+    bool operator()(const std::pair<BaseCellData<C>*,WPosLeafInfo>& cd) const
     { return cd.first->getPos().get(split) < splitvalue; }
 };
 

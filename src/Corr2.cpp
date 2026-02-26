@@ -20,7 +20,6 @@
 
 #include <vector>
 #include <unordered_set>
-#include <map>
 
 #include "dbg.h"
 #include "Corr2.h"
@@ -779,26 +778,28 @@ void Sampler::finishProcess(
         }
 
         // Now any items with j >= k can replace the value at their i in this list.
-        std::map<long, long> places;
+        std::vector<std::pair<long, long> > places;
+        places.reserve(_n);
         for(long i=0;i<_n;++i) {
             long j = selection[i];
-            if (j >= _k) places[j] = i;
+            if (j >= _k) places.push_back(std::make_pair(j, i));
         }
-        if (places.size() == 0) {
+        if (places.empty()) {
             // If nothing selected from the new set, then we're done.
             _k += m;
             return;
         }
+        std::sort(places.begin(), places.end());
 
-        std::map<long, long>::iterator next = places.begin();
+        size_t next = 0;
 
         long i=_k;  // When i is in the map, place it at places[i]
         for (size_t p1=0; p1<leaf1.size(); ++p1) {
             long nn1 = leaf1[p1]->getN();
             for (long q1=0; q1<nn1; ++q1) {
-                xdbg<<"i = "<<i<<", next = "<<next->first<<"  "<<next->second<<std::endl;
-                Assert(i <= next->first);
-                if (next->first > i + n2) {
+                xdbg<<"i = "<<i<<", next = "<<places[next].first<<"  "<<places[next].second<<std::endl;
+                Assert(i <= places[next].first);
+                if (places[next].first > i + n2) {
                     // Then skip this loop through the second vector
                     i += n2;
                     continue;
@@ -809,24 +810,24 @@ void Sampler::finishProcess(
                 for (size_t p2=0; p2<leaf2.size(); ++p2) {
                     long nn2 = leaf2[p2]->getN();
                     for (long q2=0; q2<nn2; ++q2,++i) {
-                        if (i == next->first) {
+                        if (i == places[next].first) {
                             xdbg<<"Use i = "<<i<<std::endl;
                             long index2;
                             if (nn2 == 1) index2 = leaf2[p2]->getInfo().index;
                             else index2 = (*leaf2[p2]->getListInfo().indices)[q2];
-                            long j = next->second;
+                            long j = places[next].second;
                             _i1[j] = index1;
                             _i2[j] = index2;
                             _sep[j] = r;
                             ++next;
                         }
-                        if (next == places.end()) break;
+                        if (next == places.size()) break;
                     }
-                    if (next == places.end()) break;
+                    if (next == places.size()) break;
                 }
-                if (next == places.end()) break;
+                if (next == places.size()) break;
             }
-            if (next == places.end()) break;
+            if (next == places.size()) break;
         }
         xdbg<<"Done: i = "<<i<<", k+m = "<<_k+m<<std::endl;
         _k += m;

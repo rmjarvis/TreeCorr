@@ -2382,11 +2382,17 @@ def _make_cov_design_matrix_core(corrs, plist, func, name, nrows, calc_weights, 
     corrs = [c.copy() for c in corrs]
 
     # We can't pickle functions to send via MPI, so have to do this here.
-    if func is None:
-        func = lambda corrs: np.concatenate([c.getStat() for c in corrs])
+    # When func is omitted, we can use a faster corr_only path below and fill v[row] directly
+    # without building a temporary concatenated array.
 
     # Figure out the shape of the design matrix.
-    v1 = func(corrs)
+    if func is None:
+        v1_parts = [c.getStat() for c in corrs]
+        v1 = np.concatenate(v1_parts)
+        edges = np.cumsum([0] + [len(s) for s in v1_parts])
+        stat_slices = list(zip(edges[:-1], edges[1:]))
+    else:
+        v1 = func(corrs)
     dt = v1.dtype
     vsize = len(v1)
     # Make the empty return arrays. They are filled with zeros
@@ -2409,7 +2415,11 @@ def _make_cov_design_matrix_core(corrs, plist, func, name, nrows, calc_weights, 
                 c._clear()
             else:
                 c._calculate_xi_from_pairs(cpairs, corr_only=c._corr_only or (func is None))
-        v[row] = func(corrs)
+        if func is None:
+            for c, (i1, i2) in zip(corrs, stat_slices):
+                v[row, i1:i2] = c.getStat()
+        else:
+            v[row] = func(corrs)
         if calc_weights:
             w[row] = sum(np.sum(c.getWeight()) for c in corrs)
     return v,w

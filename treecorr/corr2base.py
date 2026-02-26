@@ -2366,7 +2366,7 @@ def build_multi_cov_design_matrix(corrs, method, *, func=None, comm=None, num_bo
     else:
         raise ValueError("Invalid method: %s"%method)
 
-def _make_cov_design_matrix_core(corrs, plist, func, name, rank=0, size=1):
+def _make_cov_design_matrix_core(corrs, plist, func, name, nrows, rank=0, size=1):
     # plist has the pairs to use for each row in the design matrix for each correlation fn.
     # It is a list by row, each element is a list by corr fn of tuples (i,j), being the indices
     # to use from the results dict.
@@ -2389,8 +2389,6 @@ def _make_cov_design_matrix_core(corrs, plist, func, name, rank=0, size=1):
     v1 = func(corrs)
     dt = v1.dtype
     vsize = len(v1)
-    nrows = len(plist)
-
     # Make the empty return arrays. They are filled with zeros
     # because we will sum them over processes later.
     v = np.zeros((nrows,vsize), dtype=dt)
@@ -2415,14 +2413,14 @@ def _make_cov_design_matrix_core(corrs, plist, func, name, rank=0, size=1):
         w[row] = sum(np.sum(c.getWeight()) for c in corrs)
     return v,w
 
-def _make_cov_design_matrix(corrs, plist, func, name, comm):
+def _make_cov_design_matrix(corrs, plist, func, name, comm, nrows):
     if comm is not None:
         try:
             from mpi4py.MPI import IN_PLACE
         except ImportError:
             # Probably testing using MockMPI...
             IN_PLACE = 1
-        v, w = _make_cov_design_matrix_core(corrs, plist, func, name, comm.rank, comm.size)
+        v, w = _make_cov_design_matrix_core(corrs, plist, func, name, nrows, comm.rank, comm.size)
         # These two calls collects the v arrays from w arrays from all the processors,
         # sums them all together, and then sends them back to each processor where they
         # are put back in-place, overwriting the original v and w array contents.
@@ -2435,7 +2433,7 @@ def _make_cov_design_matrix(corrs, plist, func, name, comm):
         comm.Allreduce(IN_PLACE, w)
     # Otherwise we just use the regular version, which implicitly does the whole matrix
     else:
-        v, w = _make_cov_design_matrix_core(corrs, plist, func, name)
+        v, w = _make_cov_design_matrix_core(corrs, plist, func, name, nrows)
     return v, w
 
 def _cov_shot(corrs):
@@ -2471,11 +2469,8 @@ def _check_patch_nums(corrs, name):
 def _design_jackknife(corrs, func, comm, cross_patch_weight):
     npatch = _check_patch_nums(corrs, 'jackknife')
     plist = [c._jackknife_pairs(cross_patch_weight) for c in corrs]
-    # Swap order of plist.  Right now it's a list for each corr of a list for each row.
-    # We want a list by row with a list for each corr.
-    plist = list(zip(*plist))
-
-    return _make_cov_design_matrix(corrs, plist, func, 'jackknife', comm=comm)
+    # Iterate by row without materializing the full transposed list.
+    return _make_cov_design_matrix(corrs, zip(*plist), func, 'jackknife', comm=comm, nrows=npatch)
 
 def _cov_jackknife(corrs, func, comm, cross_patch_weight):
     # Calculate the jackknife covariance for the given statistics
@@ -2495,11 +2490,8 @@ def _cov_jackknife(corrs, func, comm, cross_patch_weight):
 def _design_sample(corrs, func, comm, cross_patch_weight):
     npatch = _check_patch_nums(corrs, 'sample')
     plist = [c._sample_pairs(cross_patch_weight) for c in corrs]
-    # Swap order of plist.  Right now it's a list for each corr of a list for each row.
-    # We want a list by row with a list for each corr.
-    plist = list(zip(*plist))
-
-    return _make_cov_design_matrix(corrs, plist, func, 'sample', comm=comm)
+    # Iterate by row without materializing the full transposed list.
+    return _make_cov_design_matrix(corrs, zip(*plist), func, 'sample', comm=comm, nrows=npatch)
 
 def _cov_sample(corrs, func, comm, cross_patch_weight):
     # Calculate the sample covariance.
@@ -2528,16 +2520,17 @@ def _cov_sample(corrs, func, comm, cross_patch_weight):
 def _design_marked(corrs, func, comm, num_bootstrap, cross_patch_weight):
     npatch = _check_patch_nums(corrs, 'marked_bootstrap')
 
-    plist = []
-    for k in range(num_bootstrap):
-        # Select a random set of indices to use.  (Will have repeats.)
-        # Note use choice rather than integers, so it is backwards compatible with the old
-        # np.random.RandomState (which used randint rather than integers for that functionality).
-        index = corrs[0].rng.choice(np.arange(npatch), size=npatch, replace=True)
-        vpairs = [c._marked_pairs(index, cross_patch_weight) for c in corrs]
-        plist.append(vpairs)
+    def iter_plist():
+        for _ in range(num_bootstrap):
+            # Select a random set of indices to use.  (Will have repeats.)
+            # Note use choice rather than integers, so it is backwards compatible with the old
+            # np.random.RandomState (which used randint rather than integers for that
+            # functionality).
+            index = corrs[0].rng.choice(np.arange(npatch), size=npatch, replace=True)
+            yield [c._marked_pairs(index, cross_patch_weight) for c in corrs]
 
-    return _make_cov_design_matrix(corrs, plist, func, 'marked_bootstrap', comm=comm)
+    return _make_cov_design_matrix(corrs, iter_plist(), func, 'marked_bootstrap',
+                                   comm=comm, nrows=num_bootstrap)
 
 def _cov_marked(corrs, func, comm, num_bootstrap, cross_patch_weight):
     # Calculate the marked-point bootstrap covariance
@@ -2565,13 +2558,13 @@ def _cov_marked(corrs, func, comm, num_bootstrap, cross_patch_weight):
 def _design_bootstrap(corrs, func, comm, num_bootstrap, cross_patch_weight):
     npatch = _check_patch_nums(corrs, 'bootstrap')
 
-    plist = []
-    for k in range(num_bootstrap):
-        index = corrs[0].rng.choice(np.arange(npatch), size=npatch, replace=True)
-        vpairs = [c._bootstrap_pairs(index, cross_patch_weight) for c in corrs]
-        plist.append(vpairs)
+    def iter_plist():
+        for _ in range(num_bootstrap):
+            index = corrs[0].rng.choice(np.arange(npatch), size=npatch, replace=True)
+            yield [c._bootstrap_pairs(index, cross_patch_weight) for c in corrs]
 
-    return _make_cov_design_matrix(corrs, plist, func, 'bootstrap', comm=comm)
+    return _make_cov_design_matrix(corrs, iter_plist(), func, 'bootstrap',
+                                   comm=comm, nrows=num_bootstrap)
 
 def _cov_bootstrap(corrs, func, comm, num_bootstrap, cross_patch_weight):
     # Calculate the 2-patch bootstrap covariance estimate.

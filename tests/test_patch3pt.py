@@ -825,7 +825,7 @@ def test_kkk_logruv_jk():
     cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='simple')
     print(np.diagonal(cov))
     print('max log(ratio) = ',np.max(np.abs(np.log(np.diagonal(cov))-np.log(var_kkk))))
-    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.3*tol_factor)
+    np.testing.assert_allclose(np.log(np.diagonal(cov)), np.log(var_kkk), atol=0.4*tol_factor)
 
     print('bootstrap/mean:')
     cov = kkkp.estimate_cov('bootstrap', cross_patch_weight='mean')

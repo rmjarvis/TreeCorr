@@ -46,3 +46,14 @@ Rationale:
 ## Typo Sweep Rule
 - When a typo is found, grep the whole repo for that same typo pattern (excluding build/data
   artifacts) and fix all clear occurrences in the same pass.
+
+## Linting Preference
+- Prefer error-focused lint checks over style linters.
+- Preferred Ruff command:
+  `ruff check --select F,E9 treecorr`
+- This catches likely real issues (undefined names, unused imports/locals, parse errors) without
+  style churn.
+- Keep intentional exceptions (e.g. package re-exports in `treecorr/__init__.py`) in Ruff config
+  (`pyproject.toml` per-file ignores), not inline lint comments.
+- Do not keep validation-only code solely to trigger an earlier error if the same error will occur
+  naturally when the value/path is actually used.

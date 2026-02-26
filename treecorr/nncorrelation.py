@@ -105,31 +105,12 @@ class NNCorrelation(Corr2):
             ret._rd = self._rd.copy()
         return ret
 
-    @lazy_property
-    def _zero_array(self):
-        # An array of all zeros with the same shape as self.weight (and other data arrays)
-        z = np.zeros_like(self.weight)
-        z.flags.writeable=False  # Just to make sure we get an error if we try to change it.
-        return z
-
     def _zero_copy(self, tot):
         # A minimal "copy" with zero for the weight array, and the given value for tot.
-        ret = NNCorrelation.__new__(NNCorrelation)
-        ret._ro = self._ro
-        ret.coords = self.coords
-        ret.metric = self.metric
-        ret.config = self.config
-        ret.meanr = self._zero_array
-        ret.meanlogr = self._zero_array
-        ret.weight = self._zero_array
-        ret.npairs = self._zero_array
+        ret = super()._zero_copy()
         ret.tot = tot
-        ret._corr = None
         ret._rr = ret._dr = ret._rd = None
         ret._write_rr = ret._write_dr = ret._write_rd = None
-        ret._write_patch_results = False
-        ret._cov = None
-        ret._logger_name = None
         # This override is really the main advantage of using this:
         setattr(ret, '_nonzero', False)
         return ret
@@ -356,25 +337,19 @@ class NNCorrelation(Corr2):
             # correlation, and dd,rr may be auto-correlations, or because the d catalogs has some
             # patches with no items), then we need to add some dummy results to make sure all the
             # right pairs are computed when we make the vectors for the covariance matrix.
-            add_ij = set()
-            if rr.npatch1 != 1 and rr.npatch2 != 1:
-                for ij in rr.results:
-                    if ij not in self.results:
-                        add_ij.add(ij)
-
-            if dr is not None and dr.npatch2 != 1:
-                for ij in dr.results:
-                    if ij not in self.results:
-                        add_ij.add(ij)
-
-            if rd is not None and rd.npatch1 != 1:
-                for ij in rd.results:
-                    if ij not in self.results:
-                        add_ij.add(ij)
-
-            if len(add_ij) > 0:
-                for ij in add_ij:
+            added_any = False
+            for results in (
+                    rr.results if rr.npatch1 != 1 and rr.npatch2 != 1 else None,
+                    dr.results if dr is not None and dr.npatch2 != 1 else None,
+                    rd.results if rd is not None and rd.npatch1 != 1 else None):
+                if results is None:
+                    continue
+                for ij in results:
+                    if ij in self.results: continue
                     self.results[ij] = self._zero_copy(0)
+                    added_any = True
+
+            if added_any:
                 self.__dict__.pop('_ok',None)  # If it was already made, it will need to be redone.
 
         # Now that it's all set up, calculate the covariance and set varxi to the diagonal.

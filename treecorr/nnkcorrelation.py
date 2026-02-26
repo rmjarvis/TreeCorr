@@ -122,6 +122,15 @@ class KNNCorrelation(Corr3):
             ret._krd = self._krd.copy()
         return ret
 
+    def _zero_copy(self):
+        ret = super()._zero_copy()
+        ret._krr = None
+        ret._kdr = None
+        ret._krd = None
+        ret._zeta = None
+        ret._comp_varzeta = None
+        return ret
+
     def finalize(self, vark):
         """Finalize the calculation of the correlation function.
 
@@ -225,18 +234,17 @@ class KNNCorrelation(Corr3):
                 raise RuntimeError("KDR must be run with the same patches as KDD")
 
             if len(self.results) > 0:
-                template = next(iter(self.results.values()))  # Just need something to copy.
-                all_keys = list(krr.results.keys())
-                if krd is not None:
-                    all_keys += list(krd.results.keys())
-                if kdr is not None:
-                    all_keys += list(kdr.results.keys())
-                for ijk in all_keys:
-                    if ijk in self.results: continue
-                    new_cij = template.copy()
-                    new_cij._z[0][:] = 0
-                    new_cij.weight[:] = 0
-                    self.results[ijk] = new_cij
+                added_any = False
+                for results in (krr.results,
+                                krd.results if krd is not None else None,
+                                kdr.results if kdr is not None else None):
+                    if results is None:
+                        continue
+                    for ijk in results:
+                        if ijk in self.results: continue
+                        self.results[ijk] = self._zero_copy()
+                        added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
@@ -431,6 +439,15 @@ class NKNCorrelation(Corr3):
             ret._rkd = self._rkd.copy()
         return ret
 
+    def _zero_copy(self):
+        ret = super()._zero_copy()
+        ret._rkr = None
+        ret._dkr = None
+        ret._rkd = None
+        ret._zeta = None
+        ret._comp_varzeta = None
+        return ret
+
     def finalize(self, vark):
         """Finalize the calculation of the correlation function.
 
@@ -534,18 +551,17 @@ class NKNCorrelation(Corr3):
                 raise RuntimeError("DKR must be run with the same patches as DKD")
 
             if len(self.results) > 0:
-                template = next(iter(self.results.values()))  # Just need something to copy.
-                all_keys = list(rkr.results.keys())
-                if rkd is not None:
-                    all_keys += list(rkd.results.keys())
-                if dkr is not None:
-                    all_keys += list(dkr.results.keys())
-                for ijk in all_keys:
-                    if ijk in self.results: continue
-                    new_cij = template.copy()
-                    new_cij._z[0][:] = 0
-                    new_cij.weight[:] = 0
-                    self.results[ijk] = new_cij
+                added_any = False
+                for results in (rkr.results,
+                                rkd.results if rkd is not None else None,
+                                dkr.results if dkr is not None else None):
+                    if results is None:
+                        continue
+                    for ijk in results:
+                        if ijk in self.results: continue
+                        self.results[ijk] = self._zero_copy()
+                        added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
@@ -740,6 +756,15 @@ class NNKCorrelation(Corr3):
             ret._rdk = self._rdk.copy()
         return ret
 
+    def _zero_copy(self):
+        ret = super()._zero_copy()
+        ret._rrk = None
+        ret._drk = None
+        ret._rdk = None
+        ret._zeta = None
+        ret._comp_varzeta = None
+        return ret
+
     def finalize(self, vark):
         """Finalize the calculation of the correlation function.
 
@@ -843,18 +868,17 @@ class NNKCorrelation(Corr3):
                 raise RuntimeError("DRK must be run with the same patches as DDK")
 
             if len(self.results) > 0:
-                template = next(iter(self.results.values()))  # Just need something to copy.
-                all_keys = list(rrk.results.keys())
-                if rdk is not None:
-                    all_keys += list(rdk.results.keys())
-                if drk is not None:
-                    all_keys += list(drk.results.keys())
-                for ijk in all_keys:
-                    if ijk in self.results: continue
-                    new_cij = template.copy()
-                    new_cij._z[0][:] = 0
-                    new_cij.weight[:] = 0
-                    self.results[ijk] = new_cij
+                added_any = False
+                for results in (rrk.results,
+                                rdk.results if rdk is not None else None,
+                                drk.results if drk is not None else None):
+                    if results is None:
+                        continue
+                    for ijk in results:
+                        if ijk in self.results: continue
+                        self.results[ijk] = self._zero_copy()
+                        added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)

@@ -110,6 +110,14 @@ class NKCorrelation(Corr2):
             ret._rk = self._rk.copy()
         return ret
 
+    def _zero_copy(self):
+        # A minimal "copy" for dummy patch results used in covariance bookkeeping.
+        ret = super()._zero_copy()
+        ret.xi = ret._xi[0]
+        ret._rk = None
+        ret._comp_varxi = None
+        return ret
+
     def finalize(self, vark):
         """Finalize the calculation of the correlation function.
 
@@ -192,13 +200,12 @@ class NKCorrelation(Corr2):
                 # edge effects among the various pairs in consideration), then we need to add
                 # some dummy results to make sure all the right pairs are computed when we make
                 # the vectors for the covariance matrix.
-                template = next(iter(self.results.values()))  # Just need something to copy.
+                added_any = False
                 for ij in rk.results:
                     if ij in self.results: continue
-                    new_cij = template.copy()
-                    new_cij.xi.ravel()[:] = 0
-                    new_cij.weight.ravel()[:] = 0
-                    self.results[ij] = new_cij
+                    self.results[ij] = self._zero_copy()
+                    added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)

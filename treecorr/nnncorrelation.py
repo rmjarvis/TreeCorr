@@ -97,32 +97,10 @@ class NNNCorrelation(Corr3):
 
     def _zero_copy(self, tot):
         # A minimal "copy" with zero for the weight array, and the given value for tot.
-        ret = NNNCorrelation.__new__(NNNCorrelation)
-        ret._ro = self._ro
-        ret.coords = self.coords
-        ret.metric = self.metric
-        ret.config = self.config
-        ret.meand1 = self._zero_array
-        ret.meanlogd1 = self._zero_array
-        ret.meand2 = self._zero_array
-        ret.meanlogd2 = self._zero_array
-        ret.meand3 = self._zero_array
-        ret.meanlogd3 = self._zero_array
-        ret.meanu = self._zero_array
-        ret.meanv = self._zero_array
-        ret.weightr = self._zero_array
-        if self.bin_type == 'LogMultipole':
-            ret.weighti = self._zero_array
-        else:
-            ret.weighti = np.array([])
-        ret.ntri = self._zero_array
+        ret = super()._zero_copy()
         ret.tot = tot
-        ret._corr = None
         ret._rrr = ret._drr = ret._rdd = None
         ret._write_rrr = ret._write_drr = ret._write_rdd = None
-        ret._write_patch_results = False
-        ret._cov = None
-        ret._logger_name = None
         # This override is really the main advantage of using this:
         setattr(ret, '_nonzero', False)
         return ret
@@ -369,25 +347,19 @@ class NNNCorrelation(Corr3):
             # If there are any rrr,drr,rdd patch sets that aren't in results, then we need to add
             # some dummy results to make sure all the right ijk "pair"s are computed when we make
             # the vectors for the covariance matrix.
-            add_ijk = set()
-            if rrr.npatch1 != 1:
-                for ijk in rrr.results:
-                    if ijk not in self.results:
-                        add_ijk.add(ijk)
-
-            if drr is not None and drr.npatch2 != 1:
-                for ijk in drr.results:
-                    if ijk not in self.results:
-                        add_ijk.add(ijk)
-
-            if rdd is not None and rdd.npatch1 != 1:
-                for ijk in rdd.results:
-                    if ijk not in self.results:
-                        add_ijk.add(ijk)
-
-            if len(add_ijk) > 0:
-                for ijk in add_ijk:
+            added_any = False
+            for results in (
+                    rrr.results if rrr.npatch1 != 1 else None,
+                    drr.results if drr is not None and drr.npatch2 != 1 else None,
+                    rdd.results if rdd is not None and rdd.npatch1 != 1 else None):
+                if results is None:
+                    continue
+                for ijk in results:
+                    if ijk in self.results: continue
                     self.results[ijk] = self._zero_copy(0)
+                    added_any = True
+
+            if added_any:
                 self.__dict__.pop('_ok',None)  # If it was already made, it will need to be redone.
 
         # Now that it's all set up, calculate the covariance and set varzeta to the diagonal.

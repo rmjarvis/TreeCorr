@@ -2923,6 +2923,31 @@ class Corr3(object):
         z.flags.writeable=False  # Just to make sure we get an error if we try to change it.
         return z
 
+    def _zero_copy(self):
+        # A minimal "copy" for dummy patch results used in covariance bookkeeping.
+        ret = self.__class__.__new__(self.__class__)
+        ret._ro = self._ro
+        ret.coords = self.coords
+        ret.metric = self.metric
+        ret.config = self.config
+        ret._z = [self._zero_array if z.size else np.array([]) for z in self._z]
+        ret.meand1 = self._zero_array
+        ret.meanlogd1 = self._zero_array
+        ret.meand2 = self._zero_array
+        ret.meanlogd2 = self._zero_array
+        ret.meand3 = self._zero_array
+        ret.meanlogd3 = self._zero_array
+        ret.meanu = self._zero_array
+        ret.meanv = self._zero_array if self.meanv.size else np.array([])
+        ret.weightr = self._zero_array
+        ret.weighti = self._zero_array if self.weighti.size else np.array([])
+        ret.ntri = self._zero_array
+        ret._corr = None
+        ret._cov = None
+        ret._logger_name = None
+        ret._write_patch_results = False
+        return ret
+
     def _apply_units(self, mask):
         if self.coords == 'spherical' and self.metric == 'Euclidean':
             # Then we need to convert from the chord triangles to great circle triangles.

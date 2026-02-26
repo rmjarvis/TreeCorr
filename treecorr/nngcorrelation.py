@@ -130,6 +130,15 @@ class GNNCorrelation(Corr3):
             ret._grd = self._grd.copy()
         return ret
 
+    def _zero_copy(self):
+        ret = super()._zero_copy()
+        ret._grr = None
+        ret._gdr = None
+        ret._grd = None
+        ret._zeta = None
+        ret._comp_varzeta = None
+        return ret
+
     def finalize(self, varg):
         """Finalize the calculation of the correlation function.
 
@@ -233,18 +242,17 @@ class GNNCorrelation(Corr3):
                 raise RuntimeError("GDR must be run with the same patches as GDD")
 
             if len(self.results) > 0:
-                template = next(iter(self.results.values()))  # Just need something to copy.
-                all_keys = list(grr.results.keys())
-                if grd is not None:
-                    all_keys += list(grd.results.keys())
-                if gdr is not None:
-                    all_keys += list(gdr.results.keys())
-                for ijk in all_keys:
-                    if ijk in self.results: continue
-                    new_cij = template.copy()
-                    new_cij._z[0][:] = 0
-                    new_cij.weight[:] = 0
-                    self.results[ijk] = new_cij
+                added_any = False
+                for results in (grr.results,
+                                grd.results if grd is not None else None,
+                                gdr.results if gdr is not None else None):
+                    if results is None:
+                        continue
+                    for ijk in results:
+                        if ijk in self.results: continue
+                        self.results[ijk] = self._zero_copy()
+                        added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
@@ -439,6 +447,15 @@ class NGNCorrelation(Corr3):
             ret._rgd = self._rgd.copy()
         return ret
 
+    def _zero_copy(self):
+        ret = super()._zero_copy()
+        ret._rgr = None
+        ret._dgr = None
+        ret._rgd = None
+        ret._zeta = None
+        ret._comp_varzeta = None
+        return ret
+
     def finalize(self, varg):
         """Finalize the calculation of the correlation function.
 
@@ -542,18 +559,17 @@ class NGNCorrelation(Corr3):
                 raise RuntimeError("DGR must be run with the same patches as DGD")
 
             if len(self.results) > 0:
-                template = next(iter(self.results.values()))  # Just need something to copy.
-                all_keys = list(rgr.results.keys())
-                if rgd is not None:
-                    all_keys += list(rgd.results.keys())
-                if dgr is not None:
-                    all_keys += list(dgr.results.keys())
-                for ijk in all_keys:
-                    if ijk in self.results: continue
-                    new_cij = template.copy()
-                    new_cij._z[0][:] = 0
-                    new_cij.weight[:] = 0
-                    self.results[ijk] = new_cij
+                added_any = False
+                for results in (rgr.results,
+                                rgd.results if rgd is not None else None,
+                                dgr.results if dgr is not None else None):
+                    if results is None:
+                        continue
+                    for ijk in results:
+                        if ijk in self.results: continue
+                        self.results[ijk] = self._zero_copy()
+                        added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
@@ -748,6 +764,15 @@ class NNGCorrelation(Corr3):
             ret._rdg = self._rdg.copy()
         return ret
 
+    def _zero_copy(self):
+        ret = super()._zero_copy()
+        ret._rrg = None
+        ret._drg = None
+        ret._rdg = None
+        ret._zeta = None
+        ret._comp_varzeta = None
+        return ret
+
     def finalize(self, varg):
         """Finalize the calculation of the correlation function.
 
@@ -851,18 +876,17 @@ class NNGCorrelation(Corr3):
                 raise RuntimeError("DRG must be run with the same patches as DDG")
 
             if len(self.results) > 0:
-                template = next(iter(self.results.values()))  # Just need something to copy.
-                all_keys = list(rrg.results.keys())
-                if rdg is not None:
-                    all_keys += list(rdg.results.keys())
-                if drg is not None:
-                    all_keys += list(drg.results.keys())
-                for ijk in all_keys:
-                    if ijk in self.results: continue
-                    new_cij = template.copy()
-                    new_cij._z[0][:] = 0
-                    new_cij.weight[:] = 0
-                    self.results[ijk] = new_cij
+                added_any = False
+                for results in (rrg.results,
+                                rdg.results if rdg is not None else None,
+                                drg.results if drg is not None else None):
+                    if results is None:
+                        continue
+                    for ijk in results:
+                        if ijk in self.results: continue
+                        self.results[ijk] = self._zero_copy()
+                        added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)

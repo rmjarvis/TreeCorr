@@ -202,6 +202,15 @@ class NGGCorrelation(Corr3):
             ret._rgg = self._rgg.copy()
         return ret
 
+    def _zero_copy(self):
+        ret = super()._zero_copy()
+        ret._rgg = None
+        ret._gam0 = None
+        ret._gam2 = None
+        ret._comp_vargam0 = None
+        ret._comp_vargam2 = None
+        return ret
+
     def finalize(self, varg1, varg2):
         """Finalize the calculation of the correlation function.
 
@@ -319,14 +328,12 @@ class NGGCorrelation(Corr3):
                 # edge effects among the various pairs in consideration), then we need to add
                 # some dummy results to make sure all the right pairs are computed when we make
                 # the vectors for the covariance matrix.
-                template = next(iter(self.results.values()))  # Just need something to copy.
+                added_any = False
                 for ijk in rgg.results:
                     if ijk in self.results: continue
-                    new_cij = template.copy()
-                    for i in range(4):
-                        new_cij._z[i][:] = 0
-                    new_cij.weight[:] = 0
-                    self.results[ijk] = new_cij
+                    self.results[ijk] = self._zero_copy()
+                    added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
@@ -570,6 +577,15 @@ class GNGCorrelation(Corr3):
             ret._grg = self._grg.copy()
         return ret
 
+    def _zero_copy(self):
+        ret = super()._zero_copy()
+        ret._grg = None
+        ret._gam0 = None
+        ret._gam1 = None
+        ret._comp_vargam0 = None
+        ret._comp_vargam1 = None
+        return ret
+
     def finalize(self, varg1, varg2):
         """Finalize the calculation of the correlation function.
 
@@ -687,14 +703,12 @@ class GNGCorrelation(Corr3):
                 # edge effects among the various pairs in consideration), then we need to add
                 # some dummy results to make sure all the right pairs are computed when we make
                 # the vectors for the covariance matrix.
-                template = next(iter(self.results.values()))  # Just need something to copy.
+                added_any = False
                 for ijk in grg.results:
                     if ijk in self.results: continue
-                    new_cij = template.copy()
-                    for i in range(4):
-                        new_cij._z[i][:] = 0
-                    new_cij.weight[:] = 0
-                    self.results[ijk] = new_cij
+                    self.results[ijk] = self._zero_copy()
+                    added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
@@ -938,6 +952,15 @@ class GGNCorrelation(Corr3):
             ret._ggr = self._ggr.copy()
         return ret
 
+    def _zero_copy(self):
+        ret = super()._zero_copy()
+        ret._ggr = None
+        ret._gam0 = None
+        ret._gam1 = None
+        ret._comp_vargam0 = None
+        ret._comp_vargam1 = None
+        return ret
+
     def finalize(self, varg1, varg2):
         """Finalize the calculation of the correlation function.
 
@@ -1055,14 +1078,12 @@ class GGNCorrelation(Corr3):
                 # edge effects among the various pairs in consideration), then we need to add
                 # some dummy results to make sure all the right pairs are computed when we make
                 # the vectors for the covariance matrix.
-                template = next(iter(self.results.values()))  # Just need something to copy.
+                added_any = False
                 for ijk in ggr.results:
                     if ijk in self.results: continue
-                    new_cij = template.copy()
-                    for i in range(4):
-                        new_cij._z[i][:] = 0
-                    new_cij.weight[:] = 0
-                    self.results[ijk] = new_cij
+                    self.results[ijk] = self._zero_copy()
+                    added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)

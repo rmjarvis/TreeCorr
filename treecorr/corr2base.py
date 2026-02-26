@@ -2524,6 +2524,7 @@ def _cov_sample(corrs, func, comm, cross_patch_weight):
 
 def _design_marked(corrs, func, comm, num_bootstrap, cross_patch_weight, calc_weights=True):
     npatch = _check_patch_nums(corrs, 'marked_bootstrap')
+    patch_ids = np.arange(npatch)
 
     def iter_plist():
         for _ in range(num_bootstrap):
@@ -2531,7 +2532,7 @@ def _design_marked(corrs, func, comm, num_bootstrap, cross_patch_weight, calc_we
             # Note use choice rather than integers, so it is backwards compatible with the old
             # np.random.RandomState (which used randint rather than integers for that
             # functionality).
-            index = corrs[0].rng.choice(np.arange(npatch), size=npatch, replace=True)
+            index = corrs[0].rng.choice(patch_ids, size=npatch, replace=True)
             yield [c._marked_pairs(index, cross_patch_weight) for c in corrs]
 
     return _make_cov_design_matrix(corrs, iter_plist(), func, 'marked_bootstrap',
@@ -2562,10 +2563,11 @@ def _cov_marked(corrs, func, comm, num_bootstrap, cross_patch_weight):
 
 def _design_bootstrap(corrs, func, comm, num_bootstrap, cross_patch_weight, calc_weights=True):
     npatch = _check_patch_nums(corrs, 'bootstrap')
+    patch_ids = np.arange(npatch)
 
     def iter_plist():
         for _ in range(num_bootstrap):
-            index = corrs[0].rng.choice(np.arange(npatch), size=npatch, replace=True)
+            index = corrs[0].rng.choice(patch_ids, size=npatch, replace=True)
             yield [c._bootstrap_pairs(index, cross_patch_weight) for c in corrs]
 
     return _make_cov_design_matrix(corrs, iter_plist(), func, 'bootstrap',

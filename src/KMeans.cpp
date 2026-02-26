@@ -817,7 +817,8 @@ void KMeansRun1(BaseField<C>& field, double* pycenters, int npatch, int max_iter
 
         // Check for convergence
         double shiftsq = CalculateShiftSq(centers, update_centers.new_centers);
-        centers = update_centers.new_centers;
+        // This basically does centers = new_centers, but avoids actually copying elements.
+        centers.swap(update_centers.new_centers);
         xdbg<<"Iter "<<iter<<": shiftsq = "<<shiftsq<<"  tolsq = "<<tolsq<<std::endl;
         // Stop if (rms shift / size) < tol
         if (shiftsq < tolsq) {

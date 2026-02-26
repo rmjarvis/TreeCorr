@@ -640,14 +640,24 @@ template <int C>
 std::vector<const BaseCell<C>*> BaseCell<C>::getAllLeaves() const
 {
     std::vector<const BaseCell<C>*> ret;
-    if (_left) {
-        std::vector<const BaseCell<C>*> temp = _left->getAllLeaves();
-        ret.insert(ret.end(),temp.begin(),temp.end());
-        Assert(_right);
-        temp = _right->getAllLeaves();
-        ret.insert(ret.end(),temp.begin(),temp.end());
-    } else {
-        ret.push_back(this);
+    ret.reserve(countLeaves());
+    // stack is a vector of cells whose leaves still need to be added.
+    std::vector<const BaseCell<C>*> stack;
+    // Start with the base Cell.
+    stack.push_back(this);
+    // When stack is empty, we've added everything.
+    while (!stack.empty()) {
+        const BaseCell<C>* c = stack.back();
+        stack.pop_back();
+        if (c->_left) {
+            // If c has subcells, add them to the stack for processing.
+            Assert(c->_right);
+            stack.push_back(c->_right);
+            stack.push_back(c->_left);
+        } else {
+            // Otherwise, c is a leaf, so add it to ret.
+            ret.push_back(c);
+        }
     }
     return ret;
 }
@@ -656,17 +666,26 @@ template <int C>
 std::vector<long> BaseCell<C>::getAllIndices() const
 {
     std::vector<long> ret;
-    if (_left) {
-        std::vector<long> temp = _left->getAllIndices();
-        ret.insert(ret.end(),temp.begin(),temp.end());
-        Assert(_right);
-        temp = _right->getAllIndices();
-        ret.insert(ret.end(),temp.begin(),temp.end());
-    } else if (getN() == 1) {
-        ret.push_back(_info.index);
-    } else {
-        const std::vector<long>& indices = *_listinfo.indices;
-        ret.insert(ret.end(),indices.begin(),indices.end());
+    ret.reserve(getN());
+    // This uses the same pattern as above with stack keeping track of what is left to process.
+    std::vector<const BaseCell<C>*> stack;
+    stack.push_back(this);
+    while (!stack.empty()) {
+        const BaseCell<C>* c = stack.back();
+        stack.pop_back();
+        if (c->_left) {
+            // If c has subcells, add them to the stack for processing.
+            Assert(c->_right);
+            stack.push_back(c->_right);
+            stack.push_back(c->_left);
+        } else if (c->getN() == 1) {
+            // c is a leaf with 1 index.  Add it.
+            ret.push_back(c->_info.index);
+        } else {
+            // c is a leaf with multiple indices.  Add them.
+            const std::vector<long>& indices = *c->_listinfo.indices;
+            ret.insert(ret.end(), indices.begin(), indices.end());
+        }
     }
     return ret;
 }

@@ -782,7 +782,7 @@ void Sampler::finishProcess(
         places.reserve(_n);
         for(long i=0;i<_n;++i) {
             long j = selection[i];
-            if (j >= _k) places.push_back(std::make_pair(j, i));
+            if (j >= _k) places.emplace_back(j, i);
         }
         if (places.empty()) {
             // If nothing selected from the new set, then we're done.

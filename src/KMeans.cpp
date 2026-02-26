@@ -16,6 +16,7 @@
 
 #include "PyBind11Helper.h"
 
+#include <algorithm>
 #include <vector>
 #include <cmath>
 #include "Field.h"
@@ -119,6 +120,12 @@ void InitializeCentersRand(std::vector<Position<C> >& centers,
     long ntot = 0;
     for (long k=0; k<ncells; ++k) ntot += cells[k]->getN();
     xdbg<<"ntot = "<<ntot<<std::endl;
+    std::vector<long> cumulative_n(ncells);
+    long running_n = 0;
+    for (long k=0; k<ncells; ++k) {
+        running_n += cells[k]->getN();
+        cumulative_n[k] = running_n;
+    }
     urand(seed);  // Make sure rand is seeded properly.
 
     // Find ncenters different indices from 0..ntot-1.
@@ -131,17 +138,17 @@ void InitializeCentersRand(std::vector<Position<C> >& centers,
     for (long i=0; i<ncenters; ++i) {
         dbg<<"Pick random center "<<i<<" index = "<<index[i]<<std::endl;
         long m = index[i];
-        for (long k=0; k<ncells; ++k) {
-            if (m < cells[k]->getN()) {
-                const BaseCell<C>* c = cells[k]->getLeafNumber(m);
-                centers[i] = c->getPos();
-                xdbg<<"  k = "<<k<<", m = "<<m<<" cen = "<<centers[i]<<std::endl;
-                break;
-            } else {
-                m -= cells[k]->getN();
-                xdbg<<"  N["<<k<<"] = "<<cells[k]->getN()<<"  m -> "<<m<<std::endl;
-            }
-        }
+        std::vector<long>::const_iterator it = std::upper_bound(cumulative_n.begin(),
+                                                                cumulative_n.end(), m);
+        long k = it - cumulative_n.begin();
+        Assert(k < ncells);
+        long base = k == 0 ? 0 : cumulative_n[k-1];
+        long m_in_cell = m - base;
+        Assert(m_in_cell >= 0);
+        Assert(m_in_cell < cells[k]->getN());
+        const BaseCell<C>* c = cells[k]->getLeafNumber(m_in_cell);
+        centers[i] = c->getPos();
+        xdbg<<"  k = "<<k<<", m = "<<m_in_cell<<" cen = "<<centers[i]<<std::endl;
 
         // It is technically possible that some centers will repeat if a leaf has multiple
         // points in it.  Then two different index values could both point to the same leaf.
@@ -242,6 +249,12 @@ void InitializeCentersKMPP(std::vector<Position<C> >& centers,
     long ntot = 0;
     for (long k=0; k<ncells; ++k) ntot += cells[k]->getN();
     xdbg<<"ntot = "<<ntot<<std::endl;
+    std::vector<long> cumulative_n(ncells);
+    long running_n = 0;
+    for (long k=0; k<ncells; ++k) {
+        running_n += cells[k]->getN();
+        cumulative_n[k] = running_n;
+    }
 
     // Keep track of how many centers are assigned from each cell.
     std::vector<long> centers_per_cell(ncells, 0);
@@ -249,17 +262,18 @@ void InitializeCentersKMPP(std::vector<Position<C> >& centers,
     // Pick the first point
     long m = long(urand() * ntot);
     xdbg<<"m = "<<m<<std::endl;
-    for (long k=0; k<ncells; ++k) {
-        if (m < cells[k]->getN()) {
-            dbg<<"Pick first center from cell "<<k<<std::endl;
-            centers[0] = cells[k]->getLeafNumber(m)->getPos();
-            xdbg<<"center[0] = "<<centers[0]<<std::endl;
-            centers_per_cell[k] += 1;
-            break;
-        } else {
-            m -= cells[k]->getN();
-        }
-    }
+    std::vector<long>::const_iterator it = std::upper_bound(cumulative_n.begin(),
+                                                            cumulative_n.end(), m);
+    long k = it - cumulative_n.begin();
+    Assert(k < ncells);
+    long base = k == 0 ? 0 : cumulative_n[k-1];
+    long m_in_cell = m - base;
+    Assert(m_in_cell >= 0);
+    Assert(m_in_cell < cells[k]->getN());
+    dbg<<"Pick first center from cell "<<k<<std::endl;
+    centers[0] = cells[k]->getLeafNumber(m_in_cell)->getPos();
+    xdbg<<"center[0] = "<<centers[0]<<std::endl;
+    centers_per_cell[k] += 1;
 
     // Pick the rest of the points
     for (long i=1; i<ncenters; ++i) {

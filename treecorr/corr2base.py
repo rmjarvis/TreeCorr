@@ -21,6 +21,7 @@ import sys
 import coord
 import itertools
 import collections
+import logging
 
 from . import _treecorr
 from .config import merge_config, setup_logger, get, make_minimal_config
@@ -984,7 +985,8 @@ class Corr2(object):
             if comm is not None:
                 rank = comm.Get_rank()
                 size = comm.Get_size()
-                self.logger.info("Rank %d: Completed jobs %s",rank,list(self.results.keys()))
+                if self.logger.isEnabledFor(logging.INFO):
+                    self.logger.info("Rank %d: Completed jobs %s", rank, list(self.results.keys()))
                 # Send all the results back to rank 0 process.
                 if rank > 0:
                     comm.send(self, dest=0)
@@ -1073,7 +1075,8 @@ class Corr2(object):
             if comm is not None:
                 rank = comm.Get_rank()
                 size = comm.Get_size()
-                self.logger.info("Rank %d: Completed jobs %s",rank,list(self.results.keys()))
+                if self.logger.isEnabledFor(logging.INFO):
+                    self.logger.info("Rank %d: Completed jobs %s", rank, list(self.results.keys()))
                 # Send all the results back to rank 0 process.
                 if rank > 0:
                     comm.send(self, dest=0)

@@ -223,7 +223,7 @@ class NKCorrelation(Corr2):
         super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._rk is not None:
             # If rk has npatch1 = 1, adjust pairs appropriately
-            if self._rk.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+            if self._rk.npatch1 == 1 and not all(p[0] == 0 for p in pairs):
                 pairs = [(0,j,w) for i,j,w in pairs if i == j]
             pairs = self._rk._keep_ok(pairs)
             self._rk._calculate_xi_from_pairs(pairs, corr_only=True)

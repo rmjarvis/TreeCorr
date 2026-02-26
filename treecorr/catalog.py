@@ -897,8 +897,8 @@ class Catalog(object):
 
         # First style -- read from a file
         if file_name is not None:
-            if any([v is not None
-                    for v in [x,y,z,ra,dec,r,k,z1,z2,v1,v2,g1,g2,t1,t2,q1,q2,patch,w,wpos,flag]]):
+            if any(v is not None
+                   for v in [x,y,z,ra,dec,r,k,z1,z2,v1,v2,g1,g2,t1,t2,q1,q2,patch,w,wpos,flag]):
                 raise TypeError("Vectors may not be provided when file_name is provided.")
             self.file_name = file_name
             self.name = file_name

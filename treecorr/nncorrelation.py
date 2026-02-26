@@ -398,7 +398,7 @@ class NNCorrelation(Corr2):
             drf = dd_tot / self._dr.tot
         if self._rd is not None:
             pairs3 = pairs
-            if self._rd.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+            if self._rd.npatch1 == 1 and not all(p[0] == 0 for p in pairs):
                 # If r doesn't have patches, then convert all (i,i) pairs to (0,i).
                 pairs3 = [(0,j,w) for i,j,w in pairs3 if i == j]
             pairs3 = self._rd._keep_ok(pairs3)

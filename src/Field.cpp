@@ -207,7 +207,7 @@ template <int D, int C>
 void Field<D,C>::BuildCells() const
 {
     // Signal that we already built the cells.
-    if (this->_celldata.size() == 0) return;
+    if (this->_celldata.empty()) return;
 
     switch (this->_sm) {
       case Middle:

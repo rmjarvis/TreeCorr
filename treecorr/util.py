@@ -307,12 +307,12 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
         if metric == 'Arc':
             # If all coords are 3d, then leave it 3d, but if any are spherical,
             # then convert to spherical.
-            if all([c in [None, '3d'] for c in [coords, coords2, coords3]]):
+            if all(c in [None, '3d'] for c in [coords, coords2, coords3]):
                 # Leave coords as '3d'
                 pass
-            elif any([c not in [None, 'spherical', '3d'] for c in [coords, coords2, coords3]]):
+            elif any(c not in [None, 'spherical', '3d'] for c in [coords, coords2, coords3]):
                 raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
-            elif any([c == 'spherical' for c in [coords, coords2, coords3]]):  # pragma: no branch
+            elif any(c == 'spherical' for c in [coords, coords2, coords3]):  # pragma: no branch
                 # Switch to spherical
                 coords = 'spherical'
             else:  # pragma: no cover

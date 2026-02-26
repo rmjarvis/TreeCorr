@@ -221,7 +221,7 @@ class NKKCorrelation(Corr3):
         super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._rkk is not None:
             # If rkk has npatch1 = 1, adjust pairs appropriately
-            if self._rkk.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+            if self._rkk.npatch1 == 1 and not all(p[0] == 0 for p in pairs):
                 pairs = [(0,j,k,w) for i,j,k,w in pairs if i == j]
             pairs = self._rkk._keep_ok(pairs)
             self._rkk._calculate_xi_from_pairs(pairs, corr_only=True)
@@ -463,7 +463,7 @@ class KNKCorrelation(Corr3):
         super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._krk is not None:
             # If krk has npatch2 = 1, adjust pairs appropriately
-            if self._krk.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
+            if self._krk.npatch2 == 1 and not all(p[1] == 0 for p in pairs):
                 pairs = [(i,0,k,w) for i,j,k,w in pairs if i == j]
             pairs = self._krk._keep_ok(pairs)
             self._krk._calculate_xi_from_pairs(pairs, corr_only=True)
@@ -705,7 +705,7 @@ class KKNCorrelation(Corr3):
         super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._kkr is not None:
             # If kkr has npatch3 = 1, adjust pairs appropriately
-            if self._kkr.npatch3 == 1 and not all([p[2] == 0 for p in pairs]):
+            if self._kkr.npatch3 == 1 and not all(p[2] == 0 for p in pairs):
                 pairs = [(i,j,0,w) for i,j,k,w in pairs if i == k]
             pairs = self._kkr._keep_ok(pairs)
             self._kkr._calculate_xi_from_pairs(pairs, corr_only=True)

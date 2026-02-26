@@ -278,7 +278,7 @@ class GNNCorrelation(Corr3):
         super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._grr is not None:
             # If r doesn't have patches, then convert all (i,i,i) pairs to (i,0,0).
-            if self._grr.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
+            if self._grr.npatch2 == 1 and not all(p[1] == 0 for p in pairs):
                 pairs1 = [(i,0,0,w) for i,j,k,w in pairs if i == j == k]
             else:
                 pairs1 = pairs
@@ -287,14 +287,14 @@ class GNNCorrelation(Corr3):
 
         if self._gdr is not None:
             pairs2 = pairs
-            if self._gdr.npatch3 == 1 and not all([p[2] == 0 for p in pairs]):
+            if self._gdr.npatch3 == 1 and not all(p[2] == 0 for p in pairs):
                 pairs2 = [(i,j,0,w) for i,j,k,w in pairs if j == k]
             pairs2 = self._gdr._keep_ok(pairs2)
             self._gdr._calculate_xi_from_pairs(pairs2, corr_only=True)
 
         if self._grd is not None:
             pairs3 = pairs
-            if self._grd.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
+            if self._grd.npatch2 == 1 and not all(p[1] == 0 for p in pairs):
                 pairs3 = [(i,0,k,w) for i,j,k,w in pairs if i == k]
             pairs3 = self._grd._keep_ok(pairs3)
             self._grd._calculate_xi_from_pairs(pairs3, corr_only=True)
@@ -595,7 +595,7 @@ class NGNCorrelation(Corr3):
         super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._rgr is not None:
             # If r doesn't have patches, then convert all (i,i,i) pairs to (0,i,0).
-            if self._rgr.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+            if self._rgr.npatch1 == 1 and not all(p[0] == 0 for p in pairs):
                 pairs1 = [(0,j,0,w) for i,j,k,w in pairs if i == j == k]
             else:
                 pairs1 = pairs
@@ -604,14 +604,14 @@ class NGNCorrelation(Corr3):
 
         if self._dgr is not None:
             pairs2 = pairs
-            if self._dgr.npatch3 == 1 and not all([p[2] == 0 for p in pairs]):
+            if self._dgr.npatch3 == 1 and not all(p[2] == 0 for p in pairs):
                 pairs2 = [(i,j,0,w) for i,j,k,w in pairs if j == k]
             pairs2 = self._dgr._keep_ok(pairs2)
             self._dgr._calculate_xi_from_pairs(pairs2, corr_only=True)
 
         if self._rgd is not None:
             pairs3 = pairs
-            if self._rgd.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+            if self._rgd.npatch1 == 1 and not all(p[0] == 0 for p in pairs):
                 pairs3 = [(0,j,k,w) for i,j,k,w in pairs if i == k]
             pairs3 = self._rgd._keep_ok(pairs3)
             self._rgd._calculate_xi_from_pairs(pairs3, corr_only=True)
@@ -912,7 +912,7 @@ class NNGCorrelation(Corr3):
         super()._calculate_xi_from_pairs(pairs, corr_only)
         if self._rrg is not None:
             # If r doesn't have patches, then convert all (i,i,i) pairs to (0,0,i).
-            if self._rrg.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+            if self._rrg.npatch1 == 1 and not all(p[0] == 0 for p in pairs):
                 pairs1 = [(0,0,k,w) for i,j,k,w in pairs if i == j == k]
             else:
                 pairs1 = pairs
@@ -921,14 +921,14 @@ class NNGCorrelation(Corr3):
 
         if self._drg is not None:
             pairs2 = pairs
-            if self._drg.npatch2 == 1 and not all([p[1] == 0 for p in pairs]):
+            if self._drg.npatch2 == 1 and not all(p[1] == 0 for p in pairs):
                 pairs2 = [(i,0,k,w) for i,j,k,w in pairs if j == k]
             pairs2 = self._drg._keep_ok(pairs2)
             self._drg._calculate_xi_from_pairs(pairs2, corr_only=True)
 
         if self._rdg is not None:
             pairs3 = pairs
-            if self._rdg.npatch1 == 1 and not all([p[0] == 0 for p in pairs]):
+            if self._rdg.npatch1 == 1 and not all(p[0] == 0 for p in pairs):
                 pairs3 = [(0,j,k,w) for i,j,k,w in pairs if i == k]
             pairs3 = self._rdg._keep_ok(pairs3)
             self._rdg._calculate_xi_from_pairs(pairs3, corr_only=True)

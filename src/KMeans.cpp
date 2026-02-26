@@ -744,7 +744,7 @@ template <int C>
 void KMeansInitTree1(BaseField<C>& field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitTree for "<<npatch<<" patches\n";
-    const std::vector<const BaseCell<C>*> cells = field.getCells();
+    const std::vector<const BaseCell<C>*>& cells = field.getCells();
     std::vector<Position<C> > centers(npatch);
     InitializeCentersTree(centers, cells, seed);
     WriteCenters(centers, pycenters, npatch);
@@ -754,7 +754,7 @@ template <int C>
 void KMeansInitRand1(BaseField<C>& field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitRand for "<<npatch<<" patches\n";
-    const std::vector<const BaseCell<C>*> cells = field.getCells();
+    const std::vector<const BaseCell<C>*>& cells = field.getCells();
     std::vector<Position<C> > centers(npatch);
     InitializeCentersRand(centers, cells, seed);
     WriteCenters(centers, pycenters, npatch);
@@ -764,7 +764,7 @@ template <int C>
 void KMeansInitKMPP1(BaseField<C>& field, double* pycenters, int npatch, long long seed)
 {
     dbg<<"Start KMeansInitKMPP for "<<npatch<<" patches\n";
-    const std::vector<const BaseCell<C>*> cells = field.getCells();
+    const std::vector<const BaseCell<C>*>& cells = field.getCells();
     std::vector<Position<C> > centers(npatch);
     InitializeCentersKMPP(centers, cells, seed);
     WriteCenters(centers, pycenters, npatch);
@@ -775,7 +775,7 @@ void KMeansRun1(BaseField<C>& field, double* pycenters, int npatch, int max_iter
                 bool alt)
 {
     dbg<<"Start KMeansRun for "<<npatch<<" patches\n";
-    const std::vector<const BaseCell<C>*> cells = field.getCells();
+    const std::vector<const BaseCell<C>*>& cells = field.getCells();
 
     // Initialize the centers of the patches smartly according to the tree structure.
     std::vector<Position<C> > centers(npatch);
@@ -836,7 +836,7 @@ template <int C>
 void KMeansAssign1(BaseField<C>& field, const double* pycenters, int npatch, long* patches, long n)
 {
     dbg<<"Start KMeansAssign for "<<npatch<<" patches\n";
-    const std::vector<const BaseCell<C>*> cells = field.getCells();
+    const std::vector<const BaseCell<C>*>& cells = field.getCells();
 
     std::vector<Position<C> > centers(npatch);
     ReadCenters(centers, pycenters, npatch);

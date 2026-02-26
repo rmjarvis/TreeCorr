@@ -855,6 +855,7 @@ class Corr3(object):
         self._varzeta = None
         self._var_num = 0
         self._corr_only = False
+        self._meanwww = 1.
 
         # Sub-classes will allocate space for the ones we actually need.
         self._z = [np.array([]) for _ in range(8)]
@@ -2511,9 +2512,12 @@ class Corr3(object):
             if self.bin_type == 'LogRUV':
                 accumulate(self.meanv, lambda c: c.meanv)
             accumulate(self.ntri, lambda c: c.ntri)
+        else:
+            self._meanwww = np.mean([c._meanwww for c, w in others])
 
         self._cov = None
         self._varzeta = None
+        self._corr_only = corr_only
 
     def _calculate_varzeta(self, n):
         self._varzeta = [np.zeros(self.data_shape) for _ in range(n)]
@@ -2949,6 +2953,8 @@ class Corr3(object):
         ret.ntri = self._zero_array
         ret._corr = None
         ret._cov = None
+        ret._corr_only = False
+        ret._meanwww = self._meanwww
         ret._logger_name = None
         ret._write_patch_results = False
         return ret

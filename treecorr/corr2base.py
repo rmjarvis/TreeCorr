@@ -567,6 +567,7 @@ class Corr2(object):
         self._processed_cats1 = []
         self._processed_cats2 = []
         self._corr_only = False
+        self._meanww = 1.
 
         # Sub-classes will allocate space for the ones we actually need.
         self._xi = [np.array([]) for _ in range(4)]
@@ -791,6 +792,8 @@ class Corr2(object):
         ret.npairs = self._zero_array
         ret._corr = None
         ret._cov = None
+        ret._corr_only = False
+        ret._meanww = self._meanww
         ret._logger_name = None
         ret._write_patch_results = False
         return ret
@@ -1399,8 +1402,11 @@ class Corr2(object):
             accumulate(self.meanr, lambda c: c.meanr)
             accumulate(self.meanlogr, lambda c: c.meanlogr)
             accumulate(self.npairs, lambda c: c.npairs)
+        else:
+            self._meanww = np.mean([c._meanww for c, w in others])
         self._varxi = None
         self._cov = None
+        self._corr_only = corr_only
 
     def _calculate_varxi(self, n):
         self._varxi = [np.zeros_like(self.rnom, dtype=float) for _ in range(n)]

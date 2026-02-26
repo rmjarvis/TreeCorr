@@ -234,6 +234,10 @@ class AsciiReader(object):
         # Include both int values as strings and any real names we know about.
         return [str(i+1) for i in range(self.ncols)] + list(self.col_names)
 
+    def has_col(self, col, *, ext=None):
+        """Return whether the named column exists in the extension."""
+        return col in self.names(ext=ext)
+
     def __enter__(self):
         # See how many comment rows there are at the start
         self.comment_rows = 0
@@ -447,6 +451,10 @@ class ParquetReader():
         """
         return self.df.columns
 
+    def has_col(self, col, *, ext=None):
+        """Return whether the named column exists in the extension."""
+        return col in self.df.columns
+
     def __enter__(self):
         import pandas
         self._df = pandas.read_parquet(self.file_name)
@@ -624,6 +632,10 @@ class FitsReader(object):
         ext = self._update_ext(ext)
         return self.file[ext].get_colnames()
 
+    def has_col(self, col, *, ext=None):
+        """Return whether the named column exists in the extension."""
+        return col in self.names(ext=ext)
+
     def __enter__(self):
         import fitsio
         self._file = fitsio.FITS(self.file_name, 'r')
@@ -656,6 +668,7 @@ class HdfReader(object):
 
         self._file = None  # Only works inside a with block.
         self.file_name = file_name
+        self._name_cache = {}
 
     @property
     def file(self):
@@ -794,12 +807,22 @@ class HdfReader(object):
         """
         return list(self._group(ext).keys())
 
+    def has_col(self, col, *, ext=None):
+        """Return whether the named column exists in the extension."""
+        if ext is None:
+            ext = '/'
+        if ext not in self._name_cache:
+            self._name_cache[ext] = set(self._group(ext).keys())
+        return col in self._name_cache[ext]
+
     def __enter__(self):
         import h5py
         self._file = h5py.File(self.file_name, 'r')
+        self._name_cache = {}
         return self
 
     def __exit__(self, exc_type, exc_value, exc_traceback):
         # closes file at end of "with" statement
         self._file.close()
         self._file = None
+        self._name_cache = {}

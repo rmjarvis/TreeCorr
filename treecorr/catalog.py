@@ -1827,51 +1827,51 @@ class Catalog(object):
             if x_col != '0' and y_col != '0':
                 x_ext = get_from_list(self.config, 'x_ext', num, str, ext)
                 y_ext = get_from_list(self.config, 'y_ext', num, str, ext)
-                if x_col not in reader.names(ext=x_ext):
+                if not reader.has_col(x_col, ext=x_ext):
                     raise ValueError("x_col=%s is invalid for file %s"%(x_col,file_name))
-                if y_col not in reader.names(ext=y_ext):
+                if not reader.has_col(y_col, ext=y_ext):
                     raise ValueError("y_col=%s is invalid for file %s"%(y_col, file_name))
                 if z_col != '0':
                     z_ext = get_from_list(self.config, 'z_ext', num, str, ext)
-                    if z_col not in reader.names(ext=z_ext):
+                    if not reader.has_col(z_col, ext=z_ext):
                         raise ValueError("z_col=%s is invalid for file %s"%(z_col, file_name))
             elif ra_col != '0' and dec_col != '0':
                 ra_ext = get_from_list(self.config, 'ra_ext', num, str, ext)
                 dec_ext = get_from_list(self.config, 'dec_ext', num, str, ext)
-                if ra_col not in reader.names(ext=ra_ext):
+                if not reader.has_col(ra_col, ext=ra_ext):
                     raise ValueError("ra_col=%s is invalid for file %s"%(ra_col, file_name))
-                if dec_col not in reader.names(ext=dec_ext):
+                if not reader.has_col(dec_col, ext=dec_ext):
                     raise ValueError("dec_col=%s is invalid for file %s"%(dec_col, file_name))
                 if r_col != '0':
                     r_ext = get_from_list(self.config, 'r_ext', num, str, ext)
-                    if r_col not in reader.names(ext=r_ext):
+                    if not reader.has_col(r_col, ext=r_ext):
                         raise ValueError("r_col=%s is invalid for file %s"%(r_col, file_name))
 
             if w_col != '0':
                 w_ext = get_from_list(self.config, 'w_ext', num, str, ext)
-                if w_col not in reader.names(ext=w_ext):
+                if not reader.has_col(w_col, ext=w_ext):
                     raise ValueError("w_col=%s is invalid for file %s"%(w_col, file_name))
 
             if wpos_col != '0':
                 wpos_ext = get_from_list(self.config, 'wpos_ext', num, str, ext)
-                if wpos_col not in reader.names(ext=wpos_ext):
+                if not reader.has_col(wpos_col, ext=wpos_ext):
                     raise ValueError("wpos_col=%s is invalid for file %s"%(wpos_col, file_name))
 
             if flag_col != '0':
                 flag_ext = get_from_list(self.config, 'flag_ext', num, str, ext)
-                if flag_col not in reader.names(ext=flag_ext):
+                if not reader.has_col(flag_col, ext=flag_ext):
                     raise ValueError("flag_col=%s is invalid for file %s"%(flag_col, file_name))
 
             if patch_col != '0':
                 patch_ext = get_from_list(self.config, 'patch_ext', num, str, ext)
-                if patch_col not in reader.names(ext=patch_ext):
+                if not reader.has_col(patch_col, ext=patch_ext):
                     raise ValueError("patch_col=%s is invalid for file %s"%(patch_col, file_name))
 
             if is_rand: return
 
             if k_col != '0':
                 k_ext = get_from_list(self.config, 'k_ext', num, str, ext)
-                if k_col not in reader.names(ext=k_ext):
+                if not reader.has_col(k_col, ext=k_ext):
                     if isKColRequired(self.orig_config,num) or 'corr2' not in self.orig_config:
                         raise ValueError("k_col=%s is invalid for file %s"%(k_col, file_name))
                     else:
@@ -1883,8 +1883,8 @@ class Catalog(object):
             if z1_col != '0':
                 z1_ext = get_from_list(self.config, 'z1_ext', num, str, ext)
                 z2_ext = get_from_list(self.config, 'z2_ext', num, str, ext)
-                if (z1_col not in reader.names(ext=z1_ext) or
-                    z2_col not in reader.names(ext=z2_ext)):
+                if (not reader.has_col(z1_col, ext=z1_ext) or
+                    not reader.has_col(z2_col, ext=z2_ext)):
                     if isZColRequired(self.orig_config,num) or 'corr2' not in self.orig_config:
                         raise ValueError(
                             "z1_col, z2_col=(%s, %s) are invalid for file %s"%(
@@ -1898,8 +1898,8 @@ class Catalog(object):
             if v1_col != '0':
                 v1_ext = get_from_list(self.config, 'v1_ext', num, str, ext)
                 v2_ext = get_from_list(self.config, 'v2_ext', num, str, ext)
-                if (v1_col not in reader.names(ext=v1_ext) or
-                    v2_col not in reader.names(ext=v2_ext)):
+                if (not reader.has_col(v1_col, ext=v1_ext) or
+                    not reader.has_col(v2_col, ext=v2_ext)):
                     if isVColRequired(self.orig_config,num) or 'corr2' not in self.orig_config:
                         raise ValueError(
                             "v1_col, v2_col=(%s, %s) are invalid for file %s"%(
@@ -1913,8 +1913,8 @@ class Catalog(object):
             if g1_col != '0':
                 g1_ext = get_from_list(self.config, 'g1_ext', num, str, ext)
                 g2_ext = get_from_list(self.config, 'g2_ext', num, str, ext)
-                if (g1_col not in reader.names(ext=g1_ext) or
-                    g2_col not in reader.names(ext=g2_ext)):
+                if (not reader.has_col(g1_col, ext=g1_ext) or
+                    not reader.has_col(g2_col, ext=g2_ext)):
                     if isGColRequired(self.orig_config,num) or 'corr2' not in self.orig_config:
                         raise ValueError(
                             "g1_col, g2_col=(%s, %s) are invalid for file %s"%(
@@ -1928,8 +1928,8 @@ class Catalog(object):
             if t1_col != '0':
                 t1_ext = get_from_list(self.config, 't1_ext', num, str, ext)
                 t2_ext = get_from_list(self.config, 't2_ext', num, str, ext)
-                if (t1_col not in reader.names(ext=t1_ext) or
-                    t2_col not in reader.names(ext=t2_ext)):
+                if (not reader.has_col(t1_col, ext=t1_ext) or
+                    not reader.has_col(t2_col, ext=t2_ext)):
                     if isTColRequired(self.orig_config,num) or 'corr2' not in self.orig_config:
                         raise ValueError(
                             "t1_col, t2_col=(%s, %s) are invalid for file %s"%(
@@ -1943,8 +1943,8 @@ class Catalog(object):
             if q1_col != '0':
                 q1_ext = get_from_list(self.config, 'q1_ext', num, str, ext)
                 q2_ext = get_from_list(self.config, 'q2_ext', num, str, ext)
-                if (q1_col not in reader.names(ext=q1_ext) or
-                    q2_col not in reader.names(ext=q2_ext)):
+                if (not reader.has_col(q1_col, ext=q1_ext) or
+                    not reader.has_col(q2_col, ext=q2_ext)):
                     if isQColRequired(self.orig_config,num) or 'corr2' not in self.orig_config:
                         raise ValueError(
                             "q1_col, q2_col=(%s, %s) are invalid for file %s"%(
@@ -2128,7 +2128,7 @@ class Catalog(object):
                         all_cols.remove(c)
                     for ext in all_exts:
                         use_cols1 = [c for c in pos_cols if col_by_ext[c] == ext]
-                        use_cols1 += [c for c in extra_cols if c in reader.names(ext=ext)]
+                        use_cols1 += [c for c in extra_cols if reader.has_col(c, ext=ext)]
                         data1 = reader.read(use_cols1, s, ext=ext)
                         for c in use_cols1:
                             data[c] = data1[c]
@@ -2154,8 +2154,8 @@ class Catalog(object):
             # Now read the rest using the updated s
             for ext in all_exts:
                 use_cols1 = [c for c in all_cols
-                             if col_by_ext[c] == ext and c in reader.names(ext=ext)]
-                use_cols1 += [c for c in extra_cols if c in reader.names(ext=ext)]
+                             if col_by_ext[c] == ext and reader.has_col(c, ext=ext)]
+                use_cols1 += [c for c in extra_cols if reader.has_col(c, ext=ext)]
                 if len(use_cols1) == 0:
                     continue
                 data1 = reader.read(use_cols1, s, ext=ext)
@@ -2187,40 +2187,40 @@ class Catalog(object):
             # Skip k,v,g,t,q if this file is a random catalog
             if not is_rand:
                 # Set k
-                if k_col in reader.names(ext=k_ext) or k_eval is not None:
+                if reader.has_col(k_col, ext=k_ext) or k_eval is not None:
                     self._k = parse_value(data, k_col, k_eval)
                     self.logger.debug('read k')
 
                 # Set z1,z2
-                if z1_col in reader.names(ext=z1_ext) or z1_eval is not None:
+                if reader.has_col(z1_col, ext=z1_ext) or z1_eval is not None:
                     self._z1 = parse_value(data, z1_col, z1_eval)
                     self.logger.debug('read z1')
                     self._z2 = parse_value(data, z2_col, z2_eval)
                     self.logger.debug('read z2')
 
                 # Set v1,v2
-                if v1_col in reader.names(ext=v1_ext) or v1_eval is not None:
+                if reader.has_col(v1_col, ext=v1_ext) or v1_eval is not None:
                     self._v1 = parse_value(data, v1_col, v1_eval)
                     self.logger.debug('read v1')
                     self._v2 = parse_value(data, v2_col, v2_eval)
                     self.logger.debug('read v2')
 
                 # Set g1,g2
-                if g1_col in reader.names(ext=g1_ext) or g1_eval is not None:
+                if reader.has_col(g1_col, ext=g1_ext) or g1_eval is not None:
                     self._g1 = parse_value(data, g1_col, g1_eval)
                     self.logger.debug('read g1')
                     self._g2 = parse_value(data, g2_col, g2_eval)
                     self.logger.debug('read g2')
 
                 # Set t1,t2
-                if t1_col in reader.names(ext=t1_ext) or t1_eval is not None:
+                if reader.has_col(t1_col, ext=t1_ext) or t1_eval is not None:
                     self._t1 = parse_value(data, t1_col, t1_eval)
                     self.logger.debug('read t1')
                     self._t2 = parse_value(data, t2_col, t2_eval)
                     self.logger.debug('read t2')
 
                 # Set q1,q2
-                if q1_col in reader.names(ext=q1_ext) or q1_eval is not None:
+                if reader.has_col(q1_col, ext=q1_ext) or q1_eval is not None:
                     self._q1 = parse_value(data, q1_col, q1_eval)
                     self.logger.debug('read q1')
                     self._q2 = parse_value(data, q2_col, q2_eval)

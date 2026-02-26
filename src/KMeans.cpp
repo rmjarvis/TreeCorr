@@ -276,10 +276,10 @@ void InitializeCentersKMPP(std::vector<Position<C> >& centers,
     centers_per_cell[k] += 1;
 
     // Pick the rest of the points
+    std::vector<double> p(ncells);
     for (long i=1; i<ncenters; ++i) {
         xdbg<<"Start work on center "<<i<<std::endl;
         // Calculate the dsq for each top level cell, to calculate the probability of choosing it.
-        std::vector<double> p(ncells);
         double sump=0.;  // to normalize probabilities
         for (long k=0; k<ncells; ++k) {
             double dsq1 = (centers[0] - cells[k]->getPos()).normSq();

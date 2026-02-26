@@ -20,7 +20,7 @@ import numpy as np
 from . import _treecorr
 from .catalog import calculateVarG
 from .corr3base import Corr3
-from .util import make_writer, make_reader
+from .util import make_writer
 
 
 class GGGCorrelation(Corr3):

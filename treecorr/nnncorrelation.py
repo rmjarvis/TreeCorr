@@ -571,7 +571,6 @@ class NNNCorrelation(Corr3):
     def _write_col_names(self):
         rrr = self._write_rrr
         drr = self._write_drr
-        rdd = self._write_rdd
         if self.bin_type == 'LogRUV':
             col_names = ['r_nom', 'u_nom', 'v_nom',
                          'meand1', 'meanlogd1', 'meand2', 'meanlogd2',

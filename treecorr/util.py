@@ -18,9 +18,6 @@
 import numpy as np
 import os
 import coord
-import functools
-import inspect
-import warnings
 
 from . import _treecorr
 from . import Rperp_alias

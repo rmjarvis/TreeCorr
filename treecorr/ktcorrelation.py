@@ -15,7 +15,6 @@
 .. module:: ktcorrelation
 """
 
-import numpy as np
 
 from . import _treecorr
 from .catalog import calculateVarT, calculateVarK

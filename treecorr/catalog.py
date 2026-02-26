@@ -2679,6 +2679,23 @@ class Catalog(object):
         else:
             return np.mean(x[idx])
 
+    def _get_patch_indices(self):
+        # Make a dict mapping from the unique patch numbers to their index values in self.patch.
+
+        # Sort the patch numbers.
+        order = np.argsort(self.patch, kind='mergesort')
+        patch_sorted = self.patch[order]
+
+        # Get the first location of each unique number in the sorted list.
+        patch_set, first = np.unique(patch_sorted, return_index=True)
+
+        # Split up the array of locations at these boundaries, returning an array of indices
+        # that each correspond to a single patch number.
+        patch_groups = np.split(order, first[1:])
+
+        # Turn this into a dict so we have a direct mapping from patch number to index values.
+        return dict(zip(patch_set, patch_groups))
+
     def get_patch_centers(self):
         """Return an array of patch centers corresponding to the patches in this catalog.
 
@@ -2714,9 +2731,10 @@ class Catalog(object):
                                         self._weighted_mean(self.z)]])
             else:
                 centers = np.empty((self.npatch,2 if self.z is None else 3))
+                patch_indices = self._get_patch_indices()
                 for p in range(self.npatch):
-                    indx = np.where(self.patch == p)[0]
-                    if len(indx) == 0:
+                    indx = patch_indices.get(p)
+                    if indx is None:
                         raise RuntimeError("Cannot find center for patch %s."%p +
                                         "  No items with this patch number")
                     if self.coords == 'flat':
@@ -3007,15 +3025,16 @@ class Catalog(object):
                                      patch=i, npatch=self.npatch, patch_centers=self._centers)
                              for i in patch_set]
         else:
-            patch_set = sorted(set(self.patch))
-            if len(patch_set) != self.npatch:
+            patch_indices = self._get_patch_indices()
+            if len(patch_indices) != self.npatch:
                 self.logger.error("WARNING: Some patch numbers do not contain any objects!")
-                missing = set(range(self.npatch)) - set(patch_set)
+                missing = set(range(self.npatch)) - set(patch_indices)
                 self.logger.warning("The following patch numbers have no objects: %s",missing)
                 self.logger.warning("This may be a problem depending on your use case.")
             self._patches = []
-            for i in patch_set:
-                indx = np.where(self.patch == i)[0]
+            check_wpos = self._wpos if self._wpos is not None else self._w
+            keep_zero_weight = np.any(check_wpos==0)
+            for i, indx in patch_indices.items():
                 x=self.x[indx] if self.x is not None else None
                 y=self.y[indx] if self.y is not None else None
                 z=self.z[indx] if self.z is not None else None
@@ -3035,8 +3054,7 @@ class Catalog(object):
                 t2=self.t2[indx] if self.t2 is not None else None
                 q1=self.q1[indx] if self.q1 is not None else None
                 q2=self.q2[indx] if self.q2 is not None else None
-                check_wpos = self._wpos if self._wpos is not None else self._w
-                kwargs = dict(keep_zero_weight=np.any(check_wpos==0))
+                kwargs = dict(keep_zero_weight=keep_zero_weight)
                 if self.ra is not None:
                     kwargs['ra_units'] = 'rad'
                     kwargs['dec_units'] = 'rad'

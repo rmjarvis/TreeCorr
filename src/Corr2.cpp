@@ -19,7 +19,7 @@
 #include "PyBind11Helper.h"
 
 #include <vector>
-#include <set>
+#include <unordered_set>
 #include <map>
 
 #include "dbg.h"
@@ -632,12 +632,13 @@ void SelectRandomFrom(long m, std::vector<long>& selection)
         dbg<<"Floyd's algorithm\n";
         // Floyd's algorithm
         // O(n) in memory, but slightly more than O(n) in time, especially as m ~ n.
-        std::set<long> selected;
+        std::unordered_set<long> selected;
+        selected.reserve(n);
         while (long(selected.size()) < n) {
             double urd = urand();
             long j = long(urd * m); // 0 <= j < m
             if (j == m) j = m-1;    // Just in case.
-            std::pair<std::set<long>::iterator,bool> ret = selected.insert(j);
+            std::pair<std::unordered_set<long>::iterator,bool> ret = selected.insert(j);
             if (ret.second) {
                 // Then insertion happened.  I.e. not already present.
                 // Also write it to the end of the selection list

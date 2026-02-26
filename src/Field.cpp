@@ -180,18 +180,18 @@ Field<D,C>::Field(const double* x, const double* y, const double* z,
     this->_celldata.reserve(nobj);
     if (z) {
         for(long i=0;i<nobj;++i) {
-            WPosLeafInfo wp = get_wpos(wpos, w, i);
-            this->_celldata.push_back(std::make_pair(
-                    CellDataHelper<D,C>::build(
-                        x[i], y[i], z[i], d1?d1[i]:0., d2?d2[i]:0., w[i]), wp));
+            this->_celldata.emplace_back(
+                CellDataHelper<D,C>::build(
+                    x[i], y[i], z[i], d1?d1[i]:0., d2?d2[i]:0., w[i]),
+                get_wpos(wpos, w, i));
         }
     } else {
         Assert(C == Flat);
         for(long i=0;i<nobj;++i) {
-            WPosLeafInfo wp = get_wpos(wpos, w, i);
-            this->_celldata.push_back(std::make_pair(
-                    CellDataHelper<D,C>::build(
-                        x[i], y[i], 0., d1?d1[i]:0., d2?d2[i]:0., w[i]), wp));
+            this->_celldata.emplace_back(
+                CellDataHelper<D,C>::build(
+                    x[i], y[i], 0., d1?d1[i]:0., d2?d2[i]:0., w[i]),
+                get_wpos(wpos, w, i));
         }
     }
     dbg<<"Built celldata with "<<this->_celldata.size()<<" entries\n";

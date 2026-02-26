@@ -61,6 +61,15 @@ class BaseNZCorrelation(Corr2):
             ret._rz = self._rz.copy()
         return ret
 
+    def _zero_copy(self):
+        # A minimal "copy" for dummy patch results used in covariance bookkeeping.
+        ret = super()._zero_copy()
+        ret.xi = ret._xi[0]
+        ret.xi_im = ret._xi[1]
+        ret._rz = None
+        ret._comp_varxi = None
+        return ret
+
     def finalize(self, varz):
         self._finalize()
         self._var_num = varz
@@ -110,13 +119,12 @@ class BaseNZCorrelation(Corr2):
                 # edge effects among the various pairs in consideration), then we need to add
                 # some dummy results to make sure all the right pairs are computed when we make
                 # the vectors for the covariance matrix.
-                template = next(iter(self.results.values()))  # Just need something to copy.
+                added_any = False
                 for ij in rz.results:
                     if ij in self.results: continue
-                    new_cij = template.copy()
-                    new_cij.xi.ravel()[:] = 0
-                    new_cij.weight.ravel()[:] = 0
-                    self.results[ij] = new_cij
+                    self.results[ij] = self._zero_copy()
+                    added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)

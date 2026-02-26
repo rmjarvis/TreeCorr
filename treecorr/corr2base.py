@@ -769,6 +769,31 @@ class Corr2(object):
         """
         return np.any(self.weight)
 
+    @lazy_property
+    def _zero_array(self):
+        # An array of all zeros with the same shape as the 2pt data arrays.
+        z = np.zeros_like(self.weight)
+        z.flags.writeable = False
+        return z
+
+    def _zero_copy(self):
+        # A minimal "copy" for dummy patch results used in covariance bookkeeping.
+        ret = self.__class__.__new__(self.__class__)
+        ret._ro = self._ro
+        ret.coords = self.coords
+        ret.metric = self.metric
+        ret.config = self.config
+        ret._xi = [self._zero_array if xi.size else np.array([]) for xi in self._xi]
+        ret.meanr = self._zero_array
+        ret.meanlogr = self._zero_array
+        ret.weight = self._zero_array
+        ret.npairs = self._zero_array
+        ret._corr = None
+        ret._cov = None
+        ret._logger_name = None
+        ret._write_patch_results = False
+        return ret
+
     def _add_tot(self, ij, c1, c2):
         # No op for all but NNCorrelation, which needs to add the tot value
         pass

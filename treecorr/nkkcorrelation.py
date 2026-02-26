@@ -115,6 +115,13 @@ class NKKCorrelation(Corr3):
             ret._rkk = self._rkk.copy()
         return ret
 
+    def _zero_copy(self):
+        ret = super()._zero_copy()
+        ret._rkk = None
+        ret._zeta = None
+        ret._comp_varzeta = None
+        return ret
+
     def finalize(self, vark1, vark2):
         """Finalize the calculation of the correlation function.
 
@@ -191,13 +198,12 @@ class NKKCorrelation(Corr3):
                 # edge effects among the various pairs in consideration), then we need to add
                 # some dummy results to make sure all the right pairs are computed when we make
                 # the vectors for the covariance matrix.
-                template = next(iter(self.results.values()))  # Just need something to copy.
+                added_any = False
                 for ijk in rkk.results:
                     if ijk in self.results: continue
-                    new_cij = template.copy()
-                    new_cij._z[0][:] = 0
-                    new_cij.weight[:] = 0
-                    self.results[ijk] = new_cij
+                    self.results[ijk] = self._zero_copy()
+                    added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
@@ -351,6 +357,13 @@ class KNKCorrelation(Corr3):
             ret._krk = self._krk.copy()
         return ret
 
+    def _zero_copy(self):
+        ret = super()._zero_copy()
+        ret._krk = None
+        ret._zeta = None
+        ret._comp_varzeta = None
+        return ret
+
     def finalize(self, vark1, vark2):
         """Finalize the calculation of the correlation function.
 
@@ -427,13 +440,12 @@ class KNKCorrelation(Corr3):
                 # edge effects among the various pairs in consideration), then we need to add
                 # some dummy results to make sure all the right pairs are computed when we make
                 # the vectors for the covariance matrix.
-                template = next(iter(self.results.values()))  # Just need something to copy.
+                added_any = False
                 for ijk in krk.results:
                     if ijk in self.results: continue
-                    new_cij = template.copy()
-                    new_cij._z[0][:] = 0
-                    new_cij.weight[:] = 0
-                    self.results[ijk] = new_cij
+                    self.results[ijk] = self._zero_copy()
+                    added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)
@@ -587,6 +599,13 @@ class KKNCorrelation(Corr3):
             ret._kkr = self._kkr.copy()
         return ret
 
+    def _zero_copy(self):
+        ret = super()._zero_copy()
+        ret._kkr = None
+        ret._zeta = None
+        ret._comp_varzeta = None
+        return ret
+
     def finalize(self, vark1, vark2):
         """Finalize the calculation of the correlation function.
 
@@ -663,13 +682,12 @@ class KKNCorrelation(Corr3):
                 # edge effects among the various pairs in consideration), then we need to add
                 # some dummy results to make sure all the right pairs are computed when we make
                 # the vectors for the covariance matrix.
-                template = next(iter(self.results.values()))  # Just need something to copy.
+                added_any = False
                 for ijk in kkr.results:
                     if ijk in self.results: continue
-                    new_cij = template.copy()
-                    new_cij._z[0][:] = 0
-                    new_cij.weight[:] = 0
-                    self.results[ijk] = new_cij
+                    self.results[ijk] = self._zero_copy()
+                    added_any = True
+                if added_any:
                     self.__dict__.pop('_ok',None)
 
                 self._cov = self.estimate_cov(self.var_method)

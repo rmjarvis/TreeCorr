@@ -314,7 +314,7 @@ void InitializeCentersKMPP(std::vector<Position<C> >& centers,
             if (u < p[k]) {
                 dbg<<"Choose next center from cell "<<k<<std::endl;
                 xdbg<<"N = "<<cells[k]->getN()<<" ncen so far = "<<centers_per_cell[k]<<std::endl;
-                centers[i] = InitializeCentersKMPP(cells[k], centers, ncenters);
+                centers[i] = InitializeCentersKMPP(cells[k], centers, i);
                 xdbg<<"center["<<i<<"] = "<<centers[i]<<std::endl;
                 centers_per_cell[k] += 1;
                 break;

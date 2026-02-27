@@ -275,21 +275,21 @@ void InitializeCentersKMPP(std::vector<Position<C> >& centers,
     xdbg<<"center[0] = "<<centers[0]<<std::endl;
     centers_per_cell[k] += 1;
 
+    // Keep track of the minimum distance from each cell's center to any yet-selected center.
+    std::vector<double> min_dsq(ncells);
+    for (long k=0; k<ncells; ++k) {
+        min_dsq[k] = (centers[0] - cells[k]->getPos()).normSq();
+    }
+
     // Pick the rest of the points
     std::vector<double> p(ncells);
     for (long i=1; i<ncenters; ++i) {
         xdbg<<"Start work on center "<<i<<std::endl;
-        // Calculate the dsq for each top level cell, to calculate the probability of choosing it.
+        // Calculate weights for each top-level cell from the current closest-center distance.
         double sump=0.;  // to normalize probabilities
         for (long k=0; k<ncells; ++k) {
-            double dsq1 = (centers[0] - cells[k]->getPos()).normSq();
-            xdbg<<"   dsq[0] = "<<dsq1<<std::endl;
-            for (long i1=1; i1<i; ++i1) {
-                double dsq2 = (centers[i1] - cells[k]->getPos()).normSq();
-                xdbg<<"   dsq["<<i1<<"] = "<<dsq2<<std::endl;
-                if (dsq2 < dsq1) dsq1 = dsq2;
-            }
-            xdbg<<"Cell "<<k<<" has dsq = "<<dsq1<<std::endl;
+            double dsq1 = min_dsq[k];
+            xdbg<<"Cell "<<k<<" has min_dsq = "<<dsq1<<std::endl;
             // The probability of picking each point is proportional to its dsq.
             // Approximate that all points in a cell are closest to the same center, and that
             // the points are uniformly distibuted in either a circle or a sphere (according to C)
@@ -323,6 +323,10 @@ void InitializeCentersKMPP(std::vector<Position<C> >& centers,
                 xdbg<<"u -> "<<u<<std::endl;
                 Assert(k != ncells-1);
             }
+        }
+        for (long k=0; k<ncells; ++k) {
+            double dsq = (centers[i] - cells[k]->getPos()).normSq();
+            if (dsq < min_dsq[k]) min_dsq[k] = dsq;
         }
     }
 }

@@ -307,11 +307,10 @@ void InitializeCentersKMPP(std::vector<Position<C> >& centers,
                         centers_per_cell[k]) * (dsq1 + coef * SQR(cells[k]->getSize()));
             sump += p[k];
         }
-        double u = urand();
-        xdbg<<"u = "<<u<<std::endl;
+        double u = urand() * sump;
+        xdbg<<"u = "<<u<<" (target in [0,"<<sump<<"))"<<std::endl;
         for (long k=0; k<ncells; ++k) {
-            p[k] /= sump;
-            xdbg<<"Prob("<<k<<") = "<<p[k]<<std::endl;
+            xdbg<<"Weight("<<k<<") = "<<p[k]<<std::endl;
             if (u < p[k]) {
                 dbg<<"Choose next center from cell "<<k<<std::endl;
                 xdbg<<"N = "<<cells[k]->getN()<<" ncen so far = "<<centers_per_cell[k]<<std::endl;

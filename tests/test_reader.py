@@ -75,6 +75,7 @@ def test_fits_reader():
             assert set(r.names(ext=ext)) == set(
                 "INDEX RA DEC Z EPSILON GAMMA1 GAMMA2 KAPPA MU".split())
             assert set(r.names(ext=ext)) == set(r.names())
+            assert r.has_col('RA', ext=ext)
 
         # Can read without slice or ext to use defaults
         assert r.row_count() == 390935
@@ -226,6 +227,8 @@ def test_hdf_reader():
             r.row_count()
         assert set(r.names()) == set("INDEX RA DEC Z EPSILON GAMMA1 GAMMA2 KAPPA MU".split())
         assert set(r.names(ext='/')) == set(r.names())
+        assert r.has_col('RA')
+        assert r.has_col('RA', ext='/')
 
         # Can read without slice or ext to use defaults
         g2 = r.read('GAMMA2')
@@ -279,6 +282,16 @@ def test_hdf_reader():
     w = HdfWriter(os.path.join('output','test_hdf_writer.hdf'))
     with assert_raises(RuntimeError):
         w.write(['KAPPA', 'MU'], [kappa, mu], params={'test': True}, ext='KM')
+
+    with mock.patch.dict(sys.modules, {'h5py':None}):
+        with CaptureLog() as cl:
+            with assert_raises(ImportError):
+                HdfReader(os.path.join('data','Aardvark.hdf5'), logger=cl.logger)
+        assert 'Cannot read' in cl.output
+        with CaptureLog() as cl:
+            with assert_raises(ImportError):
+                HdfWriter(os.path.join('output','test_hdf_writer.hdf'), logger=cl.logger)
+        assert 'Cannot write to' in cl.output
 
 
 @timer
@@ -336,6 +349,7 @@ def test_parquet_reader():
         print('names = ',set("INDEX RA DEC Z GAMMA1 GAMMA2 KAPPA MU".split()))
         assert set(r.names()) == set("INDEX RA DEC Z GAMMA1 GAMMA2 KAPPA MU".split())
         assert set(r.names(ext=None)) == set(r.names())
+        assert r.has_col('RA')
 
     # Again check things not allowed if not in context
     with assert_raises(RuntimeError):
@@ -352,6 +366,13 @@ def test_parquet_reader():
         r.names(ext=None)
     with assert_raises(RuntimeError):
         r.names()
+
+    with mock.patch.dict(sys.modules, {'pandas':None}):
+        with CaptureLog() as cl:
+            with assert_raises(ImportError):
+                ParquetReader(os.path.join('data','Aardvark.parquet'), logger=cl.logger)
+        assert 'Cannot read' in cl.output
+
 
 def _test_ascii_reader(r, has_names=True):
     # Same tests for AsciiReader and PandasReader

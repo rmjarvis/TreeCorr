@@ -42,7 +42,8 @@ def setup():
         part_cat.write_patch_centers(patch_file)
         del part_cat
 
-def do_mpi_corr(comm, Correlation, cross, attr, output=True, patch_method=None, low_mem=False):
+def do_mpi_corr(comm, Correlation, cross, attr, output=True, patch_method=None, low_mem=False,
+                verbose=1):
     rank = comm.Get_rank()
     size = comm.Get_size()
     if rank == 0:
@@ -94,7 +95,7 @@ def do_mpi_corr(comm, Correlation, cross, attr, output=True, patch_method=None, 
     log_file='output/log%d.out'%rank
     if os.path.isfile(log_file):
         os.remove(log_file)
-    corr1 = Correlation(config, verbose=2, log_file=log_file, output_dots=False)
+    corr1 = Correlation(config, verbose=verbose, log_file=log_file, output_dots=False)
 
     # To use the multiple process, just pass comm to the process command.
     if cross == 0:
@@ -119,7 +120,8 @@ def do_mpi_corr(comm, Correlation, cross, attr, output=True, patch_method=None, 
         for a in attr:
             np.testing.assert_allclose(getattr(corr0,a), getattr(corr1,a))
 
-def do_mpi_corr2(comm, Correlation, cross, attr, output=True, patch_method='global', low_mem=False):
+def do_mpi_corr2(comm, Correlation, cross, attr, output=True, patch_method='global', low_mem=False,
+                 verbose=1):
     # Repeat cross correlations where one of the catalogs doesn't use patches.
 
     rank = comm.Get_rank()
@@ -181,7 +183,7 @@ def do_mpi_corr2(comm, Correlation, cross, attr, output=True, patch_method='glob
     log_file='output/log%d.out'%rank
     if os.path.isfile(log_file):
         os.remove(log_file)
-    corr1 = Correlation(config, verbose=2, log_file=log_file, output_dots=False)
+    corr1 = Correlation(config, verbose=verbose, log_file=log_file, output_dots=False)
 
     # To use the multiple process, just pass comm to the process command.
     if cross == 0:
@@ -221,6 +223,8 @@ def do_mpi_ggg(comm, output=True):
                 'global', True)
     do_mpi_corr(comm, treecorr.GGGCorrelation, 0, ['ntri', 'gam0', 'gam1', 'gam2', 'gam3'], output,
                 'local', True)
+    do_mpi_corr(comm, treecorr.GGGCorrelation, 0, ['ntri', 'gam0', 'gam1', 'gam2', 'gam3'], output,
+                verbose=2)
 
 def do_mpi_kkk(comm, output=True):
     do_mpi_corr(comm, treecorr.KKKCorrelation, 0, ['ntri', 'zeta'], output)
@@ -282,6 +286,8 @@ def do_mpi_nnk(comm, output=True):
     do_mpi_corr(comm, treecorr.KNNCorrelation, 1, ['ntri', 'zeta'], output, 'global', True)
     do_mpi_corr(comm, treecorr.KNNCorrelation, 1, ['ntri', 'zeta'], output, 'local', True)
     do_mpi_corr2(comm, treecorr.KNNCorrelation, 1, ['ntri', 'zeta'], output)
+    do_mpi_corr(comm, treecorr.NNKCorrelation, 1, ['ntri', 'zeta'], output, verbose=2)
+    do_mpi_corr(comm, treecorr.NNKCorrelation, 2, ['ntri', 'zeta'], output, verbose=2)
 
 def do_mpi_nng(comm, output=True):
     do_mpi_corr(comm, treecorr.NNGCorrelation, 1, ['ntri', 'zeta'], output)
@@ -316,6 +322,7 @@ def do_mpi_nkk(comm, output=True):
     do_mpi_corr(comm, treecorr.KKNCorrelation, 1, ['ntri', 'zeta'], output, 'global', True)
     do_mpi_corr(comm, treecorr.KKNCorrelation, 1, ['ntri', 'zeta'], output, 'local', True)
     do_mpi_corr2(comm, treecorr.KKNCorrelation, 1, ['ntri', 'zeta'], output)
+    do_mpi_corr(comm, treecorr.NKKCorrelation, 1, ['ntri', 'zeta'], output, verbose=2)
 
 def do_mpi_ngg(comm, output=True):
     do_mpi_corr(comm, treecorr.NGGCorrelation, 1, ['ntri', 'gam0', 'gam2'], output)

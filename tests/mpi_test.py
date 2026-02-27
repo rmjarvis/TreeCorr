@@ -42,7 +42,7 @@ def setup():
         part_cat.write_patch_centers(patch_file)
         del part_cat
 
-def do_mpi_corr(comm, Correlation, auto, attr, output=True, patch_method='global'):
+def do_mpi_corr(comm, Correlation, auto, attr, output=True, patch_method='global', verbose=1):
     rank = comm.Get_rank()
     size = comm.Get_size()
     if rank == 0:
@@ -84,7 +84,7 @@ def do_mpi_corr(comm, Correlation, auto, attr, output=True, patch_method='global
 
     # Now run in parallel.
     # Everyone needs to make their own Correlation object.
-    corr1 = Correlation(nbins=10, min_sep=1., max_sep=40., sep_units='arcmin', verbose=1)
+    corr1 = Correlation(nbins=10, min_sep=1., max_sep=40., sep_units='arcmin', verbose=verbose)
 
     # To use the multiple process, just pass comm to the process command.
     if auto:
@@ -104,7 +104,7 @@ def do_mpi_corr(comm, Correlation, auto, attr, output=True, patch_method='global
         for a in attr:
             np.testing.assert_allclose(getattr(corr0,a), getattr(corr1,a))
 
-def do_mpi_corr2(comm, Correlation, attr, output=True):
+def do_mpi_corr2(comm, Correlation, attr, output=True, verbose=1):
     # Repeat cross correlations where one of the two catalogs doesn't use patches.
 
     rank = comm.Get_rank()
@@ -145,7 +145,7 @@ def do_mpi_corr2(comm, Correlation, attr, output=True):
 
     # Now run in parallel.
     # Everyone needs to make their own Correlation object.
-    corr1 = Correlation(nbins=10, min_sep=1., max_sep=40., sep_units='arcmin', verbose=1)
+    corr1 = Correlation(nbins=10, min_sep=1., max_sep=40., sep_units='arcmin', verbose=verbose)
 
     # To use the multiple process, just pass comm to the process command.
     corr1.process(cat1, cat2, comm=comm)
@@ -187,11 +187,13 @@ def do_mpi_corr2(comm, Correlation, attr, output=True):
 def do_mpi_gg(comm, output=True):
     do_mpi_corr(comm, treecorr.GGCorrelation, True, ['xip', 'xim', 'npairs'], output)
     do_mpi_corr(comm, treecorr.GGCorrelation, True, ['xip', 'xim', 'npairs'], output, 'local')
+    do_mpi_corr(comm, treecorr.GGCorrelation, True, ['xip', 'xim', 'npairs'], output, verbose=2)
 
 def do_mpi_ng(comm, output=True):
     do_mpi_corr(comm, treecorr.NGCorrelation, False, ['xi', 'xi_im', 'npairs'], output)
     do_mpi_corr(comm, treecorr.NGCorrelation, False, ['xi', 'xi_im', 'npairs'], output, 'local')
     do_mpi_corr2(comm, treecorr.NGCorrelation, ['xi', 'xi_im', 'npairs'], output)
+    do_mpi_corr(comm, treecorr.NGCorrelation, False, ['xi', 'xi_im', 'npairs'], output, verbose=2)
 
 def do_mpi_nk(comm, output=True):
     do_mpi_corr(comm, treecorr.NKCorrelation, False, ['xi', 'npairs'], output)

@@ -475,12 +475,10 @@ class FitsReader(object):
         """
         try:
             import fitsio
-
         except ImportError:
             if logger:
                 logger.error("Unable to import fitsio.  Cannot read %s"%file_name)
             raise
-
         else:
             # There is a bug in earlier fitsio versions that prevents slicing.
             # If you hit this assert, upgrade your fitsio version.

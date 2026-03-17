@@ -1419,6 +1419,62 @@ def test_double():
     np.testing.assert_allclose(ng2.xi_im, ng1.xi_im, rtol=1.e-3, atol=1.e-6)
 
 
+@timer
+def test_arc_with_r_matches_spherical():
+    # Regression test for issue #193.
+    # Leonel Medina Varela found the bug and provided the initial version of this test setup.
+
+    # 6 disjoint patches around the sky.  In particular, some are nearly antipodal from others.
+    # This used to cause problems in the Arc metric's separation calculation.
+    rng = np.random.default_rng(20260311)
+    field_centers = [(20.0, -4.0), (80.0, 3.0), (140.0, -1.5),
+                     (200.0, 4.5), (260.0, -3.0), (320.0, 1.0)]
+    nperfield = 3
+    ra = [ra0 + rng.uniform(-0.7, 0.7, size=nperfield) for ra0, dec0 in field_centers]
+    dec = [dec0 + rng.uniform(-0.7, 0.7, size=nperfield) for ra0, dec0 in field_centers]
+    ra = np.concatenate(ra)
+    dec = np.concatenate(dec)
+
+    r = rng.uniform(0.30, 0.59, size=nperfield * len(field_centers))
+    g1 = rng.normal(scale=0.02, size=nperfield * len(field_centers))
+    g2 = rng.normal(scale=0.02, size=nperfield * len(field_centers))
+
+    cat_sph = treecorr.Catalog(ra=ra, dec=dec, g1=g1, g2=g2, ra_units='deg', dec_units='deg')
+    cat_3d = treecorr.Catalog(ra=ra, dec=dec, r=r, g1=g1, g2=g2,
+                              ra_units='deg', dec_units='deg')
+
+    config = dict(min_sep=0.01, max_sep=1.0, nbins=12, sep_units='deg', bin_slop=0)
+    ng_sph = treecorr.NGCorrelation(config)
+    ng_3d = treecorr.NGCorrelation(config)
+    ng_cross = treecorr.NGCorrelation(config)
+    ng_3d_rpar = treecorr.NGCorrelation(config, max_rpar=0.3)
+
+    ng_sph.process(cat_sph, cat_sph, metric='Arc')
+    ng_3d.process(cat_3d, cat_3d, metric='Arc')
+    ng_cross.process(cat_sph, cat_3d, metric='Arc')
+    ng_3d_rpar.process(cat_3d, cat_3d, metric='Arc')
+
+    # with and without r should match
+    np.testing.assert_array_equal(ng_3d.npairs, ng_sph.npairs)
+    np.testing.assert_allclose(ng_3d.meanr, ng_sph.meanr, rtol=0, atol=1.e-14)
+    np.testing.assert_allclose(ng_3d.xi, ng_sph.xi, rtol=0, atol=1.e-14)
+    np.testing.assert_allclose(ng_3d.xi_im, ng_sph.xi_im, rtol=0, atol=1.e-14)
+
+    # check cross between spherical and 3d
+    np.testing.assert_array_equal(ng_cross.npairs, ng_sph.npairs)
+    np.testing.assert_allclose(ng_cross.meanr, ng_sph.meanr, rtol=0, atol=1.e-14)
+    np.testing.assert_allclose(ng_cross.xi, ng_sph.xi, rtol=0, atol=1.e-14)
+    np.testing.assert_allclose(ng_cross.xi_im, ng_sph.xi_im, rtol=0, atol=1.e-14)
+
+    # also check with max_rpar set large enough not to matter
+    # This was Leonel's initial version, although it turned out that max_rpar was
+    # a red herring.  The problem was already there with just r and no max_rpar.
+    np.testing.assert_array_equal(ng_3d_rpar.npairs, ng_sph.npairs)
+    np.testing.assert_allclose(ng_3d_rpar.meanr, ng_sph.meanr, rtol=0, atol=1.e-14)
+    np.testing.assert_allclose(ng_3d_rpar.xi, ng_sph.xi, rtol=0, atol=1.e-14)
+    np.testing.assert_allclose(ng_3d_rpar.xi_im, ng_sph.xi_im, rtol=0, atol=1.e-14)
+
+
 if __name__ == '__main__':
     test_direct()
     test_direct_spherical()
@@ -1430,3 +1486,4 @@ if __name__ == '__main__':
     test_haloellip()
     test_varxi()
     test_double()
+    test_arc_with_r_matches_spherical()

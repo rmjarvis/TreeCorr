@@ -712,8 +712,11 @@ struct MetricHelper<Arc, P>
     double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
     {
         // Use atan2(sin(theta), cos(theta)) to preserve the full [0, pi] range.
+        // sin(theta) = |p1 x p2| / |p1| |p2|
+        // cos(theta) = (p1 . p2) / |p1| |p2|
         double sintheta = p1.cross(p2).norm();
         double costheta = p1.dot(p2);
+        // (No need to divide by |p1| |p2|, since it's common to both.)
         double theta = std::atan2(sintheta, costheta);
         return theta;
     }

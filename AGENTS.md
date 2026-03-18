@@ -13,6 +13,8 @@ source /Users/Mike/lsst/lsstsw/miniconda/etc/profile.d/conda.sh
 conda activate /Users/Mike/miniforge3/envs/py3.12
 ```
 
+`ripgrep` (`rg`) is available in this environment and should be preferred for file/text search.
+
 ## Sphinx Docs Build
 Use this sequence to build docs in Codex:
 ```bash
@@ -27,6 +29,14 @@ Rationale:
 - `py3.12` is not always discoverable by name from the conda install on PATH, so full-path
   activation is more reliable.
 - Setting `LC_ALL`/`LANG` avoids locale errors when invoking Sphinx.
+
+## GitHub CLI
+- `gh` is installed in `/Users/Mike/miniforge3/envs/py3.12/bin/gh`.
+- Prefer `gh issue view <num> --repo rmjarvis/TreeCorr --comments` and
+  `gh pr view <num> --repo rmjarvis/TreeCorr --comments` over browser scraping when GitHub thread
+  content is needed.
+- `gh` still requires authentication in Codex shells. If commands fail with an auth prompt, run
+  `gh auth login` in the activated conda environment or provide `GH_TOKEN`.
 
 ## TreeCorr Documentation Conventions
 - Prefer "data are" (treat "data" as plural) except when clearly used as a mass noun.

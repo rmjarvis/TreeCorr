@@ -2,8 +2,8 @@
 Previous History
 ================
 
-Changes from version 5.0 to 5.1
---------------------------------
+Changes included in version 5.1
+-------------------------------
 
 User-impact highlights:
 
@@ -16,8 +16,8 @@ User-impact highlights:
 
 `Full changelog <https://github.com/rmjarvis/TreeCorr/blob/releases/5.1/CHANGELOG.rst>`__
 
-Changes from version 4.3 to 5.0
---------------------------------
+Changes included in version 5.0
+-------------------------------
 
 User-impact highlights:
 
@@ -30,8 +30,8 @@ User-impact highlights:
 
 `Full changelog <https://github.com/rmjarvis/TreeCorr/blob/releases/5.0/CHANGELOG.rst>`__
 
-Changes from version 4.2 to 4.3
---------------------------------
+Changes included in version 4.3
+-------------------------------
 
 User-impact highlights:
 
@@ -41,8 +41,8 @@ User-impact highlights:
 
 `Full changelog <https://github.com/rmjarvis/TreeCorr/blob/releases/4.3/CHANGELOG.rst>`__
 
-Changes from version 4.1 to 4.2
---------------------------------
+Changes included in version 4.2
+-------------------------------
 
 User-impact highlights:
 
@@ -53,8 +53,8 @@ User-impact highlights:
 
 `Full changelog <https://github.com/rmjarvis/TreeCorr/blob/releases/4.2/CHANGELOG.rst>`__
 
-Changes from version 4.0 to 4.1
---------------------------------
+Changes included in version 4.1
+-------------------------------
 
 User-impact highlights:
 
@@ -65,8 +65,8 @@ User-impact highlights:
 
 `Full changelog <https://github.com/rmjarvis/TreeCorr/blob/releases/4.1/CHANGELOG.rst>`__
 
-Changes from version 3.3 to 4.0
---------------------------------
+Changes included in version 4.0
+-------------------------------
 
 User-impact highlights:
 
@@ -78,8 +78,8 @@ User-impact highlights:
 
 `Full changelog <https://github.com/rmjarvis/TreeCorr/blob/releases/4.0/CHANGELOG.rst>`__
 
-Changes from version 3.2 to 3.3
---------------------------------
+Changes included in version 3.3
+-------------------------------
 
 User-impact highlights:
 
@@ -89,8 +89,8 @@ User-impact highlights:
 
 `Full changelog <https://github.com/rmjarvis/TreeCorr/blob/releases/3.3/CHANGELOG.rst>`__
 
-Changes from version 3.1 to 3.2
---------------------------------
+Changes included in version 3.2
+-------------------------------
 
 User-impact highlights:
 
@@ -101,8 +101,8 @@ User-impact highlights:
 
 `Full changelog <https://github.com/rmjarvis/TreeCorr/blob/releases/3.2/CHANGELOG.rst>`__
 
-Changes from version 3.0 to 3.1
---------------------------------
+Changes included in version 3.1
+-------------------------------
 
 User-impact highlights:
 
@@ -112,8 +112,8 @@ User-impact highlights:
 
 `Full changelog <https://github.com/rmjarvis/TreeCorr/blob/releases/3.1/CHANGELOG.rst>`__
 
-Changes from version 2.6 to 3.0
---------------------------------
+Changes included in version 3.0
+-------------------------------
 
 User-impact highlights:
 

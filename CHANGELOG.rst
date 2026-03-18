@@ -55,3 +55,9 @@ Changes from version 5.1.1 to 5.1.2
 -----------------------------------
 
 - Limit pybind11 to <3 until they fix their template depth issue (cf. their PR #5751).
+
+Changes from version 5.1.2 to 5.1.3
+-----------------------------------
+
+- Fixed a minor bug in the KMeans++ initialization option for the KMeans algorithm (#191)
+- Fixed a bug in the Arc metric when points are more than 90 degrees apart. (#192, #193)

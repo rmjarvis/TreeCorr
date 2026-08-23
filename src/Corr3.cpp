@@ -1009,7 +1009,11 @@ void BaseCorr3::process111Sorted(
                 logd1, logd2, logd3,
                 _ntot, index))
         {
-            directProcess111<B,Q>(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index);
+            directProcess111<B,Q>(
+                c1, c2, c3, d1, d2, d3,
+                metric.Displacement(p2,p3), metric.Displacement(p1,p3),
+                metric.Displacement(p1,p2),
+                u, v, logd1, logd2, logd3, index);
         } else {
             xdbg<<ws()<<"Triangle not in range\n";
         }
@@ -1518,7 +1522,7 @@ double BaseCorr3::splitC2CellsOrCalculateGn(
                     k = BinTypeHelper<B>::calculateBinK(p1, p2, r, logr, _binsize,
                                                         _minsep, _maxsep, _logminsep);
                 }
-                calculateGn(c1, *c2, rsq, r, logr, k, mp);
+                calculateGn(c1, *c2, rsq, metric.Displacement(p1,p2), r, logr, k, mp);
             }
             continue;
         }
@@ -1678,11 +1682,11 @@ void BaseCorr3::multipoleFinish(
     }
 }
 
-template <int D1, int D2, int D3> template <int C>
+template <int D1, int D2, int D3> template <int C, int Cx>
 void Corr3<D1,D2,D3>::calculateGn(
     const BaseCell<C>& c1, const BaseCell<C>& c2,
-    double rsq, double r, double logr, int k,
-    BaseMultipoleScratch& mp)
+    double rsq, const Position<Cx>& r12,
+    double r, double logr, int k, BaseMultipoleScratch& mp)
 {
     xdbg<<ws()<<"Gn Index = "<<k<<std::endl;
     // For now we only include the counts and weight from c2.
@@ -1700,15 +1704,15 @@ void Corr3<D1,D2,D3>::calculateGn(
         mp.sumwwlogr[k] += wsq * logr;
     }
 
-    mp.calculateGn(c1, c2, rsq, r, k, w);
+    mp.calculateGn(c1, c2, rsq, r12, r, k, w);
 }
 
-template <int C>
+template <int C, int Cx>
 void MultipoleScratch<NData>::calculateGn(
     const BaseCell<C>& c1, const Cell<NData,C>& c2,
-    double rsq, double r, int k, double w)
+    double rsq, const Position<Cx>& r12, double r, int k, double w)
 {
-    std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
+    std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r, r12);
     if (ww && wbuffer) {
         std::complex<double> ww = c2.calculateSumWSq();
         XAssert(wbuffer == 1);  // Need to think more about this when not limited to N,K,G.
@@ -1728,13 +1732,13 @@ void MultipoleScratch<NData>::calculateGn(
     }
 }
 
-template <int C>
+template <int C, int Cx>
 void MultipoleScratch<KData>::calculateGn(
     const BaseCell<C>& c1, const Cell<KData,C>& c2,
-    double rsq, double r, int k, double w)
+    double rsq, const Position<Cx>& r12, double r, int k, double w)
 {
+    std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r, r12);
     double wk = c2.getWK();
-    std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
     if (ww) {
         std::complex<double> wwkk = c2.calculateSumWKSq();
         if (buffer) {
@@ -1764,13 +1768,13 @@ void MultipoleScratch<KData>::calculateGn(
     }
 }
 
-template <int C>
+template <int C, int Cx>
 void MultipoleScratch<GData>::calculateGn(
     const BaseCell<C>& c1, const Cell<GData,C>& c2,
-    double rsq, double r, int k, double w)
+    double rsq, const Position<Cx>& r12, double r, int k, double w)
 {
+    std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r, r12);
     std::complex<double> wg = c2.getWZ();
-    std::complex<double> z = ProjectHelper<C>::ExpIPhi(c1.getPos(), c2.getPos(), r);
 
     // The projection is not quite how Porth et al do it, but it's necessary to get
     // it to work properly with spherical coordinates, since the shear at c2 doesn't
@@ -1779,7 +1783,7 @@ void MultipoleScratch<GData>::calculateGn(
 
     if (ww) {
         std::complex<double> wgsq = c2.calculateSumWZSq();
-        ProjectHelper<C>::template ProjectWithSq<GData>(c1, c2, wg, wgsq);
+        ProjectHelper<C>::template ProjectWithSq<GData>(c1, c2, r12, wg, wgsq);
         std::complex<double> abswgsq = c2.calculateSumAbsWZSq();
         if (buffer) {
             XAssert(buffer == 1);
@@ -1793,7 +1797,7 @@ void MultipoleScratch<GData>::calculateGn(
             sumwwgg2[k] += abswgsq;
         }
     } else {
-        ProjectHelper<C>::template Project<GData>(c1, c2, wg);
+        ProjectHelper<C>::template Project<GData>(c1, c2, r12, wg);
     }
 
     int iw = Windex(k);
@@ -3085,26 +3089,32 @@ struct MultipoleHelper<6>
     { CalculateZeta(c1.getWZ(), ordered, mp2, mp3, kstart, mink_zeta, zeta, nbins, maxn); }
 };
 
-template <int B, int Q, int C>
+template <int B, int Q, int C, int Cx>
 void BaseCorr3::directProcess111(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-    const double d1, const double d2, const double d3, const double u, const double v,
+    const double d1, const double d2, const double d3,
+    const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
+    const double u, const double v,
     const double logd1, const double logd2, const double logd3, const int index)
 {
     if (B == LogMultipole) {
-        finishProcessMP<Q>(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index);
+        finishProcessMP<Q>(c1, c2, c3, d1, d2, d3, r23, r13, r12,
+                           u, v, logd1, logd2, logd3, index);
     } else {
-        finishProcess<Q>(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index);
+        finishProcess<Q>(c1, c2, c3, d1, d2, d3, r23, r13, r12,
+                         u, v, logd1, logd2, logd3, index);
     }
 }
 
 template <int algo>
 struct DirectHelper;
 
-template <int D1, int D2, int D3> template <int Q, int C>
+template <int D1, int D2, int D3> template <int Q, int C, int Cx>
 void Corr3<D1,D2,D3>::finishProcess(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-    const double d1, const double d2, const double d3, const double u, const double v,
+    const double d1, const double d2, const double d3,
+    const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
+    const double u, const double v,
     const double logd1, const double logd2, const double logd3, const int index)
 {
     double www = c1.getW() * c2.getW() * c3.getW();
@@ -3131,13 +3141,15 @@ void Corr3<D1,D2,D3>::finishProcess(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<const Cell<D2,C>&>(c2),
         static_cast<const Cell<D3,C>&>(c3),
-        _zeta, index);
+        r23, r13, r12, _zeta, index);
 }
 
-template <int D1, int D2, int D3> template <int Q, int C>
+template <int D1, int D2, int D3> template <int Q, int C, int Cx>
 void Corr3<D1,D2,D3>::finishProcessMP(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-    const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+    const double d1, const double d2, const double d3,
+    const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
+    const double sinphi, const double cosphi,
     const double logd1, const double logd2, const double logd3, const int index)
 {
     // Note: For multipole process, we don't have a u,v so we use those spots to store
@@ -3178,23 +3190,25 @@ void Corr3<D1,D2,D3>::finishProcessMP(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<const Cell<D2,C>&>(c2),
         static_cast<const Cell<D3,C>&>(c3),
-        d1, d2, d3, z, _zeta, index, _nubins);
+        d1, d2, d3, r23, r13, r12, z, _zeta, index, _nubins);
 }
 
 // NNN
 template <>
 struct DirectHelper<0>
 {
-    template <int C>
+    template <int C, int Cx>
     static void ProcessZeta(
         const Cell<NData,C>& , const Cell<NData,C>& , const Cell<NData,C>&,
-        ZetaData<0>& , int )
+        const Position<Cx>&, const Position<Cx>&, const Position<Cx>&,
+        ZetaData<0>& , int)
     {}
-    template <int C>
+    template <int C, int Cx>
     static void ProcessMultipole(
         const Cell<NData,C>& c1, const Cell<NData,C>& c2, const Cell<NData,C>& c3,
-        double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<0>& zeta, int index, int maxn)
+        double d1, double d2, double d3,
+        const Position<Cx>&, const Position<Cx>&, const Position<Cx>&,
+        const std::complex<double>& z, ZetaData<0>& zeta, int index, int maxn)
     {}
 };
 
@@ -3202,18 +3216,20 @@ struct DirectHelper<0>
 template <>
 struct DirectHelper<1>
 {
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessZeta(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        const Position<Cx>&, const Position<Cx>&, const Position<Cx>&,
         ZetaData<1>& zeta, int index)
     {
         zeta.zeta[index] += getWK(c1) * getWK(c2) * getWK(c3);
     }
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessMultipole(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-        double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<1>& zeta, int index, int maxn)
+        double d1, double d2, double d3,
+        const Position<Cx>&, const Position<Cx>&, const Position<Cx>&,
+        const std::complex<double>& z, ZetaData<1>& zeta, int index, int maxn)
     {
         double wk = getWK(c1) * getWK(c2) * getWK(c3);
         zeta.zeta[index] += wk;
@@ -3278,27 +3294,29 @@ struct DirectHelper<2>
         }
     }
 
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessZeta(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
         ZetaData<3>& zeta, int index)
     {
         double k1 = getWK(c1);
         std::complex<double> g2 = c2.getWZ();
         std::complex<double> g3 = c3.getWZ();
-        ProjectHelper<C>::Project(c1, c2, c3, g2, g3);
+        ProjectHelper<C>::Project(c1, c2, c3, r12, r13, g2, g3);
         ProcessZetaKZZ(zeta, index, k1, g2, g3);
     }
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessMultipole(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-        double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<3>& zeta, int index, int maxn)
+        double d1, double d2, double d3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
+        const std::complex<double>& z, ZetaData<3>& zeta, int index, int maxn)
     {
         double k1 = getWK(c1);
         std::complex<double> g2 = c2.getWZ();
         std::complex<double> g3 = c3.getWZ();
-        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g2, g3);
+        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, r12, r13, g2, g3);
         ProcessMultipoleKZZ(zeta, index, maxn, z, k1, g2, g3);
     }
 };
@@ -3335,23 +3353,25 @@ struct DirectHelper<3>
         }
     }
 
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessZeta(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
         ZetaData<2>& zeta, int index)
     {
         std::complex<double> g3 = c3.getWZ();
-        ProjectHelper<C>::Project(c1, c2, c3, g3);
+        ProjectHelper<C>::Project(c1, c2, c3, r12, r13, g3);
         ProcessZetaKKZ(zeta, index, getWK(c1) * getWK(c2) * g3);
     }
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessMultipole(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-        double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<2>& zeta, int index, int maxn)
+        double d1, double d2, double d3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
+        const std::complex<double>& z, ZetaData<2>& zeta, int index, int maxn)
     {
         std::complex<double> g3 = c3.getWZ();
-        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g3);
+        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, r12, r13, g3);
         std::complex<double> wk = getWK(c1) * getWK(c2) * g3;
         ProcessMultipoleKKZ(zeta, index, maxn, z, wk);
     }
@@ -3362,23 +3382,25 @@ struct DirectHelper<3>
 template <>
 struct DirectHelper<13>
 {
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessZeta(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
         ZetaData<2>& zeta, int index)
     {
         std::complex<double> g2 = c2.getWZ();
-        ProjectHelper<C>::Project(c3, c1, c2, g2);
+        ProjectHelper<C>::Project(c3, c1, c2, -r13, -r23, g2);
         DirectHelper<3>::ProcessZetaKKZ(zeta, index, getWK(c1) * g2 * getWK(c3));
     }
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessMultipole(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-        double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<2>& zeta, int index, int maxn)
+        double d1, double d2, double d3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
+        const std::complex<double>& z, ZetaData<2>& zeta, int index, int maxn)
     {
         std::complex<double> g2 = c2.getWZ();
-        ProjectHelper<C>::ProjectX(c3, c1, c2, d3, d1, d2, g2);
+        ProjectHelper<C>::ProjectX(c3, c1, c2, d3, d1, d2, -r13, -r23, g2);
         std::complex<double> wk = getWK(c1) * g2 * getWK(c3);
         DirectHelper<3>::ProcessMultipoleKKZ(zeta, index, maxn, z, wk);
     }
@@ -3389,25 +3411,27 @@ struct DirectHelper<13>
 template <>
 struct DirectHelper<4>
 {
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessZeta(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
         ZetaData<2>& zeta, int index)
     {
         std::complex<double> g1 = c1.getWZ();
-        ProjectHelper<C>::Project(c2, c3, c1, g1);
+        ProjectHelper<C>::Project(c2, c3, c1, r23, -r12, g1);
         DirectHelper<3>::ProcessZetaKKZ(zeta, index, g1 * getWK(c2) * getWK(c3));
     }
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessMultipole(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-        double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<2>& zeta, int index, int maxn)
+        double d1, double d2, double d3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
+        const std::complex<double>& z, ZetaData<2>& zeta, int index, int maxn)
     {
         std::complex<double> g1 = c1.getWZ();
         std::complex<double> g2 = 0.;
         std::complex<double> g3 = 0.;
-        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g1, g2, g3);
+        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, r12, r13, g1, g2, g3);
         std::complex<double> wk = g1 * getWK(c2) * getWK(c3);
         DirectHelper<3>::ProcessMultipoleKKZ(zeta, index, maxn, z, wk);
     }
@@ -3507,27 +3531,29 @@ struct DirectHelper<5>
         }
     }
 
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessZeta(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
         ZetaData<4>& zeta, int index)
     {
         std::complex<double> g1 = c1.getWZ();
         std::complex<double> g2 = c2.getWZ();
         std::complex<double> g3 = c3.getWZ();
-        ProjectHelper<C>::Project(c1, c2, c3, g1, g2, g3);
+        ProjectHelper<C>::Project(c1, c2, c3, r12, r13, g1, g2, g3);
         ProcessZetaZZZ(zeta, index, g1, g2, g3);
     }
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessMultipole(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-        double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<4>& zeta, int index, int maxn)
+        double d1, double d2, double d3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
+        const std::complex<double>& z, ZetaData<4>& zeta, int index, int maxn)
     {
         std::complex<double> g1 = c1.getWZ();
         std::complex<double> g2 = c2.getWZ();
         std::complex<double> g3 = c3.getWZ();
-        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g1, g2, g3);
+        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, r12, r13, g1, g2, g3);
         ProcessMultipoleZZZ(zeta, index, maxn, z, g1, g2, g3);
     }
 };
@@ -3538,26 +3564,28 @@ struct DirectHelper<5>
 template <>
 struct DirectHelper<6>
 {
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessZeta(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
         ZetaData<3>& zeta, int index)
     {
         std::complex<double> g1 = c1.getWZ();
         std::complex<double> g3 = c3.getWZ();
-        ProjectHelper<C>::Project(c2, c3, c1, g3, g1);
+        ProjectHelper<C>::Project(c2, c3, c1, r23, -r12, g3, g1);
         DirectHelper<2>::ProcessZetaKZZ(zeta, index, getWK(c2), g1, g3);
     }
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessMultipole(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-        double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<3>& zeta, int index, int maxn)
+        double d1, double d2, double d3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
+        const std::complex<double>& z, ZetaData<3>& zeta, int index, int maxn)
     {
         std::complex<double> g1 = c1.getWZ();
         std::complex<double> g2 = 0.;
         std::complex<double> g3 = c3.getWZ();
-        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g1, g2, g3);
+        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, r12, r13, g1, g2, g3);
         DirectHelper<2>::ProcessMultipoleKZZ(zeta, index, maxn, z, getWK(c2), g1, g3);
     }
 };
@@ -3566,26 +3594,28 @@ struct DirectHelper<6>
 template <>
 struct DirectHelper<16>
 {
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessZeta(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
         ZetaData<3>& zeta, int index)
     {
         std::complex<double> g1 = c1.getWZ();
         std::complex<double> g2 = c2.getWZ();
-        ProjectHelper<C>::Project(c3, c1, c2, g1, g2);
+        ProjectHelper<C>::Project(c3, c1, c2, -r13, -r23, g1, g2);
         DirectHelper<2>::ProcessZetaKZZ(zeta, index, getWK(c3), g1, g2);
     }
-    template <int D1, int D2, int D3, int C>
+    template <int D1, int D2, int D3, int C, int Cx>
     static void ProcessMultipole(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const Cell<D3,C>& c3,
-        double d1, double d2, double d3, const std::complex<double>& z,
-        ZetaData<3>& zeta, int index, int maxn)
+        double d1, double d2, double d3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
+        const std::complex<double>& z, ZetaData<3>& zeta, int index, int maxn)
     {
         std::complex<double> g1 = c1.getWZ();
         std::complex<double> g2 = c2.getWZ();
         std::complex<double> g3 = 0.;
-        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, g1, g2, g3);
+        ProjectHelper<C>::ProjectX(c1, c2, c3, d1, d2, d3, r12, r13, g1, g2, g3);
         DirectHelper<2>::ProcessMultipoleKZZ(zeta, index, maxn, z, getWK(c3), g1, g2);
     }
 };

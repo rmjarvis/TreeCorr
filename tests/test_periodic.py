@@ -122,6 +122,11 @@ def test_direct_count():
     with assert_raises(ValueError):
         rr.process(rcat1,rcat2)
 
+    # Periodic cannot be used with speherical coordinates.
+    sph_cat = treecorr.Catalog(ra=[0., 1.], dec=[0., 1.], ra_units='deg', dec_units='deg')
+    with assert_raises(ValueError):
+        rr.process(sph_cat, metric='Periodic')
+
 @timer
 def test_direct_3d():
     # This is the same as the above test, but using the 3d correlations
@@ -167,6 +172,161 @@ def test_direct_3d():
     print('true_npairs = ',true_npairs)
     print('diff = ',dd.npairs - true_npairs)
     np.testing.assert_array_equal(dd.npairs, true_npairs)
+
+
+@timer
+def test_periodic_logmultipole():
+    # In response to bug report in issue #199. Thanks to Aritozaki for the report.
+    # This compact catalog straddles both boundaries of a periodic box. Unwrapping it around
+    # the origin gives an equivalent Euclidean catalog, since its extent is less than L/2.
+    L = 100.
+    x = np.array([-9., -6., -3., -1., 2., 4., 7., 9.])
+    y = np.array([-4., 3., -1., 5., -5., 1., -3., 4.])
+    cat = treecorr.Catalog(x=x, y=y)
+    periodic_cat = treecorr.Catalog(x=x % L, y=y % L)
+
+    config = {
+        'min_sep': 2.,
+        'max_sep': 20.,
+        'nbins': 4,
+        'max_n': 12,
+        'bin_type': 'LogMultipole',
+        'bin_slop': 0,
+        'angle_slop': 0,
+    }
+    ddd = treecorr.NNNCorrelation(config)
+    ddd.process(cat)
+    periodic_ddd = treecorr.NNNCorrelation(config, period=L)
+    periodic_ddd.process(periodic_cat, metric='Periodic')
+
+    # Periodic wrapping changes neither the triangles nor their multipole phases.
+    np.testing.assert_array_equal(periodic_ddd.ntri, ddd.ntri)
+    np.testing.assert_allclose(periodic_ddd.weight, ddd.weight, atol=1.e-12)
+
+    sas = ddd.toSAS()
+    periodic_sas = periodic_ddd.toSAS()
+    np.testing.assert_allclose(periodic_sas.weight, sas.weight, atol=1.e-12)
+    np.testing.assert_allclose(periodic_sas.ntri, sas.ntri, atol=1.e-12)
+
+
+@timer
+def test_periodic_projection():
+    # Check that spin projections use the same minimum-image displacements as the distances.
+    L = 100.
+    x = np.array([-9., -6., -3., -1., 2., 4., 7., 9.])
+    y = np.array([-4., 3., -1., 5., -5., 1., -3., 4.])
+    g1 = np.arange(8) / 10.
+    g2 = np.arange(8)[::-1] / 13.
+    cats = [treecorr.Catalog(x=x[k::3], y=y[k::3], g1=g1[k::3], g2=g2[k::3])
+            for k in range(3)]
+    periodic_cats = [treecorr.Catalog(x=x[k::3] % L, y=y[k::3] % L,
+                                     g1=g1[k::3], g2=g2[k::3]) for k in range(3)]
+
+    gg = treecorr.GGCorrelation(min_sep=2., max_sep=20., nbins=4, bin_slop=0)
+    gg.process(cats[0], cats[1])
+    periodic_gg = treecorr.GGCorrelation(min_sep=2., max_sep=20., nbins=4, bin_slop=0,
+                                         period=L)
+    periodic_gg.process(periodic_cats[0], periodic_cats[1], metric='Periodic')
+
+    np.testing.assert_array_equal(periodic_gg.npairs, gg.npairs)
+    np.testing.assert_allclose(periodic_gg.xip, gg.xip, atol=1.e-12)
+    np.testing.assert_allclose(periodic_gg.xip_im, gg.xip_im, atol=1.e-12)
+    np.testing.assert_allclose(periodic_gg.xim, gg.xim, atol=1.e-12)
+    np.testing.assert_allclose(periodic_gg.xim_im, gg.xim_im, atol=1.e-12)
+
+    config = {
+        'min_sep': 2.,
+        'max_sep': 20.,
+        'nbins': 4,
+        'nphi_bins': 6,
+        'bin_type': 'LogSAS',
+        'bin_slop': 0,
+        'angle_slop': 0,
+    }
+    ggg = treecorr.GGGCorrelation(config)
+    ggg.process(cats[0], cats[1], cats[2])
+    periodic_ggg = treecorr.GGGCorrelation(config, period=L)
+    periodic_ggg.process(periodic_cats[0], periodic_cats[1], periodic_cats[2],
+                         metric='Periodic')
+
+    np.testing.assert_allclose(periodic_ggg.ntri, ggg.ntri, atol=1.e-12)
+    np.testing.assert_allclose(periodic_ggg.weight, ggg.weight, atol=1.e-12)
+    for periodic_gam, gam in zip(
+            [periodic_ggg.gam0, periodic_ggg.gam1, periodic_ggg.gam2, periodic_ggg.gam3],
+            [ggg.gam0, ggg.gam1, ggg.gam2, ggg.gam3]):
+        np.testing.assert_allclose(periodic_gam, gam, atol=1.e-12)
+
+    multipole_config = {
+        'min_sep': 2.,
+        'max_sep': 20.,
+        'nbins': 4,
+        'max_n': 12,
+        'bin_type': 'LogMultipole',
+        'bin_slop': 0,
+        'angle_slop': 0,
+    }
+    ggg = treecorr.GGGCorrelation(multipole_config)
+    ggg.process(cats[0], cats[1], cats[2])
+    periodic_ggg = treecorr.GGGCorrelation(multipole_config, period=L)
+    periodic_ggg.process(periodic_cats[0], periodic_cats[1], periodic_cats[2],
+                         metric='Periodic')
+
+    np.testing.assert_allclose(periodic_ggg.ntri, ggg.ntri, atol=1.e-12)
+    np.testing.assert_allclose(periodic_ggg.weight, ggg.weight, atol=1.e-12)
+    for periodic_gam, gam in zip(
+            [periodic_ggg.gam0, periodic_ggg.gam1, periodic_ggg.gam2, periodic_ggg.gam3],
+            [ggg.gam0, ggg.gam1, ggg.gam2, ggg.gam3]):
+        np.testing.assert_allclose(periodic_gam, gam, atol=1.e-12)
+
+
+@timer
+def test_periodic_projection_3d():
+    # ThreeD spin projections convert positions to spherical directions internally.  The
+    # periodic metric must select the Cartesian image before that conversion.
+    L = 100.
+    positions = [
+        (np.array([96., 97., 98.]), np.array([20., 25., 30.]), np.array([15., 18., 22.])),
+        (np.array([101., 103., 105.]), np.array([21., 27., 29.]), np.array([16., 20., 25.])),
+        (np.array([104., 106., 108.]), np.array([19., 24., 32.]), np.array([18., 21., 24.])),
+    ]
+    g1 = np.array([0.1, -0.3, 0.5])
+    g2 = np.array([0.2, 0.4, -0.6])
+    cats = [treecorr.Catalog(x=x, y=y, z=z, g1=g1, g2=g2) for x, y, z in positions]
+    periodic_cats = [treecorr.Catalog(x=x % L, y=y % L, z=z % L, g1=g1, g2=g2)
+                     for x, y, z in positions]
+
+    gg = treecorr.GGCorrelation(min_sep=1., max_sep=20., nbins=4, bin_slop=0)
+    gg.process(cats[0], cats[1])
+    periodic_gg = treecorr.GGCorrelation(min_sep=1., max_sep=20., nbins=4, bin_slop=0,
+                                         period=L)
+    periodic_gg.process(periodic_cats[0], periodic_cats[1], metric='Periodic')
+
+    np.testing.assert_array_equal(periodic_gg.npairs, gg.npairs)
+    for periodic_xi, xi in zip(
+            [periodic_gg.xip, periodic_gg.xip_im, periodic_gg.xim, periodic_gg.xim_im],
+            [gg.xip, gg.xip_im, gg.xim, gg.xim_im]):
+        np.testing.assert_allclose(periodic_xi, xi, atol=1.e-12)
+
+    config = {
+        'min_sep': 1.,
+        'max_sep': 20.,
+        'nbins': 4,
+        'nphi_bins': 6,
+        'bin_type': 'LogSAS',
+        'bin_slop': 0,
+        'angle_slop': 0,
+    }
+    ggg = treecorr.GGGCorrelation(config)
+    ggg.process(*cats)
+    periodic_ggg = treecorr.GGGCorrelation(config, period=L)
+    periodic_ggg.process(*periodic_cats, metric='Periodic')
+
+    np.testing.assert_allclose(periodic_ggg.ntri, ggg.ntri, atol=1.e-12)
+    np.testing.assert_allclose(periodic_ggg.weight, ggg.weight, atol=1.e-12)
+    for periodic_gam, gam in zip(
+            [periodic_ggg.gam0, periodic_ggg.gam1, periodic_ggg.gam2, periodic_ggg.gam3],
+            [ggg.gam0, ggg.gam1, ggg.gam2, ggg.gam3]):
+        np.testing.assert_allclose(periodic_gam, gam, atol=1.e-12)
 
 
 @timer

@@ -37,9 +37,11 @@ struct MetricHelper;
 template <int P>  // P = 0 means minrpar and maxrpar are not given.
 struct ParHelper
 {
+    template <int M>
     static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                                    const double minrpar, const double maxrpar,
-                                   double s1ps2, double& rpar)
+                                   double s1ps2, double& rpar,
+                                   const MetricHelper<M,0>& metric)
     { return false; }
 
     static bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
@@ -51,18 +53,22 @@ struct ParHelper
 template <>
 struct ParHelper<1> // P = 1 for most Metrics (all except OldRPerp)
 {
-    static double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2)
+    template <int M>
+    static double calculateRPar(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
+                                const MetricHelper<M,1>& metric)
     {
-        Position<ThreeD> r = p2-p1;
-        Position<ThreeD> L = (p1+p2)*0.5;
+        Position<ThreeD> r = metric.Displacement(p1,p2);
+        Position<ThreeD> L = p1 + r*0.5;
         return r.dot(L) / L.norm();
     }
 
+    template <int M>
     static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                                    const double minrpar, const double maxrpar,
-                                   double s1ps2, double& rpar)
+                                   double s1ps2, double& rpar,
+                                   const MetricHelper<M,1>& metric)
     {
-        rpar = calculateRPar(p1,p2);
+        rpar = calculateRPar(p1,p2,metric);
         if (rpar + s1ps2 < minrpar) return true;
         else if (rpar - s1ps2 > maxrpar) return true;
         else return false;
@@ -88,9 +94,11 @@ struct ParHelper<2> // P = 1 for OldRPerp
         return r2-r1;  // Positive if p2 is in background of p1.
     }
 
+    template <int M>
     static bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                                    const double minrpar, const double maxrpar,
-                                   double s1ps2, double& rpar)
+                                   double s1ps2, double& rpar,
+                                   const MetricHelper<M,1>& metric)
     {
         rpar = calculateRPar(p1,p2);
         if (rpar + s1ps2 < minrpar) return true;
@@ -140,11 +148,11 @@ struct MetricHelper<Euclidean, P>
     //
     ///
 
+    Position<Flat> Displacement(const Position<Flat>& p1, const Position<Flat>& p2) const
+    { return p2-p1; }
+
     double DistSq(const Position<Flat>& p1, const Position<Flat>& p2, double& s1, double& s2) const
-    {
-        Position<Flat> r = p1-p2;
-        return r.normSq();
-    }
+    { return Displacement(p1,p2).normSq(); }
     double Dist(const Position<Flat>& p1, const Position<Flat>& p2) const
     {
         double s=0.;
@@ -154,8 +162,8 @@ struct MetricHelper<Euclidean, P>
     bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3) const
     {
         // If cross product r21 x r31 > 0, then the points are counter-clockwise.
-        Position<Flat> r21 = p2 - p1;
-        Position<Flat> r31 = p3 - p1;
+        Position<Flat> r21 = Displacement(p1,p2);
+        Position<Flat> r31 = Displacement(p1,p3);
         return r21.cross(r31) > 0.;
     }
 
@@ -194,12 +202,13 @@ struct MetricHelper<Euclidean, P>
     //
     ///
 
+    Position<ThreeD> Displacement(
+        const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
+    { return p2-p1; }
+
     double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                   double& s1, double& s2) const
-    {
-        Position<ThreeD> r = p1-p2;
-        return r.normSq();
-    }
+    { return Displacement(p1,p2).normSq(); }
     double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
     {
         double s=0.;
@@ -213,14 +222,14 @@ struct MetricHelper<Euclidean, P>
         // the same thing, computing the cross product with respect to point p1.  Then if the
         // cross product points back toward Earth, the points are viewed as counter-clockwise.
         // We check this last point by the dot product with p1.
-        Position<ThreeD> r21 = p2-p1;
-        Position<ThreeD> r31 = p3-p1;
+        Position<ThreeD> r21 = Displacement(p1,p2);
+        Position<ThreeD> r31 = Displacement(p1,p3);
         return r21.cross(r31).dot(p1) < 0.;
     }
 
     bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                             double s1ps2, double& rpar) const
-    { return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
+    { return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar,*this); }
 
     bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                            double s1ps2, double rpar) const
@@ -274,11 +283,15 @@ struct MetricHelper<OldRperp, P>
     MetricHelper(double _minrpar, double _maxrpar, double xp=0, double yp=0, double zp=0) :
         minrpar(_minrpar), maxrpar(_maxrpar) {}
 
+    Position<ThreeD> Displacement(
+        const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
+    { return p2-p1; }
+
     double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                   double& s1, double& s2) const
     {
         // r_perp^2 + r_parallel^2 = d^2
-        Position<ThreeD> r = p1-p2;
+        Position<ThreeD> r = Displacement(p1,p2);
         double d3sq = r.normSq();
         double r1sq = p1.normSq();
         double r2sq = p2.normSq();
@@ -330,14 +343,14 @@ struct MetricHelper<OldRperp, P>
     bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
              const Position<ThreeD>& p3) const
     {
-        Position<ThreeD> r21 = p2-p1;
-        Position<ThreeD> r31 = p3-p1;
+        Position<ThreeD> r21 = Displacement(p1,p2);
+        Position<ThreeD> r31 = Displacement(p1,p3);
         return r21.cross(r31).dot(p1) < 0.;
     }
 
     bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                             double s1ps2, double& rpar) const
-    { return ParHelper<2*P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
+    { return ParHelper<2*P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar,*this); }
 
     bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                            double s1ps2, double rpar) const
@@ -414,6 +427,10 @@ struct MetricHelper<Rperp, P>
     MetricHelper(double _minrpar, double _maxrpar, double xp=0, double yp=0, double zp=0) :
         minrpar(_minrpar), maxrpar(_maxrpar) {}
 
+    Position<ThreeD> Displacement(
+        const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
+    { return p2-p1; }
+
     double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                   double& s1, double& s2) const
     {
@@ -473,14 +490,14 @@ struct MetricHelper<Rperp, P>
     bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
              const Position<ThreeD>& p3) const
     {
-        Position<ThreeD> r21 = p2-p1;
-        Position<ThreeD> r31 = p3-p1;
+        Position<ThreeD> r21 = Displacement(p1,p2);
+        Position<ThreeD> r31 = Displacement(p1,p3);
         return r21.cross(r31).dot(p1) < 0.;
     }
 
     bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                             double s1ps2, double& rpar) const
-    { return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
+    { return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar,*this); }
 
     bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                            double s1ps2, double rpar) const
@@ -538,14 +555,17 @@ struct MetricHelper<Rperp, P>
         // Save this so we can use it later in tooLargeDist.
         _normLsq = normLsq;
 
-        double r1parsq = SQR(L.dot(p2-p3)) / normLsq;
-        d1sq = (p2-p3).normSq() - r1parsq;
+        Position<ThreeD> r1 = Displacement(p3,p2);
+        double r1parsq = SQR(L.dot(r1)) / normLsq;
+        d1sq = r1.normSq() - r1parsq;
 
-        double r2parsq = SQR(L.dot(p3-p1)) / normLsq;
-        d2sq = (p3-p1).normSq() - r2parsq;
+        Position<ThreeD> r2 = Displacement(p1,p3);
+        double r2parsq = SQR(L.dot(r2)) / normLsq;
+        d2sq = r2.normSq() - r2parsq;
 
-        double r3parsq = SQR(L.dot(p2-p1)) / normLsq;
-        d3sq = (p2-p1).normSq() - r3parsq;
+        Position<ThreeD> r3 = Displacement(p1,p2);
+        double r3parsq = SQR(L.dot(r3)) / normLsq;
+        d3sq = r3.normSq() - r3parsq;
     }
 
     template <int C>
@@ -573,6 +593,10 @@ struct MetricHelper<Rlens, P>
     MetricHelper(double _minrpar, double _maxrpar, double xp=0, double yp=0, double zp=0) :
         minrpar(_minrpar), maxrpar(_maxrpar) {}
 
+    Position<ThreeD> Displacement(
+        const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
+    { return p2-p1; }
+
     // The distance is measured perpendicular to the p2 direction at the distance of p1.
     double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                   double& s1, double& s2) const
@@ -598,14 +622,14 @@ struct MetricHelper<Rlens, P>
     bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
              const Position<ThreeD>& p3) const
     {
-        Position<ThreeD> r21 = p2-p1;
-        Position<ThreeD> r31 = p3-p1;
+        Position<ThreeD> r21 = Displacement(p1,p2);
+        Position<ThreeD> r31 = Displacement(p1,p3);
         return r21.cross(r31).dot(p1) < 0.;
     }
 
     bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                             double s1ps2, double& rpar) const
-    { return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
+    { return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar,*this); }
 
     bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                            double s1ps2, double rpar) const
@@ -665,6 +689,10 @@ struct MetricHelper<Arc, P>
     MetricHelper(double _minrpar, double _maxrpar, double xp=0, double yp=0, double zp=0) :
         minrpar(_minrpar), maxrpar(_maxrpar) {}
 
+    Position<ThreeD> Displacement(
+        const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
+    { return p2-p1; }
+
     double DistSq(const Position<Sphere>& p1, const Position<Sphere>& p2,
                   double& s1, double& s2) const
     { return SQR(Dist(p1,p2)); }
@@ -675,7 +703,7 @@ struct MetricHelper<Arc, P>
         // L = 2 sin(theta/2)
         // L is the normal Euclidean distance.
         // theta is the Arc distance.
-        Position<ThreeD> r = p1-p2;
+        Position<ThreeD> r = Displacement(p1,p2);
         double L = r.norm();
         double theta = 2. * std::asin(L/2.);
         return theta;
@@ -685,8 +713,8 @@ struct MetricHelper<Arc, P>
     bool CCW(const Position<Sphere>& p1, const Position<Sphere>& p2,
              const Position<Sphere>& p3) const
     {
-        Position<ThreeD> r21 = p2-p1;
-        Position<ThreeD> r31 = p3-p1;
+        Position<ThreeD> r21 = Displacement(p1,p2);
+        Position<ThreeD> r31 = Displacement(p1,p3);
         return r21.cross(r31).dot(p1) < 0.;
     }
 
@@ -725,8 +753,8 @@ struct MetricHelper<Arc, P>
     bool CCW(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
              const Position<ThreeD>& p3) const
     {
-        Position<ThreeD> r21 = p2-p1;
-        Position<ThreeD> r31 = p3-p1;
+        Position<ThreeD> r21 = Displacement(p1,p2);
+        Position<ThreeD> r31 = Displacement(p1,p3);
         return r21.cross(r31).dot(p1) < 0.;
     }
 
@@ -737,7 +765,7 @@ struct MetricHelper<Arc, P>
         // So scale them back up here.  (Use the farther distance to be conservative.)
         return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,
                                                 s1ps2 * std::max(p1.norm(), p2.norm()),
-                                                rpar);
+                                                rpar, *this);
     }
 
     bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
@@ -793,9 +821,9 @@ struct MetricHelper<Arc, P>
         // Rather than do trig though, recompute the chord lengths so we can compute
         // cos(phi) with just regular arithmetic and a sqrt.
         //
-        double d1sq = (p2 - p3).normSq();
-        double d2sq = (p1 - p3).normSq();
-        double d3sq = (p1 - p2).normSq();
+        double d1sq = Displacement(p2,p3).normSq();
+        double d2sq = Displacement(p1,p3).normSq();
+        double d3sq = Displacement(p1,p2).normSq();
 
         double cosphi = (d2sq + d3sq - 0.5*d2sq*d3sq - d1sq);
         cosphi /= 2. * std::sqrt( d2sq * d3sq * (1.-0.25*d2sq) * (1.-0.25*d3sq) );
@@ -828,14 +856,16 @@ struct MetricHelper<Periodic, P>
     //
     ///
 
+    Position<Flat> Displacement(const Position<Flat>& p1, const Position<Flat>& p2) const
+    {
+        Position<Flat> r = p2-p1;
+        r.wrap(xp, yp);
+        return r;
+    }
+
     double DistSq(const Position<Flat>& p1, const Position<Flat>& p2,
                   double& s1, double& s2) const
-    {
-        // Mostly the changes here are just to wrap each difference given the periods.
-        Position<Flat> r = p1-p2;
-        r.wrap(xp, yp);
-        return r.normSq();
-    }
+    { return Displacement(p1,p2).normSq(); }
     double Dist(const Position<Flat>& p1, const Position<Flat>& p2) const
     {
         double s=0.;
@@ -845,10 +875,8 @@ struct MetricHelper<Periodic, P>
     bool CCW(const Position<Flat>& p1, const Position<Flat>& p2, const Position<Flat>& p3) const
     {
         // If cross product r21 x r31 > 0, then the points are counter-clockwise.
-        Position<Flat> r21 = p2 - p1;
-        Position<Flat> r31 = p3 - p1;
-        r21.wrap(xp, yp);
-        r31.wrap(xp, yp);
+        Position<Flat> r21 = Displacement(p1,p2);
+        Position<Flat> r31 = Displacement(p1,p3);
         return r21.cross(r31) > 0.;
     }
 
@@ -886,13 +914,17 @@ struct MetricHelper<Periodic, P>
     //
     ///
 
+    Position<ThreeD> Displacement(
+        const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
+    {
+        Position<ThreeD> r = p2-p1;
+        r.wrap(xp, yp, zp);
+        return r;
+    }
+
     double DistSq(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                   double& s1, double& s2) const
-    {
-        Position<ThreeD> r = p1-p2;
-        r.wrap(xp, yp, zp);
-        return r.normSq();
-    }
+    { return Displacement(p1,p2).normSq(); }
     double Dist(const Position<ThreeD>& p1, const Position<ThreeD>& p2) const
     {
         double s=0.;
@@ -906,16 +938,14 @@ struct MetricHelper<Periodic, P>
         // the same thing, computing the cross product with respect to point p1.  Then if the
         // cross product points back toward Earth, the points are viewed as counter-clockwise.
         // We check this last point by the dot product with p1.
-        Position<ThreeD> r21 = p2-p1;
-        Position<ThreeD> r31 = p3-p1;
-        r21.wrap(xp, yp, zp);
-        r31.wrap(xp, yp, zp);
-        return r21.cross(r31).dot(p1) < 0.;
+        Position<ThreeD> r12 = Displacement(p1,p2);
+        Position<ThreeD> r13 = Displacement(p1,p3);
+        return r12.cross(r13).dot(p1) < 0.;
     }
 
     bool isRParOutsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                             double s1ps2, double& rpar) const
-    { return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar); }
+    { return ParHelper<P>::isRParOutsideRange(p1,p2,minrpar,maxrpar,s1ps2,rpar,*this); }
 
     bool isRParInsideRange(const Position<ThreeD>& p1, const Position<ThreeD>& p2,
                            double s1ps2, double rpar) const

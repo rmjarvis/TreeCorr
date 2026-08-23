@@ -1615,8 +1615,10 @@ struct BinTypeHelper<LogMultipole>
 
         // Calculate cosphi, sinphi for this triangle.
         // (We use the u variable for sinphi in this class.)
-        std::complex<double> r3 = ProjectHelper<C>::ExpIPhi(p1, p2, d3);
-        std::complex<double> r2 = ProjectHelper<C>::ExpIPhi(p1, p3, d2);
+        std::complex<double> r3 =
+            ProjectHelper<C>::ExpIPhi(p1, p2, d3, metric.Displacement(p1,p2));
+        std::complex<double> r2 =
+            ProjectHelper<C>::ExpIPhi(p1, p3, d2, metric.Displacement(p1,p3));
         std::complex<double> expiphi = r3 * std::conj(r2);
         cosphi = std::real(expiphi);
         sinphi = std::imag(expiphi);

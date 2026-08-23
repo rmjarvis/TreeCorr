@@ -351,7 +351,7 @@ void BaseCorr2::process11(const BaseCell<C>& c1, const BaseCell<C>& c2,
     {
         xdbg<<"Drop into single bin.\n";
         if (BinTypeHelper<B>::isRSqInRange(rsq, p1, p2, _minsep, _minsepsq, _maxsep, _maxsepsq)) {
-            directProcess11<B,Q,R>(c1,c2,rsq,k,r,logr);
+            directProcess11<B,Q,R>(c1,c2,rsq,metric.Displacement(p1,p2),k,r,logr);
         }
     } else {
         xdbg<<"Need to split.\n";
@@ -397,10 +397,10 @@ struct DirectHelper;
 template <>
 struct DirectHelper<0>
 {
-    template <int R, int C>
+    template <int R, int C, int Cx>
     static void ProcessXi(
         const Cell<NData,C>& , const Cell<NData,C>& , const double ,
-        XiData<NData,NData>& , int, int )
+        const Position<Cx>&, XiData<NData,NData>& , int, int)
     {}
 };
 
@@ -408,10 +408,10 @@ struct DirectHelper<0>
 template <>
 struct DirectHelper<1>
 {
-    template <int R, int D1, int D2, int C>
+    template <int R, int D1, int D2, int C, int Cx>
     static void ProcessXi(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double ,
-        XiData<D1,D2>& xi, int k, int k2)
+        const Position<Cx>&, XiData<D1,D2>& xi, int k, int k2)
     { 
         double wkk = getWK(c1) * getWK(c2);
         xi.xi[k] += wkk;
@@ -423,13 +423,13 @@ struct DirectHelper<1>
 template <>
 struct DirectHelper<2>
 {
-    template <int R, int D1, int D2, int C>
+    template <int R, int D1, int D2, int C, int Cx>
     static void ProcessXi(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double rsq,
-        XiData<D1,D2>& xi, int k, int )
+        const Position<Cx>& r12, XiData<D1,D2>& xi, int k, int)
     {
         std::complex<double> g2 = c2.getWZ();
-        ProjectHelper<C>::Project(c1,c2,g2);
+        ProjectHelper<C>::Project(c1,c2,r12,g2);
         // For GData only, we multiply by -1, because the standard thing to accumulate is
         // the tangential shear, rather than radial.  Everyone else accumulates the radial
         // value (which is what Project returns).
@@ -444,14 +444,14 @@ struct DirectHelper<2>
 template <>
 struct DirectHelper<3>
 {
-    template <int R, int D1, int D2, int C>
+    template <int R, int D1, int D2, int C, int Cx>
     static void ProcessXi(
         const Cell<D1,C>& c1, const Cell<D2,C>& c2, const double rsq,
-        XiData<D1,D2>& xi, int k, int k2)
+        const Position<Cx>& r12, XiData<D1,D2>& xi, int k, int k2)
     {
         std::complex<double> g1 = c1.getWZ();
         std::complex<double> g2 = c2.getWZ();
-        ProjectHelper<C>::Project(c1,c2,g1,g2);
+        ProjectHelper<C>::Project(c1,c2,r12,g1,g2);
 
         // The complex products g1 g2 and g1 g2* share most of the calculations,
         // so faster to do this manually, which we do in both_complex_prod.
@@ -472,10 +472,10 @@ struct DirectHelper<3>
     }
 };
 
-template <int B, int Q, int R, int C>
+template <int B, int Q, int R, int C, int Cx>
 void BaseCorr2::directProcess11(
     const BaseCell<C>& c1, const BaseCell<C>& c2, const double rsq,
-    int k, double r, double logr)
+    const Position<Cx>& r12, int k, double r, double logr)
 {
     xdbg<<"DirectProcess11: rsq = "<<rsq<<"  r = "<<sqrt(rsq)<<std::endl;
     xdbg<<"p1 = "<<c1.getPos()<<"  p2 = "<<c2.getPos()<<std::endl;
@@ -520,12 +520,13 @@ void BaseCorr2::directProcess11(
         if (k2 == _nbins) --k2;  // As before, this can (rarely) happen.
     }
 
-    finishProcess<Q,R>(c1, c2, rsq, r, logr, k, k2);
+    finishProcess<Q,R>(c1, c2, rsq, r12, r, logr, k, k2);
 }
 
-template <int D1, int D2> template <int Q, int R, int C>
+template <int D1, int D2> template <int Q, int R, int C, int Cx>
 void Corr2<D1,D2>::finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,
-                                 double rsq, double r, double logr, int k, int k2)
+                                 double rsq, const Position<Cx>& r12,
+                                 double r, double logr, int k, int k2)
 {
     double ww = double(c1.getW()) * double(c2.getW());
     _weight[k] += ww;
@@ -561,7 +562,7 @@ void Corr2<D1,D2>::finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2,
     DirectHelper<algo>::template ProcessXi<R*(D1==D2)>(
         static_cast<const Cell<D1,C>&>(c1),
         static_cast<const Cell<D2,C>&>(c2),
-        rsq,_xi,k,k2);
+        rsq,r12,_xi,k,k2);
 }
 
 template <int D1, int D2>
@@ -661,10 +662,10 @@ void SelectRandomFrom(long m, std::vector<long>& selection)
     }
 }
 
-template <int Q, int R, int C>
+template <int Q, int R, int C, int Cx>
 void Sampler::finishProcess(
     const BaseCell<C>& c1, const BaseCell<C>& c2,
-    double rsq, double r, double logr, int kk, int kk2)
+    double rsq, const Position<Cx>& r12, double r, double logr, int kk, int kk2)
 {
     // At the start, k pairs will already have been considered for selection.
     // Of these min(k,n) will have been selected for inclusion in the lists.

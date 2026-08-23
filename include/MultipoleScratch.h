@@ -89,11 +89,11 @@ struct BaseMultipoleScratch
     virtual std::complex<double> correction1(int k) = 0;
     virtual std::complex<double> correction2(int k) = 0;
 
-    template <int C>
+    template <int C, int Cx>
     void calculateGn(
         const BaseCell<C>& c1, const BaseCell<C>& c2,
-        double rsq, double r, int k, double w)
-    { doCalculateGn(c1, c2, rsq, r, k, w); }
+        double rsq, const Position<Cx>& r12, double r, int k, double w)
+    { doCalculateGn(c1, c2, rsq, r12, r, k, w); }
 
     const bool ww;
     const int nbins;
@@ -114,13 +114,13 @@ protected:
 
     virtual void doCalculateGn(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-        double rsq, double r, int k, double w) = 0;
+        double rsq, const Position<Flat>& r12, double r, int k, double w) = 0;
     virtual void doCalculateGn(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-        double rsq, double r, int k, double w) = 0;
+        double rsq, const Position<ThreeD>& r12, double r, int k, double w) = 0;
     virtual void doCalculateGn(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-        double rsq, double r, int k, double w) = 0;
+        double rsq, const Position<ThreeD>& r12, double r, int k, double w) = 0;
 
 };
 
@@ -186,26 +186,26 @@ struct MultipoleScratch<NData> : public BaseMultipoleScratch
     std::complex<double> correction2(int k)
     { XAssert(false); return sumww[k]; }
 
-    template <int C>
+    template <int C, int Cx>
     void calculateGn(
         const BaseCell<C>& c1, const Cell<NData,C>& c2,
-        double rsq, double r, int k, double w);
+        double rsq, const Position<Cx>& r12, double r, int k, double w);
 
     std::vector<std::complex<double> > sumwwzz;
 
 protected:
     void doCalculateGn(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-        double rsq, double r, int k, double w)
-    { calculateGn(c1, static_cast<const Cell<NData,Flat>&>(c2), rsq, r, k, w); }
+        double rsq, const Position<Flat>& r12, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<NData,Flat>&>(c2), rsq, r12, r, k, w); }
     void doCalculateGn(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-        double rsq, double r, int k, double w)
-    { calculateGn(c1, static_cast<const Cell<NData,Sphere>&>(c2), rsq, r, k, w); }
+        double rsq, const Position<ThreeD>& r12, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<NData,Sphere>&>(c2), rsq, r12, r, k, w); }
     void doCalculateGn(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-        double rsq, double r, int k, double w)
-    { calculateGn(c1, static_cast<const Cell<NData,ThreeD>&>(c2), rsq, r, k, w); }
+        double rsq, const Position<ThreeD>& r12, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<NData,ThreeD>&>(c2), rsq, r12, r, k, w); }
 };
 
 // KData needs Gn and sumwwkk
@@ -272,24 +272,24 @@ struct MultipoleScratch<KData> : public BaseMultipoleScratch
     std::vector<std::complex<double> > _Gn;
     std::vector<std::complex<double> > sumwwkk;
 
-    template <int C>
+    template <int C, int Cx>
     void calculateGn(
         const BaseCell<C>& c1, const Cell<KData,C>& c2,
-        double rsq, double r, int k, double w);
+        double rsq, const Position<Cx>& r12, double r, int k, double w);
 
 protected:
     void doCalculateGn(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-        double rsq, double r, int k, double w)
-    { calculateGn(c1, static_cast<const Cell<KData,Flat>&>(c2), rsq, r, k, w); }
+        double rsq, const Position<Flat>& r12, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<KData,Flat>&>(c2), rsq, r12, r, k, w); }
     void doCalculateGn(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-        double rsq, double r, int k, double w)
-    { calculateGn(c1, static_cast<const Cell<KData,Sphere>&>(c2), rsq, r, k, w); }
+        double rsq, const Position<ThreeD>& r12, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<KData,Sphere>&>(c2), rsq, r12, r, k, w); }
     void doCalculateGn(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-        double rsq, double r, int k, double w)
-    { calculateGn(c1, static_cast<const Cell<KData,ThreeD>&>(c2), rsq, r, k, w); }
+        double rsq, const Position<ThreeD>& r12, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<KData,ThreeD>&>(c2), rsq, r12, r, k, w); }
 };
 
 // GData needs a bigger Gn and several extra ww arrays.
@@ -362,24 +362,24 @@ struct MultipoleScratch<GData> : public BaseMultipoleScratch
     std::vector<std::complex<double> > sumwwgg1;
     std::vector<std::complex<double> > sumwwgg2;
 
-    template <int C>
+    template <int C, int Cx>
     void calculateGn(
         const BaseCell<C>& c1, const Cell<GData,C>& c2,
-        double rsq, double r, int k, double w);
+        double rsq, const Position<Cx>& r12, double r, int k, double w);
 
 protected:
     void doCalculateGn(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-        double rsq, double r, int k, double w)
-    { calculateGn(c1, static_cast<const Cell<GData,Flat>&>(c2), rsq, r, k, w); }
+        double rsq, const Position<Flat>& r12, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<GData,Flat>&>(c2), rsq, r12, r, k, w); }
     void doCalculateGn(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-        double rsq, double r, int k, double w)
-    { calculateGn(c1, static_cast<const Cell<GData,Sphere>&>(c2), rsq, r, k, w); }
+        double rsq, const Position<ThreeD>& r12, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<GData,Sphere>&>(c2), rsq, r12, r, k, w); }
     void doCalculateGn(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-        double rsq, double r, int k, double w)
-    { calculateGn(c1, static_cast<const Cell<GData,ThreeD>&>(c2), rsq, r, k, w); }
+        double rsq, const Position<ThreeD>& r12, double r, int k, double w)
+    { calculateGn(c1, static_cast<const Cell<GData,ThreeD>&>(c2), rsq, r12, r, k, w); }
 };
 
 #endif

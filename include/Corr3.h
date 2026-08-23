@@ -104,9 +104,11 @@ public:
                           const MetricHelper<M,P>& metric,
                           double d1sq=0., double d2sq=0., double d3sq=0.);
 
-    template <int B, int Q, int C>
+    template <int B, int Q, int C, int Cx>
     void directProcess111(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
                           const double d1, const double d2, const double d3,
+                          const Position<Cx>& r23, const Position<Cx>& r13,
+                          const Position<Cx>& r12,
                           const double u, const double v,
                           const double logd1, const double logd2, const double logd3,
                           const int index);
@@ -148,30 +150,35 @@ public:
                          BaseMultipoleScratch& mp2, BaseMultipoleScratch& mp3,
                          int mink_zeta, double maxr2, double maxr3);
 
-    template <int Q, int C>
+    template <int Q, int C, int Cx>
     void finishProcess(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
                        const double d1, const double d2, const double d3,
+                       const Position<Cx>& r23, const Position<Cx>& r13,
+                       const Position<Cx>& r12,
                        const double u, const double v,
                        const double logd1, const double logd2, const double logd3,
                        const int index)
-    { doFinishProcess(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index, Q1<Q>()); }
+    { doFinishProcess(c1, c2, c3, d1, d2, d3, r23, r13, r12, u, v,
+                      logd1, logd2, logd3, index, Q1<Q>()); }
 
-    template <int Q, int C>
+    template <int Q, int C, int Cx>
     void finishProcessMP(const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
                          const double d1, const double d2, const double d3,
+                         const Position<Cx>& r23, const Position<Cx>& r13,
+                         const Position<Cx>& r12,
                          const double sinphi, const double cosphi,
                          const double logd1, const double logd2, const double logd3,
                          const int index)
     {
-        doFinishProcessMP(c1, c2, c3, d1, d2, d3, sinphi, cosphi, logd1, logd2, logd3, index,
-                          Q1<Q>());
+        doFinishProcessMP(c1, c2, c3, d1, d2, d3, r23, r13, r12, sinphi, cosphi,
+                          logd1, logd2, logd3, index, Q1<Q>());
     }
 
-    template <int C>
+    template <int C, int Cx>
     void calculateGn(const BaseCell<C>& c1, const BaseCell<C>& c2,
-                     double rsq, double r, double logr, int k,
-                     BaseMultipoleScratch& mp)
-    { doCalculateGn(c1, c2, rsq, r, logr, k, mp); }
+                     double rsq, const Position<Cx>& r12,
+                     double r, double logr, int k, BaseMultipoleScratch& mp)
+    { doCalculateGn(c1, c2, rsq, r12, r, logr, k, mp); }
 
     template <int Q, int C>
     void calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch& mp,
@@ -195,77 +202,104 @@ protected:
     // This bit is a workaround for the fact that virtual functions cannot be templates.
     virtual void doFinishProcess(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
-        const double d1, const double d2, const double d3, const double u, const double v,
+        const double d1, const double d2, const double d3,
+        const Position<Flat>& r23, const Position<Flat>& r13, const Position<Flat>& r12,
+        const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<0>) =0;
     virtual void doFinishProcess(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
-        const double d1, const double d2, const double d3, const double u, const double v,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<0>) =0;
     virtual void doFinishProcess(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
-        const double d1, const double d2, const double d3, const double u, const double v,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<0>) =0;
 
     virtual void doFinishProcess(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
-        const double d1, const double d2, const double d3, const double u, const double v,
+        const double d1, const double d2, const double d3,
+        const Position<Flat>& r23, const Position<Flat>& r13, const Position<Flat>& r12,
+        const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<1>) =0;
     virtual void doFinishProcess(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
-        const double d1, const double d2, const double d3, const double u, const double v,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<1>) =0;
     virtual void doFinishProcess(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
-        const double d1, const double d2, const double d3, const double u, const double v,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<1>) =0;
 
     virtual void doFinishProcessMP(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
-        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double d1, const double d2, const double d3,
+        const Position<Flat>& r23, const Position<Flat>& r13, const Position<Flat>& r12,
+        const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<0>) =0;
     virtual void doFinishProcessMP(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
-        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<0>) =0;
     virtual void doFinishProcessMP(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
-        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<0>) =0;
 
     virtual void doFinishProcessMP(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
-        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double d1, const double d2, const double d3,
+        const Position<Flat>& r23, const Position<Flat>& r13, const Position<Flat>& r12,
+        const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<1>) =0;
     virtual void doFinishProcessMP(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
-        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<1>) =0;
     virtual void doFinishProcessMP(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
-        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<1>) =0;
 
     virtual void doCalculateGn(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-        double rsq, double r, double logr, int k, BaseMultipoleScratch& mp) =0;
+        double rsq, const Position<Flat>& r12,
+        double r, double logr, int k, BaseMultipoleScratch& mp) =0;
     virtual void doCalculateGn(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-        double rsq, double r, double logr, int k, BaseMultipoleScratch& mp) =0;
+        double rsq, const Position<ThreeD>& r12,
+        double r, double logr, int k, BaseMultipoleScratch& mp) =0;
     virtual void doCalculateGn(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-        double rsq, double r, double logr, int k, BaseMultipoleScratch& mp) =0;
+        double rsq, const Position<ThreeD>& r12,
+        double r, double logr, int k, BaseMultipoleScratch& mp) =0;
 
     virtual void doCalculateZeta(const BaseCell<Flat>& c1, BaseMultipoleScratch& mp,
                                  int kstart, int mink_zeta, Q1<0>) =0;
@@ -371,24 +405,29 @@ public:
     void writeZeta(std::ostream& os, int n=1) const
     { _zeta.write_full(os, n); }
 
-    template <int Q, int C>
+    template <int Q, int C, int Cx>
     void finishProcess(
         const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-        const double d1, const double d2, const double d3, const double u, const double v,
+        const double d1, const double d2, const double d3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
+        const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index);
 
-    template <int Q, int C>
+    template <int Q, int C, int Cx>
     void finishProcessMP(
         const BaseCell<C>& c1, const BaseCell<C>& c2, const BaseCell<C>& c3,
-        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double d1, const double d2, const double d3,
+        const Position<Cx>& r23, const Position<Cx>& r13, const Position<Cx>& r12,
+        const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index);
 
     std::unique_ptr<BaseMultipoleScratch> getMP2(bool use_ww);
     std::unique_ptr<BaseMultipoleScratch> getMP3(bool use_ww);
 
-    template <int C>
+    template <int C, int Cx>
     void calculateGn(const BaseCell<C>& c1, const BaseCell<C>& c2,
-                     double rsq, double r, double logr, int k, BaseMultipoleScratch& mp);
+                     double rsq, const Position<Cx>& r12,
+                     double r, double logr, int k, BaseMultipoleScratch& mp);
 
     template <int Q, int C>
     void calculateZeta(const BaseCell<C>& c1, BaseMultipoleScratch& mp,
@@ -407,92 +446,119 @@ protected:
 
     void doFinishProcess(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
-        const double d1, const double d2, const double d3, const double u, const double v,
+        const double d1, const double d2, const double d3,
+        const Position<Flat>& r23, const Position<Flat>& r13, const Position<Flat>& r12,
+        const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<0>)
-    { finishProcess<0>(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index); }
+    { finishProcess<0>(c1, c2, c3, d1, d2, d3, r23, r13, r12, u, v, logd1, logd2, logd3, index); }
     void doFinishProcess(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
-        const double d1, const double d2, const double d3, const double u, const double v,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<0>)
-    { finishProcess<0>(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index); }
+    { finishProcess<0>(c1, c2, c3, d1, d2, d3, r23, r13, r12, u, v, logd1, logd2, logd3, index); }
     void doFinishProcess(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
-        const double d1, const double d2, const double d3, const double u, const double v,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<0>)
-    { finishProcess<0>(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index); }
+    { finishProcess<0>(c1, c2, c3, d1, d2, d3, r23, r13, r12, u, v, logd1, logd2, logd3, index); }
 
     void doFinishProcess(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
-        const double d1, const double d2, const double d3, const double u, const double v,
+        const double d1, const double d2, const double d3,
+        const Position<Flat>& r23, const Position<Flat>& r13, const Position<Flat>& r12,
+        const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<1>)
-    { finishProcess<1>(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index); }
+    { finishProcess<1>(c1, c2, c3, d1, d2, d3, r23, r13, r12, u, v, logd1, logd2, logd3, index); }
     void doFinishProcess(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
-        const double d1, const double d2, const double d3, const double u, const double v,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<1>)
-    { finishProcess<1>(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index); }
+    { finishProcess<1>(c1, c2, c3, d1, d2, d3, r23, r13, r12, u, v, logd1, logd2, logd3, index); }
     void doFinishProcess(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
-        const double d1, const double d2, const double d3, const double u, const double v,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double u, const double v,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<1>)
-    { finishProcess<1>(c1, c2, c3, d1, d2, d3, u, v, logd1, logd2, logd3, index); }
+    { finishProcess<1>(c1, c2, c3, d1, d2, d3, r23, r13, r12, u, v, logd1, logd2, logd3, index); }
 
     void doFinishProcessMP(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
-        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double d1, const double d2, const double d3,
+        const Position<Flat>& r23, const Position<Flat>& r13, const Position<Flat>& r12,
+        const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<0>)
-    { finishProcessMP<0>(c1, c2, c3, d1, d2, d3, sinphi, cosphi, logd1, logd2, logd3, index); }
+    { finishProcessMP<0>(c1, c2, c3, d1, d2, d3, r23, r13, r12, sinphi, cosphi, logd1, logd2, logd3, index); }
     void doFinishProcessMP(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
-        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<0>)
-    { finishProcessMP<0>(c1, c2, c3, d1, d2, d3, sinphi, cosphi, logd1, logd2, logd3, index); }
+    { finishProcessMP<0>(c1, c2, c3, d1, d2, d3, r23, r13, r12, sinphi, cosphi, logd1, logd2, logd3, index); }
     void doFinishProcessMP(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
-        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<0>)
-    { finishProcessMP<0>(c1, c2, c3, d1, d2, d3, sinphi, cosphi, logd1, logd2, logd3, index); }
+    { finishProcessMP<0>(c1, c2, c3, d1, d2, d3, r23, r13, r12, sinphi, cosphi, logd1, logd2, logd3, index); }
 
     void doFinishProcessMP(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2, const BaseCell<Flat>& c3,
-        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double d1, const double d2, const double d3,
+        const Position<Flat>& r23, const Position<Flat>& r13, const Position<Flat>& r12,
+        const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<1>)
-    { finishProcessMP<1>(c1, c2, c3, d1, d2, d3, sinphi, cosphi, logd1, logd2, logd3, index); }
+    { finishProcessMP<1>(c1, c2, c3, d1, d2, d3, r23, r13, r12, sinphi, cosphi, logd1, logd2, logd3, index); }
     void doFinishProcessMP(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2, const BaseCell<Sphere>& c3,
-        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<1>)
-    { finishProcessMP<1>(c1, c2, c3, d1, d2, d3, sinphi, cosphi, logd1, logd2, logd3, index); }
+    { finishProcessMP<1>(c1, c2, c3, d1, d2, d3, r23, r13, r12, sinphi, cosphi, logd1, logd2, logd3, index); }
     void doFinishProcessMP(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2, const BaseCell<ThreeD>& c3,
-        const double d1, const double d2, const double d3, const double sinphi, const double cosphi,
+        const double d1, const double d2, const double d3,
+        const Position<ThreeD>& r23, const Position<ThreeD>& r13, const Position<ThreeD>& r12,
+        const double sinphi, const double cosphi,
         const double logd1, const double logd2, const double logd3, const int index,
         Q1<1>)
-    { finishProcessMP<1>(c1, c2, c3, d1, d2, d3, sinphi, cosphi, logd1, logd2, logd3, index); }
+    { finishProcessMP<1>(c1, c2, c3, d1, d2, d3, r23, r13, r12, sinphi, cosphi, logd1, logd2, logd3, index); }
 
     void doCalculateGn(
         const BaseCell<Flat>& c1, const BaseCell<Flat>& c2,
-        double rsq, double r, double logr, int k, BaseMultipoleScratch& mp)
-    { calculateGn(c1, c2, rsq, r, logr, k, mp); }
+        double rsq, const Position<Flat>& r12,
+        double r, double logr, int k, BaseMultipoleScratch& mp)
+    { calculateGn(c1, c2, rsq, r12, r, logr, k, mp); }
     void doCalculateGn(
         const BaseCell<Sphere>& c1, const BaseCell<Sphere>& c2,
-        double rsq, double r, double logr, int k, BaseMultipoleScratch& mp)
-    { calculateGn(c1, c2, rsq, r, logr, k, mp); }
+        double rsq, const Position<ThreeD>& r12,
+        double r, double logr, int k, BaseMultipoleScratch& mp)
+    { calculateGn(c1, c2, rsq, r12, r, logr, k, mp); }
     void doCalculateGn(
         const BaseCell<ThreeD>& c1, const BaseCell<ThreeD>& c2,
-        double rsq, double r, double logr, int k, BaseMultipoleScratch& mp)
-    { calculateGn(c1, c2, rsq, r, logr, k, mp); }
+        double rsq, const Position<ThreeD>& r12,
+        double r, double logr, int k, BaseMultipoleScratch& mp)
+    { calculateGn(c1, c2, rsq, r12, r, logr, k, mp); }
 
     void doCalculateZeta(const BaseCell<Flat>& c1, BaseMultipoleScratch& mp,
                          int kstart, int mink_zeta, Q1<0>)

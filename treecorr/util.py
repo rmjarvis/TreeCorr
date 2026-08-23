@@ -336,6 +336,8 @@ def parse_metric(metric, coords, coords2=None, coords3=None):
         raise ValueError("Rlens metric is only valid for catalogs with 3d positions.")
     if metric == 'Arc' and coords not in ['spherical', '3d']:
         raise ValueError("Arc metric is only valid for catalogs with spherical positions.")
+    if metric == 'Periodic' and coords == 'spherical':
+        raise ValueError("Periodic metric is not valid for catalogs with spherical positions.")
 
     return coords, metric
 

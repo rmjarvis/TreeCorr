@@ -95,6 +95,8 @@ public:
     { Position<Flat> p1 = *this; p1 *= a; return p1; }
     Position<Flat> operator/(double a) const
     { Position<Flat> p1 = *this; p1 /= a; return p1; }
+    Position<Flat> operator-() const
+    { return *this * -1.; }
 
     bool operator==(const Position<Flat>& p2) const
     { return _x == p2.getX() && _y == p2.getY(); }
@@ -194,6 +196,8 @@ public:
     { Position<ThreeD> p1 = *this; p1 *= a; return p1; }
     Position<ThreeD> operator/(double a) const
     { Position<ThreeD> p1 = *this; p1 /= a; return p1; }
+    Position<ThreeD> operator-() const
+    { return *this * -1.; }
 
     bool operator==(const Position<ThreeD>& p2) const
     { return _x == p2.getX() && _y == p2.getY() && _z == p2.getZ(); }
@@ -276,6 +280,8 @@ public:
     { Position<ThreeD> p1 = *this; p1 *= a; return p1; }
     Position<ThreeD> operator/(double a) const
     { Position<ThreeD> p1 = *this; p1 /= a; return p1; }
+    Position<Sphere> operator-() const
+    { return Position<Sphere>(*this * -1.); }
 
 }; // Position<Sphere>
 

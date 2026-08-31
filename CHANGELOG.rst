@@ -62,3 +62,10 @@ Changes from version 5.1.2 to 5.1.3
 - Fixed a minor bug in the KMeans++ initialization option for the KMeans algorithm (#191)
 - Fixed a bug in the Arc metric when points are more than 90 degrees apart. (#192, #193)
 - Removed pin on pybind11, since they fixed the problem in their version 3.0.1.
+
+Changes from version 5.1.3 to 5.1.4
+-----------------------------------
+
+- Fixed a bug in how the three-point calculations worked with metric=Periodic. The error
+  extended to some two-point calculations as well, which were also fixed. Thanks to
+  Arian Esmaieli for the bug report. (#199, #200)

@@ -6,14 +6,14 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Input Data &mdash; TreeCorr 5.1.3 documentation</title>
+  <title>Input Data &mdash; TreeCorr 5.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="_static/css/theme.css?v=e59714d7" />
 
   
       <script src="_static/jquery.js?v=5d32c60e"></script>
       <script src="_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="_static/documentation_options.js?v=88590691"></script>
+      <script src="_static/documentation_options.js?v=7d0012f7"></script>
       <script src="_static/doctools.js?v=9bcbadda"></script>
       <script src="_static/sphinx_highlight.js?v=dc90522c"></script>
       <script async="async" src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
@@ -97,6 +97,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#file-readers">File Readers</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#treecorr.reader.FitsReader"><code class="docutils literal notranslate"><span class="pre">FitsReader</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.FitsReader.check_valid_ext"><code class="docutils literal notranslate"><span class="pre">FitsReader.check_valid_ext()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.FitsReader.has_col"><code class="docutils literal notranslate"><span class="pre">FitsReader.has_col()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.FitsReader.names"><code class="docutils literal notranslate"><span class="pre">FitsReader.names()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.FitsReader.read"><code class="docutils literal notranslate"><span class="pre">FitsReader.read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.FitsReader.read_array"><code class="docutils literal notranslate"><span class="pre">FitsReader.read_array()</span></code></a></li>
@@ -107,6 +108,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#treecorr.reader.HdfReader"><code class="docutils literal notranslate"><span class="pre">HdfReader</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.HdfReader.check_valid_ext"><code class="docutils literal notranslate"><span class="pre">HdfReader.check_valid_ext()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.HdfReader.has_col"><code class="docutils literal notranslate"><span class="pre">HdfReader.has_col()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.HdfReader.names"><code class="docutils literal notranslate"><span class="pre">HdfReader.names()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.HdfReader.read"><code class="docutils literal notranslate"><span class="pre">HdfReader.read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.HdfReader.read_array"><code class="docutils literal notranslate"><span class="pre">HdfReader.read_array()</span></code></a></li>
@@ -117,6 +119,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#treecorr.reader.AsciiReader"><code class="docutils literal notranslate"><span class="pre">AsciiReader</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.AsciiReader.check_valid_ext"><code class="docutils literal notranslate"><span class="pre">AsciiReader.check_valid_ext()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.AsciiReader.has_col"><code class="docutils literal notranslate"><span class="pre">AsciiReader.has_col()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.AsciiReader.names"><code class="docutils literal notranslate"><span class="pre">AsciiReader.names()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.AsciiReader.read"><code class="docutils literal notranslate"><span class="pre">AsciiReader.read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.AsciiReader.read_array"><code class="docutils literal notranslate"><span class="pre">AsciiReader.read_array()</span></code></a></li>
@@ -131,6 +134,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#treecorr.reader.ParquetReader"><code class="docutils literal notranslate"><span class="pre">ParquetReader</span></code></a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.ParquetReader.check_valid_ext"><code class="docutils literal notranslate"><span class="pre">ParquetReader.check_valid_ext()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.ParquetReader.has_col"><code class="docutils literal notranslate"><span class="pre">ParquetReader.has_col()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.ParquetReader.names"><code class="docutils literal notranslate"><span class="pre">ParquetReader.names()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.ParquetReader.read"><code class="docutils literal notranslate"><span class="pre">ParquetReader.read()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#treecorr.reader.ParquetReader.row_count"><code class="docutils literal notranslate"><span class="pre">ParquetReader.row_count()</span></code></a></li>
@@ -408,41 +412,41 @@ config dict’s verbose level.)</p>
 <li><p><strong>is_rand</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#bool" title="(in Python v3.14)"><em>bool</em></a>) – If this is a random file, then setting is_rand to True will let them
 skip k_col, g1_col, and g2_col if they were set for the main catalog.
 (default: False)</p></li>
-<li><p><strong>x</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The x values. (default: None; When providing values directly, either
+<li><p><strong>x</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The x values. (default: None; When providing values directly, either
 x,y are required or ra,dec are required.)</p></li>
-<li><p><strong>y</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The y values. (default: None; When providing values directly, either
+<li><p><strong>y</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The y values. (default: None; When providing values directly, either
 x,y are required or ra,dec are required.)</p></li>
-<li><p><strong>z</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The z values, if doing 3d positions. (default: None; invalid in
+<li><p><strong>z</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The z values, if doing 3d positions. (default: None; invalid in
 conjunction with ra, dec.)</p></li>
-<li><p><strong>ra</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The RA values. (default: None; When providing values directly, either
+<li><p><strong>ra</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The RA values. (default: None; When providing values directly, either
 x,y are required or ra,dec are required.)</p></li>
-<li><p><strong>dec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The Dec values. (default: None; When providing values directly, either
+<li><p><strong>dec</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The Dec values. (default: None; When providing values directly, either
 x,y are required or ra,dec are required.)</p></li>
-<li><p><strong>r</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The r values (the distances of each source from Earth). (default: None;
+<li><p><strong>r</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The r values (the distances of each source from Earth). (default: None;
 invalid in conjunction with x, y.)</p></li>
-<li><p><strong>w</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The weights to apply when computing the correlations. (default: None)</p></li>
-<li><p><strong>wpos</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The weights to use for position centroiding. (default: None, which
+<li><p><strong>w</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The weights to apply when computing the correlations. (default: None)</p></li>
+<li><p><strong>wpos</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The weights to use for position centroiding. (default: None, which
 means to use the value weights, w, to weight the positions as well.)</p></li>
-<li><p><strong>flag</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – An optional array of flags, indicating objects to skip.  Rows with
+<li><p><strong>flag</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – An optional array of flags, indicating objects to skip.  Rows with
 flag != 0 (or technically flag &amp; ~ok_flag != 0) will be given a weight
 of 0. (default: None)</p></li>
-<li><p><strong>k</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The kappa values to use for scalar correlations. (This may represent
+<li><p><strong>k</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The kappa values to use for scalar correlations. (This may represent
 any scalar field.) (default: None)</p></li>
-<li><p><strong>z1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The z1 values to use for complex scalar correlations. (default: None)</p></li>
-<li><p><strong>z2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The z2 values to use for complex scalar correlations. (default: None)</p></li>
-<li><p><strong>v1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The v1 values to use for vector correlations. (default: None)</p></li>
-<li><p><strong>v2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The v2 values to use for vector correlations. (default: None)</p></li>
-<li><p><strong>g1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The g1 values to use for shear correlations. (g1,g2 may represent any
+<li><p><strong>z1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The z1 values to use for complex scalar correlations. (default: None)</p></li>
+<li><p><strong>z2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The z2 values to use for complex scalar correlations. (default: None)</p></li>
+<li><p><strong>v1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The v1 values to use for vector correlations. (default: None)</p></li>
+<li><p><strong>v2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The v2 values to use for vector correlations. (default: None)</p></li>
+<li><p><strong>g1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The g1 values to use for shear correlations. (g1,g2 may represent any
 spin-2 field.) (default: None)</p></li>
-<li><p><strong>g2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The g2 values to use for shear correlations. (g1,g2 may represent any
+<li><p><strong>g2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The g2 values to use for shear correlations. (g1,g2 may represent any
 spin-2 field.) (default: None)</p></li>
-<li><p><strong>t1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The t1 values to use for trefoil (spin-3) correlations. (default: None)</p></li>
-<li><p><strong>t2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The t2 values to use for trefoil (spin-3) correlations. (default: None)</p></li>
-<li><p><strong>q1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The q1 values to use for quatrefoil (spin-4) correlations.
+<li><p><strong>t1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The t1 values to use for trefoil (spin-3) correlations. (default: None)</p></li>
+<li><p><strong>t2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The t2 values to use for trefoil (spin-3) correlations. (default: None)</p></li>
+<li><p><strong>q1</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The q1 values to use for quatrefoil (spin-4) correlations.
 (default: None)</p></li>
-<li><p><strong>q2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The q2 values to use for quatrefoil (spin-4) correlations.
+<li><p><strong>q2</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The q2 values to use for quatrefoil (spin-4) correlations.
 (default: None)</p></li>
-<li><p><strong>patch</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or int) – <p>Optionally, patch numbers to use for each object. (default: None)</p>
+<li><p><strong>patch</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or int) – <p>Optionally, patch numbers to use for each object. (default: None)</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This may also be an int if the entire catalog represents a
@@ -454,7 +458,7 @@ given patch number, and <code class="docutils literal notranslate"><span class="
 number of patches, which this catalog is a part of.</p>
 </div>
 </p></li>
-<li><p><strong>patch_centers</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or str) – <p>Alternative to setting patch by hand or using kmeans, you
+<li><p><strong>patch_centers</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a> or str) – <p>Alternative to setting patch by hand or using kmeans, you
 may instead give patch_centers either as a file name or an array
 from which the patches will be determined. (default: None)</p>
 <p>For cross-correlations that use patch-based covariance estimates,
@@ -664,7 +668,7 @@ of the range.</p></li>
 <li><p><strong>cat_precision</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – The precision to use when writing a Catalog to an ASCII file. This
 should be an integer, which specifies how many digits to write.
 (default: 16)</p></li>
-<li><p><strong>rng</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/random/generator.html#numpy.random.Generator" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.random.Generator</span></code></a>) – If desired, a <code class="docutils literal notranslate"><span class="pre">Generator</span></code> instance to use for any random number
+<li><p><strong>rng</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/random/generator.html#numpy.random.Generator" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.random.Generator</span></code></a>) – If desired, a <code class="docutils literal notranslate"><span class="pre">Generator</span></code> instance to use for any random number
 generation (e.g. kmeans patches). Legacy <code class="docutils literal notranslate"><span class="pre">RandomState</span></code> instances are
 also accepted. (default: None)</p></li>
 <li><p><strong>num_threads</strong> (<a class="reference external" href="https://docs.python.org/3/library/functions.html#int" title="(in Python v3.14)"><em>int</em></a>) – <p>How many OpenMP threads to use during the catalog load steps.
@@ -685,7 +689,7 @@ also accepted. (default: None)</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>col</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.4)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The input column to check.</p></li>
+<li><p><strong>col</strong> (<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html#numpy.ndarray" title="(in NumPy v2.5)"><code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code></a>) – The input column to check.</p></li>
 <li><p><strong>col_str</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The name of the column.  Used only as information in logging output.</p></li>
 </ul>
 </dd>
@@ -1619,6 +1623,12 @@ Uses fitsio to read columns, etc.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="treecorr.reader.FitsReader.has_col">
+<span class="sig-name descname"><span class="pre">has_col</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#FitsReader.has_col"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.reader.FitsReader.has_col" title="Link to this definition"></a></dt>
+<dd><p>Return whether the named column exists in the extension.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="treecorr.reader.FitsReader.names">
 <span class="sig-name descname"><span class="pre">names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#FitsReader.names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.reader.FitsReader.names" title="Link to this definition"></a></dt>
 <dd><p>Return a list of the names of all the columns in an extension</p>
@@ -1738,6 +1748,12 @@ Uses h5py to read columns, etc.</p>
 </dd></dl>
 
 <dl class="py method">
+<dt class="sig sig-object py" id="treecorr.reader.HdfReader.has_col">
+<span class="sig-name descname"><span class="pre">has_col</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#HdfReader.has_col"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.reader.HdfReader.has_col" title="Link to this definition"></a></dt>
+<dd><p>Return whether the named column exists in the extension.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt class="sig sig-object py" id="treecorr.reader.HdfReader.names">
 <span class="sig-name descname"><span class="pre">names</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#HdfReader.names"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.reader.HdfReader.names" title="Link to this definition"></a></dt>
 <dd><p>Return a list of the names of all the columns in an extension</p>
@@ -1853,6 +1869,12 @@ integers is painfully slow.</p>
 <dd class="field-odd"><p><strong>ext</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The extension to check.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.reader.AsciiReader.has_col">
+<span class="sig-name descname"><span class="pre">has_col</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#AsciiReader.has_col"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.reader.AsciiReader.has_col" title="Link to this definition"></a></dt>
+<dd><p>Return whether the named column exists in the extension.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -1992,6 +2014,12 @@ integers is painfully slow.</p>
 <dd class="field-odd"><p><strong>ext</strong> (<a class="reference external" href="https://docs.python.org/3/library/stdtypes.html#str" title="(in Python v3.14)"><em>str</em></a>) – The extension to check.</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="treecorr.reader.ParquetReader.has_col">
+<span class="sig-name descname"><span class="pre">has_col</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">col</span></span></em>, <em class="sig-param"><span class="keyword-only-separator o"><abbr title="Keyword-only parameters separator (PEP 3102)"><span class="pre">*</span></abbr></span></em>, <em class="sig-param"><span class="n"><span class="pre">ext</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="_modules/treecorr/reader.html#ParquetReader.has_col"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#treecorr.reader.ParquetReader.has_col" title="Link to this definition"></a></dt>
+<dd><p>Return whether the named column exists in the extension.</p>
 </dd></dl>
 
 <dl class="py method">

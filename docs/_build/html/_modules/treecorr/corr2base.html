@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>treecorr.corr2base &mdash; TreeCorr 5.1.3 documentation</title>
+  <title>treecorr.corr2base &mdash; TreeCorr 5.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=88590691"></script>
+      <script src="../../_static/documentation_options.js?v=7d0012f7"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -105,6 +105,7 @@
 <span class="kn">import</span> <span class="nn">coord</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">import</span> <span class="nn">logging</span>
 
 <span class="kn">from</span> <span class="nn">.</span> <span class="kn">import</span> <span class="n">_treecorr</span>
 <span class="kn">from</span> <span class="nn">.config</span> <span class="kn">import</span> <span class="n">merge_config</span><span class="p">,</span> <span class="n">setup_logger</span><span class="p">,</span> <span class="n">get</span><span class="p">,</span> <span class="n">make_minimal_config</span>
@@ -652,6 +653,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_processed_cats1</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_processed_cats2</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_corr_only</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_meanww</span> <span class="o">=</span> <span class="mf">1.</span>
 
         <span class="c1"># Sub-classes will allocate space for the ones we actually need.</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_xi</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">)]</span>
@@ -771,7 +773,6 @@
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">corr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_corr</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_corr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_builder</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_bintype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_min_sep</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_max_sep</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_nbins</span><span class="p">,</span>
                                        <span class="bp">self</span><span class="o">.</span><span class="n">_bin_size</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">angle_slop</span><span class="p">,</span>
                                        <span class="bp">self</span><span class="o">.</span><span class="n">min_rpar</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_rpar</span><span class="p">,</span>
@@ -860,6 +861,33 @@
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Return if there are any values accumulated yet.  (i.e. npairs &gt; 0)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+
+    <span class="nd">@lazy_property</span>
+    <span class="k">def</span> <span class="nf">_zero_array</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># An array of all zeros with the same shape as the 2pt data arrays.</span>
+        <span class="n">z</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+        <span class="n">z</span><span class="o">.</span><span class="n">flags</span><span class="o">.</span><span class="n">writeable</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">z</span>
+
+    <span class="k">def</span> <span class="nf">_zero_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># A minimal &quot;copy&quot; for dummy patch results used in covariance bookkeeping.</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_ro</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ro</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">coords</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">coords</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">metric</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">metric</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_xi</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_zero_array</span> <span class="k">if</span> <span class="n">xi</span><span class="o">.</span><span class="n">size</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span> <span class="k">for</span> <span class="n">xi</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xi</span><span class="p">]</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">meanr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_array</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">meanlogr</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_array</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">weight</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_array</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">npairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_array</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_corr</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_corr_only</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_meanww</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_meanww</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_logger_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_write_patch_results</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">return</span> <span class="n">ret</span>
 
     <span class="k">def</span> <span class="nf">_add_tot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ij</span><span class="p">,</span> <span class="n">c1</span><span class="p">,</span> <span class="n">c2</span><span class="p">):</span>
         <span class="c1"># No op for all but NNCorrelation, which needs to add the tot value</span>
@@ -954,6 +982,11 @@
             <span class="k">if</span> <span class="n">my_indices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">True</span>
 
+            <span class="c1"># Check which (if either) index is in my range of indices.</span>
+            <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">my_indices</span>
+            <span class="n">i_in</span> <span class="o">=</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">stop</span>
+            <span class="n">j_in</span> <span class="o">=</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">stop</span>
+
             <span class="c1"># Now the tricky part.  If using MPI, we need to divide up the jobs smartly.</span>
             <span class="c1"># The first point is to divvy up the auto jobs evenly.  This is where most of the</span>
             <span class="c1"># work is done, so we want those to be spread as evenly as possible across procs.</span>
@@ -961,12 +994,12 @@
             <span class="c1"># This reduces the number of catalogs this machine needs to load up.</span>
             <span class="c1"># If the auto i,i and j,j are both my job, then i and j are already being loaded</span>
             <span class="c1"># on this machine, so also do that job.</span>
-            <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">my_indices</span> <span class="ow">and</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">my_indices</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i_in</span> <span class="ow">and</span> <span class="n">j_in</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rank </span><span class="si">%d</span><span class="s2">: Job (</span><span class="si">%d</span><span class="s2">,</span><span class="si">%d</span><span class="s2">) is mine.&quot;</span><span class="p">,</span><span class="n">rank</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">True</span>
 
             <span class="c1"># If neither index is mine, then it&#39;s not my job.</span>
-            <span class="k">if</span> <span class="n">i</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">my_indices</span> <span class="ow">and</span> <span class="n">j</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">my_indices</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">i_in</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">j_in</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
 
             <span class="c1"># For the other jobs, we want to minimize how many other catalogs need to be</span>
@@ -979,9 +1012,9 @@
             <span class="c1"># have to load more catalogs than those with higher indices, since i &lt; j.</span>
             <span class="c1"># So we reverse the procedure when j-i &gt; n/2 to spread out the I/O more.</span>
             <span class="k">if</span> <span class="n">j</span><span class="o">-</span><span class="n">i</span> <span class="o">&lt;</span> <span class="n">n</span><span class="o">//</span><span class="mi">2</span><span class="p">:</span>
-                <span class="n">ret</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">my_indices</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">i_in</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">ret</span> <span class="o">=</span> <span class="n">j</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">my_indices</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">ret</span> <span class="o">=</span> <span class="n">j</span> <span class="o">%</span> <span class="mi">2</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span> <span class="k">if</span> <span class="n">j_in</span> <span class="k">else</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">ret</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rank </span><span class="si">%d</span><span class="s2">: Job (</span><span class="si">%d</span><span class="s2">,</span><span class="si">%d</span><span class="s2">) is mine.&quot;</span><span class="p">,</span><span class="n">rank</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">ret</span>
@@ -998,8 +1031,8 @@
             <span class="k">if</span> <span class="n">comm</span><span class="p">:</span>
                 <span class="n">size</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
                 <span class="n">rank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
-                <span class="n">my_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">rank</span> <span class="o">//</span> <span class="n">size</span><span class="p">,</span> <span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">rank</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">size</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rank </span><span class="si">%d</span><span class="s2">: My indices are </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">rank</span><span class="p">,</span><span class="n">my_indices</span><span class="p">)</span>
+                <span class="n">my_indices</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">rank</span> <span class="o">//</span> <span class="n">size</span><span class="p">,</span> <span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">rank</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">size</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rank </span><span class="si">%d</span><span class="s2">: My indices are [</span><span class="si">%d</span><span class="s2">,</span><span class="si">%d</span><span class="s2">)&quot;</span><span class="p">,</span><span class="n">rank</span><span class="p">,</span><span class="o">*</span><span class="n">my_indices</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">my_indices</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -1031,7 +1064,8 @@
                             <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[(</span><span class="n">i</span><span class="p">,</span><span class="n">i</span><span class="p">)]</span> <span class="o">+=</span> <span class="n">temp</span>
                         <span class="bp">self</span> <span class="o">+=</span> <span class="n">temp</span>
 
-                    <span class="k">for</span> <span class="n">jj</span><span class="p">,</span><span class="n">c2</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">cat1</span><span class="p">))[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]:</span>
+                    <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">cat1</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">):</span>
+                        <span class="n">c2</span> <span class="o">=</span> <span class="n">cat1</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span>
                         <span class="n">j</span> <span class="o">=</span> <span class="n">c2</span><span class="o">.</span><span class="n">_single_patch</span> <span class="k">if</span> <span class="n">c2</span><span class="o">.</span><span class="n">_single_patch</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">jj</span>
                         <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="n">j</span> <span class="ow">and</span> <span class="n">is_my_job</span><span class="p">(</span><span class="n">my_indices</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s1">&#39;Process patches </span><span class="si">%d</span><span class="s1">, </span><span class="si">%d</span><span class="s1"> cross&#39;</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span>
@@ -1045,7 +1079,8 @@
             <span class="k">if</span> <span class="n">comm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">rank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
                 <span class="n">size</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rank </span><span class="si">%d</span><span class="s2">: Completed jobs </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">rank</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">isEnabledFor</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rank </span><span class="si">%d</span><span class="s2">: Completed jobs </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
                 <span class="c1"># Send all the results back to rank 0 process.</span>
                 <span class="k">if</span> <span class="n">rank</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">comm</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -1065,13 +1100,16 @@
             <span class="k">if</span> <span class="n">my_indices</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">True</span>
 
+            <span class="c1"># Otherwise, it depends on the range of my_indices.</span>
+            <span class="n">start</span><span class="p">,</span> <span class="n">stop</span> <span class="o">=</span> <span class="n">my_indices</span>
+
             <span class="c1"># This is much simpler than in the auto case, since the set of catalogs for</span>
             <span class="c1"># cat1 and cat2 are different, we can just split up one of them among the jobs.</span>
             <span class="k">if</span> <span class="n">n1</span> <span class="o">&gt;</span> <span class="n">n2</span><span class="p">:</span>
                 <span class="n">k</span> <span class="o">=</span> <span class="n">i</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">k</span> <span class="o">=</span> <span class="n">j</span>
-            <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">my_indices</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">start</span> <span class="o">&lt;=</span> <span class="n">k</span> <span class="o">&lt;</span> <span class="n">stop</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rank </span><span class="si">%d</span><span class="s2">: Job (</span><span class="si">%d</span><span class="s2">,</span><span class="si">%d</span><span class="s2">) is mine.&quot;</span><span class="p">,</span><span class="n">rank</span><span class="p">,</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">)</span>
                 <span class="k">return</span> <span class="kc">True</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1096,8 +1134,8 @@
                 <span class="n">size</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
                 <span class="n">rank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
                 <span class="n">n</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">n1</span><span class="p">,</span><span class="n">n2</span><span class="p">)</span>
-                <span class="n">my_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">rank</span> <span class="o">//</span> <span class="n">size</span><span class="p">,</span> <span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">rank</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">size</span><span class="p">)</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rank </span><span class="si">%d</span><span class="s2">: My indices are </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">rank</span><span class="p">,</span><span class="n">my_indices</span><span class="p">)</span>
+                <span class="n">my_indices</span> <span class="o">=</span> <span class="p">(</span><span class="n">n</span> <span class="o">*</span> <span class="n">rank</span> <span class="o">//</span> <span class="n">size</span><span class="p">,</span> <span class="n">n</span> <span class="o">*</span> <span class="p">(</span><span class="n">rank</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">size</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rank </span><span class="si">%d</span><span class="s2">: My indices are [</span><span class="si">%d</span><span class="s2">,</span><span class="si">%d</span><span class="s2">)&quot;</span><span class="p">,</span><span class="n">rank</span><span class="p">,</span><span class="o">*</span><span class="n">my_indices</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">my_indices</span> <span class="o">=</span> <span class="kc">None</span>
 
@@ -1131,7 +1169,8 @@
             <span class="k">if</span> <span class="n">comm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">rank</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_rank</span><span class="p">()</span>
                 <span class="n">size</span> <span class="o">=</span> <span class="n">comm</span><span class="o">.</span><span class="n">Get_size</span><span class="p">()</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rank </span><span class="si">%d</span><span class="s2">: Completed jobs </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span><span class="n">rank</span><span class="p">,</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">isEnabledFor</span><span class="p">(</span><span class="n">logging</span><span class="o">.</span><span class="n">INFO</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Rank </span><span class="si">%d</span><span class="s2">: Completed jobs </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">rank</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">keys</span><span class="p">()))</span>
                 <span class="c1"># Send all the results back to rank 0 process.</span>
                 <span class="k">if</span> <span class="n">rank</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                     <span class="n">comm</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dest</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
@@ -1443,20 +1482,37 @@
         <span class="c1">#     for other,w in others:</span>
         <span class="c1">#         self += w*other</span>
         <span class="c1"># if w*other was valid syntax, which it isn&#39;t.</span>
+        <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">others</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
 
-        <span class="k">def</span> <span class="nf">x</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">w</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">a</span> <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">a</span><span class="o">*</span><span class="n">w</span>
+        <span class="k">def</span> <span class="nf">accumulate</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">get</span><span class="p">):</span>
+            <span class="c1"># This helper function is equivalent to</span>
+            <span class="c1">#</span>
+            <span class="c1">#   np.sum([get(c)*w for c,w in others], axis=0, out=out)</span>
+            <span class="c1">#</span>
+            <span class="c1"># but is more efficient, because (1) it avoids making the full list of arrays to send</span>
+            <span class="c1"># to sum, and (2) it avoids temporary array allocations when possible.</span>
+            <span class="n">first</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">others</span><span class="p">:</span>
+                <span class="n">a</span> <span class="o">=</span> <span class="n">get</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">first</span><span class="p">:</span>
+                    <span class="n">out</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">a</span> <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">a</span><span class="o">*</span><span class="n">w</span>
+                    <span class="n">first</span> <span class="o">=</span> <span class="kc">False</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">out</span> <span class="o">+=</span> <span class="n">a</span> <span class="k">if</span> <span class="n">w</span> <span class="o">==</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">a</span><span class="o">*</span><span class="n">w</span>
 
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_xi</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">size</span><span class="p">:</span>
-                <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">x</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">_xi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span><span class="n">w</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_xi</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
-        <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">x</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span><span class="n">w</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
+                <span class="n">accumulate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_xi</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">,</span> <span class="n">i</span><span class="o">=</span><span class="n">i</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">_xi</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+        <span class="n">accumulate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">weight</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">weight</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">corr_only</span><span class="p">:</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">x</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">meanr</span><span class="p">,</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span><span class="n">w</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">)</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">x</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">,</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span><span class="n">w</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">)</span>
-            <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">x</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">npairs</span><span class="p">,</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span><span class="n">w</span> <span class="ow">in</span> <span class="n">others</span><span class="p">],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="p">)</span>
+            <span class="n">accumulate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanr</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">meanr</span><span class="p">)</span>
+            <span class="n">accumulate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">meanlogr</span><span class="p">)</span>
+            <span class="n">accumulate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">npairs</span><span class="p">,</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">npairs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_meanww</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">_meanww</span> <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">others</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_varxi</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_corr_only</span> <span class="o">=</span> <span class="n">corr_only</span>
 
     <span class="k">def</span> <span class="nf">_calculate_varxi</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_varxi</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">rnom</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)]</span>
@@ -2447,35 +2503,39 @@
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Invalid method: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="o">%</span><span class="n">method</span><span class="p">)</span></div>
 
 
-<span class="k">def</span> <span class="nf">_make_cov_design_matrix_core</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">plist</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_make_cov_design_matrix_core</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">plist</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">calc_weights</span><span class="p">,</span> <span class="n">rank</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
     <span class="c1"># plist has the pairs to use for each row in the design matrix for each correlation fn.</span>
     <span class="c1"># It is a list by row, each element is a list by corr fn of tuples (i,j), being the indices</span>
     <span class="c1"># to use from the results dict.</span>
     <span class="c1"># We aggregate and finalize each correlation function based on those pairs, and then call</span>
     <span class="c1"># the function func on that list of correlation objects.  This is the data vector for</span>
     <span class="c1"># each row in the design matrix.</span>
-    <span class="c1"># We also make a parallel array of the total weight in each row in case the calling routine</span>
-    <span class="c1"># needs it. So far, only sample uses the returned w, but it&#39;s very little overhead to compute</span>
-    <span class="c1"># it, and only a small memory overhead to build that array and return it.</span>
+    <span class="c1"># We also can make a parallel array of the total weight in each row when the calling routine</span>
+    <span class="c1"># needs it. So far, only sample uses the returned w. Other methods set calc_weights=False</span>
+    <span class="c1"># to skip this step.</span>
 
     <span class="c1"># Make a copy of the correlation objects, so we can overwrite things without breaking</span>
     <span class="c1"># the original.</span>
     <span class="n">corrs</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrs</span><span class="p">]</span>
 
     <span class="c1"># We can&#39;t pickle functions to send via MPI, so have to do this here.</span>
-    <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">corrs</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">getStat</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrs</span><span class="p">])</span>
+    <span class="c1"># When func is omitted, we can use a faster corr_only path below and fill v[row] directly</span>
+    <span class="c1"># without building a temporary concatenated array.</span>
 
     <span class="c1"># Figure out the shape of the design matrix.</span>
-    <span class="n">v1</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">corrs</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">v1_parts</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">getStat</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrs</span><span class="p">]</span>
+        <span class="n">v1</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">v1_parts</span><span class="p">)</span>
+        <span class="n">edges</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">([</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">v1_parts</span><span class="p">])</span>
+        <span class="n">stat_slices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">edges</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">edges</span><span class="p">[</span><span class="mi">1</span><span class="p">:]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">v1</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">corrs</span><span class="p">)</span>
     <span class="n">dt</span> <span class="o">=</span> <span class="n">v1</span><span class="o">.</span><span class="n">dtype</span>
     <span class="n">vsize</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">v1</span><span class="p">)</span>
-    <span class="n">nrows</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">plist</span><span class="p">)</span>
-
     <span class="c1"># Make the empty return arrays. They are filled with zeros</span>
     <span class="c1"># because we will sum them over processes later.</span>
     <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">nrows</span><span class="p">,</span><span class="n">vsize</span><span class="p">),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">dt</span><span class="p">)</span>
-    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">w</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">nrows</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="k">if</span> <span class="n">calc_weights</span> <span class="k">else</span> <span class="kc">None</span>
 
     <span class="k">for</span> <span class="n">row</span><span class="p">,</span> <span class="n">pairs</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">plist</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">row</span> <span class="o">%</span> <span class="n">size</span> <span class="o">!=</span> <span class="n">rank</span><span class="p">:</span>
@@ -2492,18 +2552,24 @@
                 <span class="n">c</span><span class="o">.</span><span class="n">_clear</span><span class="p">()</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">c</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">cpairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">_corr_only</span> <span class="ow">or</span> <span class="p">(</span><span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">))</span>
-        <span class="n">v</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">corrs</span><span class="p">)</span>
-        <span class="n">w</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">([</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getWeight</span><span class="p">())</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrs</span><span class="p">])</span>
+        <span class="k">if</span> <span class="n">func</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">c</span><span class="p">,</span> <span class="p">(</span><span class="n">i1</span><span class="p">,</span> <span class="n">i2</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">stat_slices</span><span class="p">):</span>
+                <span class="n">v</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">i1</span><span class="p">:</span><span class="n">i2</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">getStat</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">v</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="n">corrs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">calc_weights</span><span class="p">:</span>
+            <span class="n">w</span><span class="p">[</span><span class="n">row</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">getWeight</span><span class="p">())</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrs</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">v</span><span class="p">,</span><span class="n">w</span>
 
-<span class="k">def</span> <span class="nf">_make_cov_design_matrix</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">plist</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">comm</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_make_cov_design_matrix</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">plist</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">calc_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">comm</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="kn">from</span> <span class="nn">mpi4py.MPI</span> <span class="kn">import</span> <span class="n">IN_PLACE</span>
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="c1"># Probably testing using MockMPI...</span>
             <span class="n">IN_PLACE</span> <span class="o">=</span> <span class="mi">1</span>
-        <span class="n">v</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">_make_cov_design_matrix_core</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">plist</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">comm</span><span class="o">.</span><span class="n">rank</span><span class="p">,</span> <span class="n">comm</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
+        <span class="n">v</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">_make_cov_design_matrix_core</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">plist</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">calc_weights</span><span class="p">,</span>
+                                            <span class="n">comm</span><span class="o">.</span><span class="n">rank</span><span class="p">,</span> <span class="n">comm</span><span class="o">.</span><span class="n">size</span><span class="p">)</span>
         <span class="c1"># These two calls collects the v arrays from w arrays from all the processors,</span>
         <span class="c1"># sums them all together, and then sends them back to each processor where they</span>
         <span class="c1"># are put back in-place, overwriting the original v and w array contents.</span>
@@ -2513,10 +2579,11 @@
         <span class="c1"># final arrays. This may or may not be needed depending on what users subsequently</span>
         <span class="c1"># do with the matrix, but is fast since this matrix isn&#39;t large.</span>
         <span class="n">comm</span><span class="o">.</span><span class="n">Allreduce</span><span class="p">(</span><span class="n">IN_PLACE</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
-        <span class="n">comm</span><span class="o">.</span><span class="n">Allreduce</span><span class="p">(</span><span class="n">IN_PLACE</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">calc_weights</span><span class="p">:</span>
+            <span class="n">comm</span><span class="o">.</span><span class="n">Allreduce</span><span class="p">(</span><span class="n">IN_PLACE</span><span class="p">,</span> <span class="n">w</span><span class="p">)</span>
     <span class="c1"># Otherwise we just use the regular version, which implicitly does the whole matrix</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="n">v</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">_make_cov_design_matrix_core</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">plist</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+        <span class="n">v</span><span class="p">,</span> <span class="n">w</span> <span class="o">=</span> <span class="n">_make_cov_design_matrix_core</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">plist</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">nrows</span><span class="p">,</span> <span class="n">calc_weights</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">v</span><span class="p">,</span> <span class="n">w</span>
 
 <span class="k">def</span> <span class="nf">_cov_shot</span><span class="p">(</span><span class="n">corrs</span><span class="p">):</span>
@@ -2549,14 +2616,12 @@
             <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;All correlations must use the same number of patches&quot;</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">npatch</span>
 
-<span class="k">def</span> <span class="nf">_design_jackknife</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_design_jackknife</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">,</span> <span class="n">calc_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="n">npatch</span> <span class="o">=</span> <span class="n">_check_patch_nums</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="s1">&#39;jackknife&#39;</span><span class="p">)</span>
     <span class="n">plist</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">_jackknife_pairs</span><span class="p">(</span><span class="n">cross_patch_weight</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrs</span><span class="p">]</span>
-    <span class="c1"># Swap order of plist.  Right now it&#39;s a list for each corr of a list for each row.</span>
-    <span class="c1"># We want a list by row with a list for each corr.</span>
-    <span class="n">plist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">plist</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">_make_cov_design_matrix</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">plist</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="s1">&#39;jackknife&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">)</span>
+    <span class="c1"># Iterate by row without materializing the full transposed list.</span>
+    <span class="k">return</span> <span class="n">_make_cov_design_matrix</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">plist</span><span class="p">),</span> <span class="n">func</span><span class="p">,</span> <span class="s1">&#39;jackknife&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">npatch</span><span class="p">,</span>
+                                   <span class="n">calc_weights</span><span class="o">=</span><span class="n">calc_weights</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_cov_jackknife</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">):</span>
     <span class="c1"># Calculate the jackknife covariance for the given statistics</span>
@@ -2566,7 +2631,7 @@
     <span class="c1"># where v_i is the vector when excluding patch i, and v_mean is the mean of all {v_i}.</span>
     <span class="c1">#   v_i = Sum_jk!=i num_jk / Sum_jk!=i denom_jk</span>
 
-    <span class="n">v</span><span class="p">,</span><span class="n">w</span> <span class="o">=</span> <span class="n">_design_jackknife</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">)</span>
+    <span class="n">v</span><span class="p">,</span><span class="n">w</span> <span class="o">=</span> <span class="n">_design_jackknife</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">,</span> <span class="n">calc_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">npatch</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">vmean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">v</span> <span class="o">-=</span> <span class="n">vmean</span>
@@ -2576,11 +2641,9 @@
 <span class="k">def</span> <span class="nf">_design_sample</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">):</span>
     <span class="n">npatch</span> <span class="o">=</span> <span class="n">_check_patch_nums</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="s1">&#39;sample&#39;</span><span class="p">)</span>
     <span class="n">plist</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">_sample_pairs</span><span class="p">(</span><span class="n">cross_patch_weight</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrs</span><span class="p">]</span>
-    <span class="c1"># Swap order of plist.  Right now it&#39;s a list for each corr of a list for each row.</span>
-    <span class="c1"># We want a list by row with a list for each corr.</span>
-    <span class="n">plist</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">plist</span><span class="p">))</span>
-
-    <span class="k">return</span> <span class="n">_make_cov_design_matrix</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">plist</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="s1">&#39;sample&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">)</span>
+    <span class="c1"># Iterate by row without materializing the full transposed list.</span>
+    <span class="k">return</span> <span class="n">_make_cov_design_matrix</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="n">plist</span><span class="p">),</span> <span class="n">func</span><span class="p">,</span> <span class="s1">&#39;sample&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">npatch</span><span class="p">,</span>
+                                   <span class="n">calc_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_cov_sample</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">):</span>
     <span class="c1"># Calculate the sample covariance.</span>
@@ -2606,19 +2669,21 @@
     <span class="n">C</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">npatch</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="n">w</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="p">)</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">C</span>
 
-<span class="k">def</span> <span class="nf">_design_marked</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_design_marked</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">,</span> <span class="n">calc_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="n">npatch</span> <span class="o">=</span> <span class="n">_check_patch_nums</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="s1">&#39;marked_bootstrap&#39;</span><span class="p">)</span>
+    <span class="n">patch_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">npatch</span><span class="p">)</span>
 
-    <span class="n">plist</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_bootstrap</span><span class="p">):</span>
-        <span class="c1"># Select a random set of indices to use.  (Will have repeats.)</span>
-        <span class="c1"># Note use choice rather than integers, so it is backwards compatible with the old</span>
-        <span class="c1"># np.random.RandomState (which used randint rather than integers for that functionality).</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="n">corrs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">npatch</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">npatch</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">vpairs</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">_marked_pairs</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrs</span><span class="p">]</span>
-        <span class="n">plist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vpairs</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">iter_plist</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_bootstrap</span><span class="p">):</span>
+            <span class="c1"># Select a random set of indices to use.  (Will have repeats.)</span>
+            <span class="c1"># Note use choice rather than integers, so it is backwards compatible with the old</span>
+            <span class="c1"># np.random.RandomState (which used randint rather than integers for that</span>
+            <span class="c1"># functionality).</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">corrs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">patch_ids</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">npatch</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">_marked_pairs</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrs</span><span class="p">]</span>
 
-    <span class="k">return</span> <span class="n">_make_cov_design_matrix</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">plist</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="s1">&#39;marked_bootstrap&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_make_cov_design_matrix</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">iter_plist</span><span class="p">(),</span> <span class="n">func</span><span class="p">,</span> <span class="s1">&#39;marked_bootstrap&#39;</span><span class="p">,</span>
+                                   <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">num_bootstrap</span><span class="p">,</span> <span class="n">calc_weights</span><span class="o">=</span><span class="n">calc_weights</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_cov_marked</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">):</span>
     <span class="c1"># Calculate the marked-point bootstrap covariance</span>
@@ -2637,22 +2702,23 @@
 
     <span class="c1"># C = 1/(nboot) Sum_i (v_i - v_mean) (v_i - v_mean)^T</span>
 
-    <span class="n">v</span><span class="p">,</span><span class="n">w</span> <span class="o">=</span> <span class="n">_design_marked</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">)</span>
+    <span class="n">v</span><span class="p">,</span><span class="n">w</span> <span class="o">=</span> <span class="n">_design_marked</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">,</span> <span class="n">calc_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">vmean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">v</span> <span class="o">-=</span> <span class="n">vmean</span>
     <span class="n">C</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">num_bootstrap</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">C</span>
 
-<span class="k">def</span> <span class="nf">_design_bootstrap</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">_design_bootstrap</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">,</span> <span class="n">calc_weights</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="n">npatch</span> <span class="o">=</span> <span class="n">_check_patch_nums</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="s1">&#39;bootstrap&#39;</span><span class="p">)</span>
+    <span class="n">patch_ids</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">npatch</span><span class="p">)</span>
 
-    <span class="n">plist</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_bootstrap</span><span class="p">):</span>
-        <span class="n">index</span> <span class="o">=</span> <span class="n">corrs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">npatch</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="n">npatch</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-        <span class="n">vpairs</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">_bootstrap_pairs</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrs</span><span class="p">]</span>
-        <span class="n">plist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">vpairs</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">iter_plist</span><span class="p">():</span>
+        <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_bootstrap</span><span class="p">):</span>
+            <span class="n">index</span> <span class="o">=</span> <span class="n">corrs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">rng</span><span class="o">.</span><span class="n">choice</span><span class="p">(</span><span class="n">patch_ids</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">npatch</span><span class="p">,</span> <span class="n">replace</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">_bootstrap_pairs</span><span class="p">(</span><span class="n">index</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">corrs</span><span class="p">]</span>
 
-    <span class="k">return</span> <span class="n">_make_cov_design_matrix</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">plist</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="s1">&#39;bootstrap&#39;</span><span class="p">,</span> <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">_make_cov_design_matrix</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">iter_plist</span><span class="p">(),</span> <span class="n">func</span><span class="p">,</span> <span class="s1">&#39;bootstrap&#39;</span><span class="p">,</span>
+                                   <span class="n">comm</span><span class="o">=</span><span class="n">comm</span><span class="p">,</span> <span class="n">nrows</span><span class="o">=</span><span class="n">num_bootstrap</span><span class="p">,</span> <span class="n">calc_weights</span><span class="o">=</span><span class="n">calc_weights</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_cov_bootstrap</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">):</span>
     <span class="c1"># Calculate the 2-patch bootstrap covariance estimate.</span>
@@ -2663,7 +2729,8 @@
     <span class="c1"># It seems to do a slightly better job than the marked-point bootstrap above from the</span>
     <span class="c1"># tests done in the test suite.  But the difference is generally pretty small.</span>
 
-    <span class="n">v</span><span class="p">,</span><span class="n">w</span> <span class="o">=</span> <span class="n">_design_bootstrap</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">)</span>
+    <span class="n">v</span><span class="p">,</span><span class="n">w</span> <span class="o">=</span> <span class="n">_design_bootstrap</span><span class="p">(</span><span class="n">corrs</span><span class="p">,</span> <span class="n">func</span><span class="p">,</span> <span class="n">comm</span><span class="p">,</span> <span class="n">num_bootstrap</span><span class="p">,</span> <span class="n">cross_patch_weight</span><span class="p">,</span>
+                            <span class="n">calc_weights</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
     <span class="n">vmean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">v</span> <span class="o">-=</span> <span class="n">vmean</span>
     <span class="n">C</span> <span class="o">=</span> <span class="mf">1.</span><span class="o">/</span><span class="p">(</span><span class="n">num_bootstrap</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">conj</span><span class="p">()</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>

@@ -5,14 +5,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>treecorr.nggcorrelation &mdash; TreeCorr 5.1.3 documentation</title>
+  <title>treecorr.nggcorrelation &mdash; TreeCorr 5.2 documentation</title>
       <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=fa44fd50" />
       <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=e59714d7" />
 
   
       <script src="../../_static/jquery.js?v=5d32c60e"></script>
       <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
-      <script src="../../_static/documentation_options.js?v=88590691"></script>
+      <script src="../../_static/documentation_options.js?v=7d0012f7"></script>
       <script src="../../_static/doctools.js?v=9bcbadda"></script>
       <script src="../../_static/sphinx_highlight.js?v=dc90522c"></script>
     <script src="../../_static/js/theme.js"></script>
@@ -294,6 +294,15 @@
         <span class="k">return</span> <span class="n">ret</span></div>
 
 
+    <span class="k">def</span> <span class="nf">_zero_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_zero_copy</span><span class="p">()</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_rgg</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_gam0</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_gam2</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_comp_vargam0</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_comp_vargam2</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
 <div class="viewcode-block" id="NGGCorrelation.finalize">
 <a class="viewcode-back" href="../../ngg.html#treecorr.NGGCorrelation.finalize">[docs]</a>
     <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varg1</span><span class="p">,</span> <span class="n">varg2</span><span class="p">):</span>
@@ -422,14 +431,12 @@
                 <span class="c1"># edge effects among the various pairs in consideration), then we need to add</span>
                 <span class="c1"># some dummy results to make sure all the right pairs are computed when we make</span>
                 <span class="c1"># the vectors for the covariance matrix.</span>
-                <span class="n">template</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>  <span class="c1"># Just need something to copy.</span>
+                <span class="n">added_any</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">for</span> <span class="n">ijk</span> <span class="ow">in</span> <span class="n">rgg</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">ijk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">:</span> <span class="k">continue</span>
-                    <span class="n">new_cij</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-                        <span class="n">new_cij</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="n">i</span><span class="p">][:]</span> <span class="o">=</span> <span class="mi">0</span>
-                    <span class="n">new_cij</span><span class="o">.</span><span class="n">weight</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">0</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="n">ijk</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_cij</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="n">ijk</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_copy</span><span class="p">()</span>
+                    <span class="n">added_any</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">added_any</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_ok&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_cov</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_method</span><span class="p">)</span>
@@ -454,7 +461,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rgg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># If rgg has npatch1 = 1, adjust pairs appropriately</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rgg</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rgg</span><span class="o">.</span><span class="n">npatch1</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">):</span>
                 <span class="n">pairs</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">w</span> <span class="ow">in</span> <span class="n">pairs</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">j</span><span class="p">]</span>
             <span class="n">pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_rgg</span><span class="o">.</span><span class="n">_keep_ok</span><span class="p">(</span><span class="n">pairs</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_rgg</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -686,6 +693,15 @@
         <span class="k">return</span> <span class="n">ret</span></div>
 
 
+    <span class="k">def</span> <span class="nf">_zero_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_zero_copy</span><span class="p">()</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_grg</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_gam0</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_gam1</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_comp_vargam0</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_comp_vargam1</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
 <div class="viewcode-block" id="GNGCorrelation.finalize">
 <a class="viewcode-back" href="../../ngg.html#treecorr.GNGCorrelation.finalize">[docs]</a>
     <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varg1</span><span class="p">,</span> <span class="n">varg2</span><span class="p">):</span>
@@ -814,14 +830,12 @@
                 <span class="c1"># edge effects among the various pairs in consideration), then we need to add</span>
                 <span class="c1"># some dummy results to make sure all the right pairs are computed when we make</span>
                 <span class="c1"># the vectors for the covariance matrix.</span>
-                <span class="n">template</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>  <span class="c1"># Just need something to copy.</span>
+                <span class="n">added_any</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">for</span> <span class="n">ijk</span> <span class="ow">in</span> <span class="n">grg</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">ijk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">:</span> <span class="k">continue</span>
-                    <span class="n">new_cij</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-                        <span class="n">new_cij</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="n">i</span><span class="p">][:]</span> <span class="o">=</span> <span class="mi">0</span>
-                    <span class="n">new_cij</span><span class="o">.</span><span class="n">weight</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">0</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="n">ijk</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_cij</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="n">ijk</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_copy</span><span class="p">()</span>
+                    <span class="n">added_any</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">added_any</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_ok&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_cov</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_method</span><span class="p">)</span>
@@ -846,7 +860,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grg</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># If grg has npatch2 = 1, adjust pairs appropriately</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grg</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grg</span><span class="o">.</span><span class="n">npatch2</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">):</span>
                 <span class="n">pairs</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">w</span> <span class="ow">in</span> <span class="n">pairs</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">j</span><span class="p">]</span>
             <span class="n">pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_grg</span><span class="o">.</span><span class="n">_keep_ok</span><span class="p">(</span><span class="n">pairs</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_grg</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -1078,6 +1092,15 @@
         <span class="k">return</span> <span class="n">ret</span></div>
 
 
+    <span class="k">def</span> <span class="nf">_zero_copy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">ret</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_zero_copy</span><span class="p">()</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_ggr</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_gam0</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_gam1</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_comp_vargam0</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">ret</span><span class="o">.</span><span class="n">_comp_vargam1</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">return</span> <span class="n">ret</span>
+
 <div class="viewcode-block" id="GGNCorrelation.finalize">
 <a class="viewcode-back" href="../../ngg.html#treecorr.GGNCorrelation.finalize">[docs]</a>
     <span class="k">def</span> <span class="nf">finalize</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">varg1</span><span class="p">,</span> <span class="n">varg2</span><span class="p">):</span>
@@ -1206,14 +1229,12 @@
                 <span class="c1"># edge effects among the various pairs in consideration), then we need to add</span>
                 <span class="c1"># some dummy results to make sure all the right pairs are computed when we make</span>
                 <span class="c1"># the vectors for the covariance matrix.</span>
-                <span class="n">template</span> <span class="o">=</span> <span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>  <span class="c1"># Just need something to copy.</span>
+                <span class="n">added_any</span> <span class="o">=</span> <span class="kc">False</span>
                 <span class="k">for</span> <span class="n">ijk</span> <span class="ow">in</span> <span class="n">ggr</span><span class="o">.</span><span class="n">results</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">ijk</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">:</span> <span class="k">continue</span>
-                    <span class="n">new_cij</span> <span class="o">=</span> <span class="n">template</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">4</span><span class="p">):</span>
-                        <span class="n">new_cij</span><span class="o">.</span><span class="n">_z</span><span class="p">[</span><span class="n">i</span><span class="p">][:]</span> <span class="o">=</span> <span class="mi">0</span>
-                    <span class="n">new_cij</span><span class="o">.</span><span class="n">weight</span><span class="p">[:]</span> <span class="o">=</span> <span class="mi">0</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="n">ijk</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_cij</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="n">ijk</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_zero_copy</span><span class="p">()</span>
+                    <span class="n">added_any</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">if</span> <span class="n">added_any</span><span class="p">:</span>
                     <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;_ok&#39;</span><span class="p">,</span><span class="kc">None</span><span class="p">)</span>
 
                 <span class="bp">self</span><span class="o">.</span><span class="n">_cov</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">estimate_cov</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">var_method</span><span class="p">)</span>
@@ -1238,7 +1259,7 @@
         <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="p">)</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ggr</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="c1"># If ggr has npatch3 = 1, adjust pairs appropriately</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ggr</span><span class="o">.</span><span class="n">npatch3</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">]):</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ggr</span><span class="o">.</span><span class="n">npatch3</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">pairs</span><span class="p">):</span>
                 <span class="n">pairs</span> <span class="o">=</span> <span class="p">[(</span><span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span><span class="n">j</span><span class="p">,</span><span class="n">k</span><span class="p">,</span><span class="n">w</span> <span class="ow">in</span> <span class="n">pairs</span> <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">k</span><span class="p">]</span>
             <span class="n">pairs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ggr</span><span class="o">.</span><span class="n">_keep_ok</span><span class="p">(</span><span class="n">pairs</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_ggr</span><span class="o">.</span><span class="n">_calculate_xi_from_pairs</span><span class="p">(</span><span class="n">pairs</span><span class="p">,</span> <span class="n">corr_only</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
